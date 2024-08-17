@@ -13,62 +13,62 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  phone String @unique
-  password String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  student Student?
-  tutor Tutor?
-  employee Employee?
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  phone     String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  student   Student?
+  tutor     Tutor?
+  employee  Employee?
 }
 
 model Student {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @unique @db.ObjectId
-  user User @relation(fields: [userId], references: [id])
-  name String
-  email String @unique
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String  @unique @db.ObjectId
+  user     User    @relation(fields: [userId], references: [id])
+  name     String
+  email    String  @unique
   location String
-  orders Order[]
+  orders   Order[]
 }
 
 model Tutor {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @unique @db.ObjectId
-  user User @relation(fields: [userId], references: [id])
-  name String
-  email String @unique
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String     @unique @db.ObjectId
+  user      User       @relation(fields: [userId], references: [id])
+  name      String
+  email     String     @unique
   avatarUrl String?
-  location String
+  location  String
+  response  Response[]
 }
 
 model Employee {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @unique @db.ObjectId
-  user User @relation(fields: [userId], references: [id])
-  name String
-  email String @unique
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @unique @db.ObjectId
+  user     User   @relation(fields: [userId], references: [id])
+  name     String
+  email    String @unique
   location String
 }
 
 model Order {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  studentId String @db.ObjectId
-  student Student @relation(fields: [studentId], references: [id])
-  response Response[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String     @db.ObjectId
+  student   Student    @relation(fields: [studentId], references: [id])
+  response  Response[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Response {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  tutorId String @db.ObjectId
-  tutor Tutor @relation(fields: [tutorId], references: [id])
-  orderId String @db.ObjectId
-  order Order @relation(fields: [orderId], references: [id])
-  text String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  tutorId   String   @db.ObjectId
+  tutor     Tutor    @relation(fields: [tutorId], references: [id])
+  orderId   String   @db.ObjectId
+  order     Order    @relation(fields: [orderId], references: [id])
+  text      String
   createdAt DateTime @default(now())
 }
