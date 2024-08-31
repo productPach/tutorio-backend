@@ -44,7 +44,7 @@ const UserController = {
 
     if (!phone) {
       return res
-        .send(400)
+        .status(400)
         .json({ error: "Телефон является обязательным полем" });
     }
 

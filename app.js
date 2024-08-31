@@ -4,9 +4,13 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const fs = require("fs");
+const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
+
+// CORS middleware setup
+app.use(cors({ origin: "http://localhost:3001" })); // Настраиваем разрешение запросов с определенного источника
 
 app.use(logger("dev"));
 app.use(express.json());
