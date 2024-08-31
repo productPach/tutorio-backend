@@ -51,7 +51,12 @@ router.delete(
 );
 
 // Роуты для репетитора
-router.post("/tutors", authenticateToken, TutorController.createTutor);
+router.post(
+  "/tutors",
+  authenticateToken,
+  uploads.single("avatar"),
+  TutorController.createTutor
+);
 router.get("/currentTutor", authenticateToken, TutorController.currentTutor);
 router.get("/tutors", authenticateToken, TutorController.getAllTutors);
 router.get("/tutors/:id", authenticateToken, TutorController.getTutorById);
