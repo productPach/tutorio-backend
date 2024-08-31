@@ -25,42 +25,73 @@ model User {
 }
 
 model Student {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String  @unique @db.ObjectId
-  user     User    @relation(fields: [userId], references: [id])
-  name     String
-  email    String  @unique
-  location String
-  orders   Order[]
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  phone     String   @unique
+  email     String?
+  location  String?
+  orders    Order[]
 }
 
 model Tutor {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String     @unique @db.ObjectId
-  user      User       @relation(fields: [userId], references: [id])
-  name      String
-  email     String     @unique
-  avatarUrl String?
-  location  String
-  response  Response[]
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String     @unique @db.ObjectId
+  user        User       @relation(fields: [userId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  name        String
+  phone       String     @unique
+  email       String?
+  avatarUrl   String?
+  subject     String[]
+  geo         String
+  tutorPlace  String[]
+  tutorAdress String?
+  tutorTrip   String[]   @default([])
+  response    Response[]
 }
 
 model Employee {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String @unique @db.ObjectId
-  user     User   @relation(fields: [userId], references: [id])
-  name     String
-  email    String @unique
-  location String
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  email     String   @unique
+  location  String
 }
 
 model Order {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  studentId String     @db.ObjectId
-  student   Student    @relation(fields: [studentId], references: [id])
-  response  Response[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                String     @id @default(auto()) @map("_id") @db.ObjectId
+  studentId         String     @db.ObjectId
+  student           Student    @relation(fields: [studentId], references: [id])
+  response          Response[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  subject           String
+  goal              String
+  studentType       String?
+  studentYears      String?
+  studentClass      String?
+  studentCourse     String?
+  studentUniversity String?
+  studentExam       String?
+  studyMethod       String?
+  studyProgramm     String?
+  deadline          String?
+  studentLevel      String
+  tutorGender       String
+  studentSchedule   String
+  studentPlace      String[]
+  studentAdress     String?
+  studentTrip       String[]   @default([])
+  tutorType         String
+  studentWishes     String?
 }
 
 model Response {

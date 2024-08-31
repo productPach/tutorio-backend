@@ -1,11 +1,11 @@
 const { prisma } = require("../prisma/prisma-client");
-const { bcrypt } = require("bcryptjs");
-const jdenticon = require("jdenticon");
-const path = require("path");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const UserController = {
+  // Регистрация пользователя
   register: async (req, res) => {
-    const { phone, password, avatar } = req.body;
+    const { phone, secretSMS, role } = req.body;
 
     if (!phone) {
       return res
@@ -22,48 +22,196 @@ const UserController = {
         });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      if (!avatar) {
-        const png = jdenticon.toPng(name, 200);
-        const avatarName = `${name}_${Date.now()}.png`;
-        const avatarPath = path.join(__dirname, "../uploads", avatarName);
-      }
+      const hashedPassword = await bcrypt.hash(secretSMS, 10);
 
       const user = await prisma.user.create({
         data: {
           phone,
           password: hashedPassword,
-          avatarUrl: `/uploads/${avatarPath}`,
         },
       });
-    } catch (error) {}
-    res.send("Register");
-    console.log(phone, password);
+
+      res.json(user);
+    } catch (error) {
+      console.log("Error in register User", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
-  registerTutor: async (req, res) => {
-    res.send("RegisterTutor");
-  },
-  registerStudent: async (req, res) => {
-    res.send("RegisterStudent");
-  },
-  registerEmployee: async (req, res) => {
-    res.send("RegisterEmployee");
-  },
+
+  // Авторизация пользователя
   login: async (req, res) => {
-    res.send("login");
+    const { phone, secretSMS } = req.body;
+
+    if (!phone) {
+      return res
+        .send(400)
+        .json({ error: "Телефон является обязательным полем" });
+    }
+
+    try {
+      const user = await prisma.user.findUnique({ where: { phone } });
+
+      if (!user) {
+        return res
+          .status(400)
+          .json({ error: "Такого пользователя не существует" });
+      }
+
+      const valid = await bcrypt.compare(secretSMS, user.password);
+
+      if (!valid) {
+        return res
+          .status(400)
+          .json({ error: "Неверно введен проверочный код" });
+      }
+
+      const token = jwt.sign(
+        { userID: user.id, phone: user.phone },
+        process.env.SECRET_KEY
+      );
+
+      res.json({ token });
+    } catch (error) {
+      console.error("Ошибка авторизации", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
+
+  // Получение пользователя по ID
   getUserById: async (req, res) => {
-    res.send("getUserById");
+    const { id } = req.params;
+    // Достаем айди пользователя из auth.js (jwt token)
+    const userID = req.user.userID;
+
+    try {
+      const user = await prisma.user.findUnique({ where: { id } });
+
+      if (!user) {
+        return res.status(404).json({ error: "Пользователь не найден" });
+      }
+
+      res.json({ user });
+    } catch (error) {
+      console.error("Get User By Id Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
+
+  // Получение пользователя по номеру телефона
+  getUserByPhone: async (req, res) => {
+    res.send("getUserByPhone");
+  },
+
+  // Изменение пользователя
   updateUser: async (req, res) => {
-    res.send("updateUser");
+    const { id } = req.params;
+
+    const { phone, secretSMS, student, tutor, employee } = req.body;
+
+    if (id !== req.user.userID) {
+      return res.status(403).json({ error: "Нет доступа" });
+    }
+
+    if (!phone && !secretSMS) {
+      return res
+        .status(400)
+        .json({ error: "Не заполнены все обязательные поля" });
+    }
+
+    try {
+      if (phone) {
+        const existingUser = await prisma.user.findFirst({
+          where: { phone: phone },
+        });
+
+        if (existingUser && existingUser.id !== id) {
+          return res.status(400).json({
+            error: "Номер телефона уже используется другим пользователем",
+          });
+        }
+      }
+
+      let hashedPassword;
+      if (secretSMS) {
+        hashedPassword = await bcrypt.hash(secretSMS, 10);
+      }
+
+      const user = await prisma.user.update({
+        where: { id },
+        data: {
+          phone: phone || undefined,
+          password: hashedPassword || undefined,
+        },
+      });
+
+      if (phone) {
+        const existingStudent = await prisma.student.findUnique({
+          where: { userId: id },
+        });
+
+        if (existingStudent) {
+          await prisma.student.update({
+            where: { userId: id },
+            data: {
+              phone,
+            },
+          });
+        }
+
+        const existingTutor = await prisma.tutor.findUnique({
+          where: { userId: id },
+        });
+
+        if (existingTutor) {
+          await prisma.tutor.update({
+            where: { userId: id },
+            data: {
+              phone,
+            },
+          });
+        }
+      }
+
+      res.json(user);
+    } catch (error) {
+      console.error("Update User Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
+
+  // Получение текущего пользователя по токену
   current: async (req, res) => {
-    res.send("current");
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.userID },
+      });
+
+      if (!user) {
+        return res.status(400).json({ error: "Не удалось найти пользователя" });
+      }
+
+      res.json(user);
+    } catch (error) {
+      console.error("Current User Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
+
+  // Удаление пользователя самим пользователем
   deleteUser: async (req, res) => {
-    res.send("deleteUser");
+    const { id } = req.params;
+
+    if (id !== req.user.userID) {
+      return res.status(403).json({ error: "Нет доступа" });
+    }
+
+    try {
+      await prisma.user.delete({ where: { id: req.user.userID } });
+      res.send("Пользователь удален");
+    } catch (error) {
+      console.error("Delete User Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
 };
 
