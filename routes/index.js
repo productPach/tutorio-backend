@@ -26,7 +26,8 @@ router.post("/register-user", UserController.register);
 router.post("/login", UserController.login);
 router.get("/current", authenticateToken, UserController.current);
 router.get("/users/:id", authenticateToken, UserController.getUserById);
-router.get("/users/:phone", authenticateToken, UserController.getUserByPhone);
+router.get("/users-phone/:phone", UserController.getUserByPhone);
+router.put("/users-secret", UserController.updSecretUser);
 router.put("/users/:id", authenticateToken, UserController.updateUser);
 router.delete("/users/:id", authenticateToken, UserController.deleteUser);
 

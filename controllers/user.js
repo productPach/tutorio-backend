@@ -99,7 +99,60 @@ const UserController = {
 
   // Получение пользователя по номеру телефона
   getUserByPhone: async (req, res) => {
-    res.send("getUserByPhone");
+    const { phone } = req.params;
+
+    try {
+      const existingUser = await prisma.user.findFirst({
+        where: { phone: phone },
+      });
+
+      if (existingUser) {
+        return res.status(400).json({
+          error: "Номер телефона уже используется другим пользователем",
+        });
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Номер телефона свободен для использования" });
+    } catch (error) {
+      console.error("Get User By Phone Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Изменение секретного ключа пользователя
+  updSecretUser: async (req, res) => {
+    const { phone, secretSMS } = req.body;
+
+    try {
+      const existingUser = await prisma.user.findFirst({
+        where: { phone: phone },
+      });
+
+      if (!existingUser) {
+        return res.status(400).json({
+          error: "Номер телефона не привязан ни к одному пользователю",
+        });
+      }
+
+      let hashedPassword;
+      if (secretSMS) {
+        hashedPassword = await bcrypt.hash(secretSMS, 10);
+      }
+
+      const user = await prisma.user.update({
+        where: { phone },
+        data: {
+          password: hashedPassword || undefined,
+        },
+      });
+
+      res.status(200).json({ message: "Успешно изменен код" });
+    } catch (error) {
+      console.error("Get User By Phone Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
 
   // Изменение пользователя
