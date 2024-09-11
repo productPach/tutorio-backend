@@ -99,7 +99,7 @@ const UserController = {
 
   // Получение пользователя по номеру телефона
   getUserByPhone: async (req, res) => {
-    const { phone } = req.params;
+    const { phone } = req.body;
 
     try {
       const existingUser = await prisma.user.findFirst({
