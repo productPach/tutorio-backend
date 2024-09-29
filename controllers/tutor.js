@@ -12,14 +12,14 @@ const TutorController = {
       email,
       avatarUrl,
       subject,
-      geo,
+      region,
       tutorPlace,
       tutorAdress,
       tutorTrip,
     } = req.body;
     const userId = req.user.userID;
 
-    if (!name || !phone || !subject || !geo || !tutorPlace) {
+    if (!name || !phone || !subject || !region || !tutorPlace) {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
@@ -55,7 +55,7 @@ const TutorController = {
             ? `/uploads/${avatarUrl}`
             : `/uploads/${avatarGenerateUrl}`,
           subject,
-          geo,
+          region,
           tutorPlace,
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,

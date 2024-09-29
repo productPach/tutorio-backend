@@ -19,6 +19,7 @@ const OrderController = {
       tutorGender,
       studentSchedule,
       studentPlace,
+      region,
       studentAdress,
       studentTrip,
       tutorType,
@@ -39,6 +40,7 @@ const OrderController = {
       !studentLevel ||
       !tutorGender ||
       !studentPlace ||
+      !region ||
       !tutorType
     ) {
       return res
@@ -65,6 +67,7 @@ const OrderController = {
           tutorGender,
           studentSchedule: studentSchedule || undefined,
           studentPlace,
+          region,
           studentAdress: studentAdress || undefined,
           studentTrip: studentTrip || undefined,
           tutorType,

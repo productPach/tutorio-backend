@@ -3,10 +3,10 @@ const { prisma } = require("../prisma/prisma-client");
 const StudentController = {
   // Создание ученика
   createStudent: async (req, res) => {
-    const { name, phone, email, location } = req.body;
+    const { name, phone, email, region } = req.body;
     const userId = req.user.userID;
 
-    if (!name || !phone) {
+    if (!name || !phone || !region) {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
@@ -29,7 +29,7 @@ const StudentController = {
           name,
           phone,
           email: email || undefined,
-          location: location || undefined,
+          region,
         },
       });
       res.json(student);
