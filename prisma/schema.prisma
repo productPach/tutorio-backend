@@ -33,7 +33,7 @@ model Student {
   name      String
   phone     String   @unique
   email     String?
-  location  String?
+  region    String
   orders    Order[]
 }
 
@@ -48,7 +48,7 @@ model Tutor {
   email       String?
   avatarUrl   String?
   subject     String[]
-  geo         String
+  region      String
   tutorPlace  String[]
   tutorAdress String?
   tutorTrip   String[]   @default([])
@@ -63,7 +63,7 @@ model Employee {
   updatedAt DateTime @updatedAt
   name      String
   email     String   @unique
-  location  String
+  region    String
 }
 
 model Order {
@@ -86,8 +86,9 @@ model Order {
   deadline          String?
   studentLevel      String
   tutorGender       String
-  studentSchedule   String
+  studentSchedule   String?
   studentPlace      String[]
+  region            String
   studentAdress     String?
   studentTrip       String[]   @default([])
   tutorType         String
