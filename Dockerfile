@@ -1,11 +1,14 @@
-# Исользуем образ линукс Alpine с версией node 14
-FROM node:19.5.0-alpine
+# Используем стабильный образ линукс Alpine с версией Node.js 18
+FROM node:18-alpine
 
 # Указываем нашу рабочую директорию
 WORKDIR /app
 
 # Скопировать package.json и package-lock.json внутрь контейнера
 COPY package*.json ./
+
+# Обновляем npm до последней версии
+RUN npm install -g npm@latest
 
 # Устанавливаем зависимости
 RUN npm install
