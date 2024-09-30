@@ -3,10 +3,10 @@ const { prisma } = require("../prisma/prisma-client");
 const StudentController = {
   // Создание ученика
   createStudent: async (req, res) => {
-    const { name, phone, email, region } = req.body;
+    const { name, phone, email, region, status } = req.body;
     const userId = req.user.userID;
 
-    if (!name || !phone || !region) {
+    if (!name || !phone || !region || !status) {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
@@ -30,6 +30,7 @@ const StudentController = {
           phone,
           email: email || undefined,
           region,
+          status,
         },
       });
       res.json(student);
@@ -99,7 +100,7 @@ const StudentController = {
   updateStudent: async (req, res) => {
     const { id } = req.params;
 
-    const { name, email, location } = req.body;
+    const { name, email, region, status } = req.body;
 
     try {
       const student = await prisma.student.findUnique({
@@ -119,7 +120,8 @@ const StudentController = {
         data: {
           name: name || undefined,
           email: email || undefined,
-          location: location || undefined,
+          region: region || undefined,
+          status: status || undefined,
         },
       });
 
