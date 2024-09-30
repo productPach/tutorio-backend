@@ -16,10 +16,11 @@ const TutorController = {
       tutorPlace,
       tutorAdress,
       tutorTrip,
+      status,
     } = req.body;
     const userId = req.user.userID;
 
-    if (!name || !phone || !subject || !region || !tutorPlace) {
+    if (!name || !phone || !subject || !region || !tutorPlace || !status) {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
@@ -59,6 +60,7 @@ const TutorController = {
           tutorPlace,
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,
+          status: status,
         },
       });
       res.json(tutor);
@@ -135,10 +137,11 @@ const TutorController = {
       email,
       avatarUrl,
       subject,
-      geo,
+      region,
       tutorPlace,
       tutorAdress,
       tutorTrip,
+      status,
     } = req.body;
 
     try {
@@ -161,10 +164,11 @@ const TutorController = {
           email: email || undefined,
           avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : undefined,
           subject: subject || undefined,
-          geo: geo || undefined,
+          region: region || undefined,
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,
+          status: status || undefined,
         },
       });
 
