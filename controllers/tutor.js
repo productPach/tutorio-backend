@@ -28,7 +28,11 @@ const TutorController = {
 
     let avatarGenerateUrl;
 
-    if (!avatarUrl) {
+    let filePath;
+
+    if (req.file && req.file.path) {
+      filePath = req.file.path;
+    } else {
       const png = jdenticon.toPng(name, 200);
       const avatarName = `${name}_${Date.now()}.png`;
       avatarGenerateUrl = path.join(__dirname, "../uploads", avatarName);
