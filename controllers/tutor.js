@@ -53,15 +53,15 @@ const TutorController = {
       const tutor = await prisma.tutor.create({
         data: {
           userId,
-          name,
+          name: name || undefined,
           phone,
           email: email || undefined,
           avatarUrl: avatarUrl
             ? `/uploads/${avatarUrl}`
             : `/uploads/${avatarGenerateUrl}`,
-          subject,
+          subject: subject || undefined,
           region: region || undefined,
-          tutorPlace,
+          tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,
           status: status,
