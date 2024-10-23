@@ -60,7 +60,7 @@ const TutorController = {
             ? `/uploads/${avatarUrl}`
             : `/uploads/${avatarGenerateUrl}`,
           subject,
-          region,
+          region: region || undefined,
           tutorPlace,
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,
