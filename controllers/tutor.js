@@ -20,7 +20,7 @@ const TutorController = {
     } = req.body;
     const userId = req.user.userID;
 
-    if (!name || !phone || !subject || !region || !tutorPlace || !status) {
+    if (!phone || !status) {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
