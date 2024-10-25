@@ -164,15 +164,17 @@ const TutorController = {
       const updateTutor = await prisma.tutor.update({
         where: { id },
         data: {
-          name: name || undefined,
-          email: email || undefined,
-          avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : undefined,
-          subject: subject || undefined,
-          region: region || undefined,
-          tutorPlace: tutorPlace || undefined,
-          tutorAdress: tutorAdress || undefined,
-          tutorTrip: tutorTrip || undefined,
-          status: status || undefined,
+          ...(name !== undefined && { name }),
+          ...(email !== undefined && { email }),
+          ...(avatarUrl !== undefined && {
+            avatarUrl: `/uploads/${avatarUrl}`,
+          }),
+          ...(subject !== undefined && { subject }),
+          ...(region !== undefined && { region }),
+          ...(tutorPlace !== undefined && { tutorPlace }),
+          ...(tutorAdress !== undefined && { tutorAdress }),
+          ...(tutorTrip !== undefined && { tutorTrip }),
+          ...(status !== undefined && { status }),
         },
       });
 
