@@ -58,6 +58,13 @@ router.post(
   uploads.single("avatar"),
   TutorController.createTutor
 );
+// Роут для обновления фотографии репетитора
+router.put(
+  "/tutors/:id/avatar",
+  authenticateToken,
+  uploads.single("avatar"),
+  TutorController.updateTutorAvatar
+);
 router.get("/currentTutor", authenticateToken, TutorController.currentTutor);
 router.get("/tutors", authenticateToken, TutorController.getAllTutors);
 router.get("/tutors/:id", authenticateToken, TutorController.getTutorById);

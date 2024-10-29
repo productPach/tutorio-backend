@@ -188,6 +188,45 @@ const TutorController = {
     }
   },
 
+  // Обновление фотографии репетитора
+  updateTutorAvatar: async (req, res) => {
+    const { id } = req.params;
+
+    // Проверяем, есть ли загруженный файл
+    if (!req.file) {
+      return res.status(400).json({ error: "Файл не загружен" });
+    }
+
+    const avatarUrl = req.file.filename; // Получаем имя загруженного файла
+
+    try {
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      if (tutor.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
+      // Обновляем фотографию
+      const updatedTutor = await prisma.tutor.update({
+        where: { id },
+        data: {
+          avatarUrl: `/uploads/${avatarUrl}`, // Указываем путь к загруженному файлу
+        },
+      });
+
+      res.json(updatedTutor);
+    } catch (error) {
+      console.error("Update Tutor Avatar Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Удаление репетитора
   deleteTutor: async (req, res) => {
     const { id } = req.params;
