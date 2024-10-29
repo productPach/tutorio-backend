@@ -135,6 +135,7 @@ const TutorController = {
   // Изменение репетитора
   updateTutor: async (req, res) => {
     const { id } = req.params;
+
     const {
       name,
       email,
@@ -146,8 +147,11 @@ const TutorController = {
       status,
     } = req.body;
 
-    // Проверка на наличие загруженного файла
-    let avatarUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
+    let avatarUrl; // Переменная для хранения пути к загруженной фотографии
+    // Проверяем, есть ли загруженный файл
+    if (req.file) {
+      avatarUrl = req.file.filename; // Получаем имя загруженного файла
+    }
 
     try {
       const tutor = await prisma.tutor.findUnique({
@@ -167,7 +171,7 @@ const TutorController = {
         data: {
           name: name || undefined,
           email: email || undefined,
-          avatarUrl: avatarUrl || tutor.avatarUrl, // Обновляем аватар только если есть новый файл
+          avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl, // Если нет новой фотографии, оставляем старую
           subject: subject || undefined,
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
