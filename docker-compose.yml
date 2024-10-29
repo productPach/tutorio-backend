@@ -7,8 +7,9 @@ services:
       - tutorio-mongodb
     environment:
       DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
-      volumes:
-        - ./uploads:/uploads
+    volumes:
+      - ./uploads:/uploads
+
   tutorio-mongodb:
     image: prismagraphql/mongo-single-replica:5.0.3
     ports:
