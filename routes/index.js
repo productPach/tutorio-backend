@@ -15,9 +15,10 @@ const uploadDestination = "uploads";
 const storage = multer.diskStorage({
   destination: uploadDestination,
   filename: function (req, file, next) {
-    const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 10000); // Добавляем временную метку и случайное число
-    const originalExtension = path.extname(file.originalname); // Получаем расширение оригинального файла
-    const filename = `${uniqueSuffix}${originalExtension}`; // Создаем новое имя файла
+    const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 10000);
+    const filename = `${
+      file.originalname.split(".")[0]
+    }_${uniqueSuffix}${path.extname(file.originalname)}`;
     next(null, filename);
   },
 });
