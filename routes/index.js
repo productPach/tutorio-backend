@@ -14,11 +14,15 @@ const uploadDestination = "uploads";
 
 // Показываем где хранить файлы
 const storage = multer.diskStorage({
-  destination: uploadDestination,
-  filename: function (req, file, next) {
-    const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 10000); // Добавляем временную метку и случайное число
-    const originalExtension = path.extname(file.originalname); // Получаем расширение оригинального файла
-    const filename = `${uniqueSuffix}${originalExtension}`; // Создаем новое имя файла
+  destination: (req, file, next) => {
+    next(null, uploadDestination);
+  },
+  filename: (req, file, next) => {
+    const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 10000);
+    const userId = req.user.userID; // Получаем ID пользователя
+    const filename = `${userId}_${uniqueSuffix}${path.extname(
+      file.originalname
+    )}`; // Добавляем ID пользователя
     next(null, filename);
   },
 });
