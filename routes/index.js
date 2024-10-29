@@ -13,12 +13,17 @@ const uploadDestination = "uploads";
 
 // Показываем где хранить файлы
 const storage = multer.diskStorage({
-  destination: uploadDestination,
-  filename: function (req, file, next) {
+  destination: (req, file, next) => {
+    // Логируем путь назначения
+    console.log("Upload destination:", uploadDestination);
+    next(null, uploadDestination);
+  },
+  filename: (req, file, next) => {
     const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 10000);
     const filename = `${
       file.originalname.split(".")[0]
     }_${uniqueSuffix}${path.extname(file.originalname)}`;
+    console.log("Generated filename:", filename); // Логируем сгенерированное имя
     next(null, filename);
   },
 });
@@ -69,6 +74,9 @@ router.put(
   uploads.single("avatar"),
   (req, res, next) => {
     console.log(req.file); // Логируем файл
+    if (!req.file) {
+      return res.status(400).json({ error: "Файл не загружен" });
+    }
     next();
   },
   TutorController.updateTutorAvatar
