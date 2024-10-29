@@ -61,7 +61,7 @@ router.post(
 router.get("/currentTutor", authenticateToken, TutorController.currentTutor);
 router.get("/tutors", authenticateToken, TutorController.getAllTutors);
 router.get("/tutors/:id", authenticateToken, TutorController.getTutorById);
-router.put("/tutors/:id", authenticateToken, TutorController.updateTutor);
+router.patch("/tutors/:id", authenticateToken, TutorController.updateTutor);
 router.delete("/tutors/:id", authenticateToken, TutorController.deleteTutor);
 
 // Роуты для сотрудника
