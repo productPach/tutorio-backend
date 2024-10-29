@@ -135,11 +135,9 @@ const TutorController = {
   // Изменение репетитора
   updateTutor: async (req, res) => {
     const { id } = req.params;
-
     const {
       name,
       email,
-      avatarUrl,
       subject,
       region,
       tutorPlace,
@@ -147,6 +145,9 @@ const TutorController = {
       tutorTrip,
       status,
     } = req.body;
+
+    // Проверка на наличие загруженного файла
+    let avatarUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
 
     try {
       const tutor = await prisma.tutor.findUnique({
@@ -164,17 +165,15 @@ const TutorController = {
       const updateTutor = await prisma.tutor.update({
         where: { id },
         data: {
-          ...(name !== undefined && { name }),
-          ...(email !== undefined && { email }),
-          ...(avatarUrl !== undefined && {
-            avatarUrl: `/uploads/${avatarUrl}`,
-          }),
-          ...(subject !== undefined && { subject }),
-          ...(region !== undefined && { region }),
-          ...(tutorPlace !== undefined && { tutorPlace }),
-          ...(tutorAdress !== undefined && { tutorAdress }),
-          ...(tutorTrip !== undefined && { tutorTrip }),
-          ...(status !== undefined && { status }),
+          name: name || undefined,
+          email: email || undefined,
+          avatarUrl: avatarUrl || tutor.avatarUrl, // Обновляем аватар только если есть новый файл
+          subject: subject || undefined,
+          region: region || undefined,
+          tutorPlace: tutorPlace || undefined,
+          tutorAdress: tutorAdress || undefined,
+          tutorTrip: tutorTrip || undefined,
+          status: status || undefined,
         },
       });
 
