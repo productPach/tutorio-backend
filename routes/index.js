@@ -63,6 +63,10 @@ router.put(
   "/tutors/:id/avatar",
   authenticateToken,
   uploads.single("avatar"),
+  (req, res, next) => {
+    console.log(req.file); // Логируем файл
+    next();
+  },
   TutorController.updateTutorAvatar
 );
 router.get("/currentTutor", authenticateToken, TutorController.currentTutor);
