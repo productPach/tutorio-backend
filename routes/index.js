@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const multer = require("multer");
+const path = require("path");
 const {
   UserController,
   OrderController,
@@ -13,17 +14,11 @@ const uploadDestination = "uploads";
 
 // Показываем где хранить файлы
 const storage = multer.diskStorage({
-  destination: (req, file, next) => {
-    // Логируем путь назначения
-    console.log("Upload destination:", uploadDestination);
-    next(null, uploadDestination);
-  },
-  filename: (req, file, next) => {
-    const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 10000);
-    const filename = `${
-      file.originalname.split(".")[0]
-    }_${uniqueSuffix}${path.extname(file.originalname)}`;
-    console.log("Generated filename:", filename); // Логируем сгенерированное имя
+  destination: uploadDestination,
+  filename: function (req, file, next) {
+    const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 10000); // Добавляем временную метку и случайное число
+    const originalExtension = path.extname(file.originalname); // Получаем расширение оригинального файла
+    const filename = `${uniqueSuffix}${originalExtension}`; // Создаем новое имя файла
     next(null, filename);
   },
 });
@@ -74,9 +69,6 @@ router.put(
   uploads.single("avatar"),
   (req, res, next) => {
     console.log(req.file); // Логируем файл
-    if (!req.file) {
-      return res.status(400).json({ error: "Файл не загружен" });
-    }
     next();
   },
   TutorController.updateTutorAvatar
