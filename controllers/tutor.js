@@ -220,8 +220,6 @@ const TutorController = {
         },
       });
 
-      fs.writeFileSync(req.file);
-
       res.json(updatedTutor);
     } catch (error) {
       console.error("Update Tutor Avatar Error", error);
