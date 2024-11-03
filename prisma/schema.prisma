@@ -52,6 +52,7 @@ model Tutor {
   region      String?
   tutorPlace  String[]   @default([])
   tutorAdress String?
+  tutorHomeLoc String[]   @default([])
   tutorTrip   String[]   @default([])
   status      String
   response    Response[]

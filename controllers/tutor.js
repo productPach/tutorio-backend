@@ -15,6 +15,7 @@ const TutorController = {
       region,
       tutorPlace,
       tutorAdress,
+      tutorHomeLoc,
       tutorTrip,
       status,
     } = req.body;
@@ -63,6 +64,7 @@ const TutorController = {
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
+          tutorHomeLoc: tutorHomeLoc || undefined,
           tutorTrip: tutorTrip || undefined,
           status: status,
         },
@@ -144,6 +146,7 @@ const TutorController = {
       tutorPlace,
       tutorAdress,
       tutorTrip,
+      tutorHomeLoc,
       status,
     } = req.body;
 
@@ -176,6 +179,7 @@ const TutorController = {
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
+          tutorHomeLoc: tutorHomeLoc || undefined,
           tutorTrip: tutorTrip || undefined,
           status: status || undefined,
         },
