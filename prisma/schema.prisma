@@ -97,6 +97,7 @@ model Order {
   studentHomeLoc    String[]   @default([])
   tutorType         String
   studentWishes     String?
+  responseCost      String?
   status            String
 }
 

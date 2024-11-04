@@ -25,6 +25,7 @@ const OrderController = {
       studentTrip,
       tutorType,
       studentWishes,
+      responseCost,
       status,
     } = req.body;
 
@@ -75,6 +76,7 @@ const OrderController = {
           studentTrip: studentTrip || undefined,
           tutorType,
           studentWishes: studentWishes || undefined,
+          responseCost: responseCost || undefined,
           status: status,
         },
       });
@@ -154,6 +156,7 @@ const OrderController = {
       studentTrip,
       tutorType,
       studentWishes,
+      responseCost,
       status,
     } = req.body;
     const userId = req.user.userID;
@@ -195,6 +198,7 @@ const OrderController = {
           studentTrip: studentTrip || undefined,
           tutorType: tutorType || undefined,
           studentWishes: studentWishes || undefined,
+          responseCost: responseCost || undefined,
           status: status || undefined,
         },
       });
