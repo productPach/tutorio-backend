@@ -39,7 +39,6 @@ const OrderController = {
     if (
       !studentId ||
       !subject ||
-      !goal ||
       !studentLevel ||
       !tutorGender ||
       !studentPlace ||
@@ -56,7 +55,7 @@ const OrderController = {
         data: {
           studentId,
           subject,
-          goal,
+          goal: goal || undefined,
           studentType: studentType || undefined,
           studentYears: studentYears || undefined,
           studentClass: studentClass || undefined,
