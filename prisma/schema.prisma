@@ -77,7 +77,7 @@ model Order {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   subject           String
-  goal              String
+  goal              String?
   studentType       String?
   studentYears      String?
   studentClass      String?
