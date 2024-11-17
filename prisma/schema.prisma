@@ -96,7 +96,7 @@ model Order {
   studentTrip       String[]   @default([])
   studentHomeLoc    String[]   @default([])
   tutorType         String
-  autoContactsOnResponse Boolean
+  autoContactsOnResponse Boolean?
   studentWishes     String?
   responseCost      String?
   status            String
