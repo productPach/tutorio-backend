@@ -32,7 +32,7 @@ const EmployeeController = {
           status,
         },
       });
-      res.json(tutor);
+      res.json(employee);
     } catch (error) {
       console.log("Error Create Employee", error);
       res.status(500).json({ error: "Internal server error" });
