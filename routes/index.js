@@ -7,9 +7,9 @@ const {
   StudentController,
   TutorController,
   EmployeeController,
+  WelcomeScreenController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
-const WelcomeScreenController = require("../controllers/welcomScreen");
 
 const uploadDestination = "uploads";
 
@@ -134,12 +134,12 @@ router.get(
   WelcomeScreenController.getAllWelcomeScreen
 );
 router.patch(
-  "welcome-screens/:id",
+  "/welcome-screens/:id",
   authenticateToken,
   WelcomeScreenController.updateWelcomeScreen
 );
 router.delete(
-  "welcome-screens/:id",
+  "/welcome-screens/:id",
   authenticateToken,
   WelcomeScreenController.deleteWelcomeScreen
 );
