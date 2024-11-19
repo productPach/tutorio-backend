@@ -7,6 +7,7 @@ const WelcomeScreenController = {
     const {
       title,
       content,
+      link,
       userType,
       page,
       group,
@@ -35,6 +36,7 @@ const WelcomeScreenController = {
         data: {
           title,
           content,
+          link,
           userType,
           page,
           group,
@@ -87,7 +89,8 @@ const WelcomeScreenController = {
   updateWelcomeScreen: async (req, res) => {
     const { id } = req.params;
     const userId = req.user.userID;
-    const { title, content, userType, page, group, order, isActive } = req.body;
+    const { title, content, link, userType, page, group, order, isActive } =
+      req.body;
 
     try {
       const welcomeScreen = await prisma.welcomeScreen.findUnique({
@@ -113,6 +116,7 @@ const WelcomeScreenController = {
         data: {
           title: title || undefined,
           content: content || undefined,
+          link: link || undefined,
           userType: userType || undefined,
           page: page || undefined,
           group: group || undefined,
