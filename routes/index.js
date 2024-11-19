@@ -10,7 +10,6 @@ const {
   WelcomeScreenController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
-
 const uploadDestination = "uploads";
 
 // Показываем где хранить файлы
