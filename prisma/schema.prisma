@@ -14,14 +14,15 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  phone     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  student   Student?
-  tutor     Tutor?
-  employee  Employee?
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  phone         String    @unique
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  student       Student?
+  tutor         Tutor?
+  employee      Employee?
+  welcomeState  UserWelcomeScreen[]
 }
 
 model Student {
@@ -39,22 +40,22 @@ model Student {
 }
 
 model Tutor {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String     @unique @db.ObjectId
-  user        User       @relation(fields: [userId], references: [id])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  name        String?
-  phone       String     @unique
-  email       String?
-  avatarUrl   String?
-  subject     String[]   @default([])
-  region      String?
-  tutorPlace  String[]   @default([])
-  tutorAdress String?
-  tutorTrip   String[]   @default([])
-  status      String
-  response    Response[]
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String     @unique @db.ObjectId
+  user          User       @relation(fields: [userId], references: [id])
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  name          String?
+  phone         String     @unique
+  email         String?
+  avatarUrl     String?
+  subject       String[]   @default([])
+  region        String?
+  tutorPlace    String[]   @default([])
+  tutorAdress   String?
+  tutorTrip     String[]   @default([])
+  status        String
+  response      Response[]
 }
 
 model Employee {
@@ -70,36 +71,36 @@ model Employee {
 }
 
 model Order {
-  id                String     @id @default(auto()) @map("_id") @db.ObjectId
-  studentId         String     @db.ObjectId
-  student           Student    @relation(fields: [studentId], references: [id])
-  response          Response[]
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  subject           String
-  goal              String?
-  studentType       String?
-  studentYears      String?
-  studentClass      String?
-  studentCourse     String?
-  studentUniversity String?
-  studentExam       String?
-  studyMethod       String?
-  studyProgramm     String?
-  deadline          String?
-  studentLevel      String
-  tutorGender       String
-  studentSchedule   String?
-  studentPlace      String[]
-  region            String
-  studentAdress     String?
-  studentTrip       String[]   @default([])
-  studentHomeLoc    String[]   @default([])
-  tutorType         String
-  autoContactsOnResponse Boolean?
-  studentWishes     String?
-  responseCost      String?
-  status            String
+  id                      String     @id @default(auto()) @map("_id") @db.ObjectId
+  studentId               String     @db.ObjectId
+  student                 Student    @relation(fields: [studentId], references: [id])
+  response                Response[]
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+  subject                 String
+  goal                    String?
+  studentType             String?
+  studentYears            String?
+  studentClass            String?
+  studentCourse           String?
+  studentUniversity       String?
+  studentExam             String?
+  studyMethod             String?
+  studyProgramm           String?
+  deadline                String?
+  studentLevel            String
+  tutorGender             String
+  studentSchedule         String?
+  studentPlace            String[]
+  region                  String
+  studentAdress           String?
+  studentTrip             String[]   @default([])
+  studentHomeLoc          String[]   @default([])
+  tutorType               String
+  autoContactsOnResponse  Boolean?
+  studentWishes           String?
+  responseCost            String?
+  status                  String
 }
 
 model Response {
@@ -110,4 +111,30 @@ model Response {
   order     Order    @relation(fields: [orderId], references: [id])
   text      String
   createdAt DateTime @default(now())
+}
+
+model WelcomeScreen {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  content     String
+  userType    String   // Для какого типа пользователя этот скрин
+  page        String   // Опционально: Указывает, для какой страницы предназначен экран
+  group       String   // Объединение скринов в группы
+  order       Int      // Порядок показа экранов
+  isActive    Boolean  @default(false) // Контроль показа экрана
+  userWelcomeScreens UserWelcomeScreen[]  // Это поле указывает на все связанные записи в UserWelcomeScreen
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model UserWelcomeScreen {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String        @db.ObjectId
+  welcomeId    String        @db.ObjectId
+  viewedAt     DateTime       @default(now())     // Время просмотра экрана
+  user         User          @relation(fields: [userId], references: [id])
+  welcomeScreen WelcomeScreen @relation(fields: [welcomeId], references: [id])
+  @@unique([userId, welcomeId]) // Уникальная связь между пользователем и экраном
+  @@index([userId]) // Индекс для ускорения выборки по пользователю
+  @@index([welcomeId]) // Индекс для ускорения выборки по экрану
 }

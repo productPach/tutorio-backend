@@ -266,6 +266,48 @@ const UserController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+
+  // Просмотр велком-скрина пользователем
+  showWelcomeScreen: async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.userID;
+
+    try {
+      const welcomeScreen = await prisma.welcomeScreen.findUnique({
+        where: { id },
+      });
+
+      if (!welcomeScreen) {
+        return res.status(400).json({ error: "Не удалось найти велком-скрин" });
+      }
+
+      // Проверяем, просматривал ли пользователь этот экран ранее
+      const existingUserWS = await prisma.userWelcomeScreen.findUnique({
+        where: {
+          userId_welcomeId: {
+            userId,
+            welcomeId: id,
+          },
+        },
+      });
+
+      if (existingUserWS) {
+        return res.status(200).json({ message: "Экран уже был просмотрен" });
+      }
+
+      const userShowWS = await prisma.userWelcomeScreen.create({
+        data: {
+          userId,
+          welcomeId: id,
+        },
+      });
+
+      res.status(201).json(userShowWS);
+    } catch (error) {
+      console.error("Show Welcom Screen Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
 };
 
 module.exports = UserController;

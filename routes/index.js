@@ -9,6 +9,7 @@ const {
   EmployeeController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
+const WelcomeScreenController = require("../controllers/welcomScreen");
 
 const uploadDestination = "uploads";
 
@@ -38,6 +39,11 @@ router.post("/users-phone", UserController.getUserByPhone);
 router.put("/users-secret", UserController.updSecretUser);
 router.put("/users/:id", authenticateToken, UserController.updateUser);
 router.delete("/users/:id", authenticateToken, UserController.deleteUser);
+router.post(
+  "/show-welcome-screen/:id",
+  authenticateToken,
+  UserController.showWelcomeScreen
+);
 
 // Роуты для ученика
 router.post("/students", authenticateToken, StudentController.createStudent);
@@ -115,5 +121,27 @@ router.put("/orders/:id", authenticateToken, OrderController.updateOrder);
 router.delete("/orders/:id", authenticateToken, OrderController.deleteOrder);
 
 // Роуты для отклика
+
+// Роуты для велком-скринов
+router.post(
+  "/welcome-screens",
+  authenticateToken,
+  WelcomeScreenController.createWelcomeScreen
+);
+router.get(
+  "/welcome-screens",
+  authenticateToken,
+  WelcomeScreenController.getAllWelcomeScreen
+);
+router.patch(
+  "welcome-screens/:id",
+  authenticateToken,
+  WelcomeScreenController.updateWelcomeScreen
+);
+router.delete(
+  "welcome-screens/:id",
+  authenticateToken,
+  WelcomeScreenController.deleteWelcomeScreen
+);
 
 module.exports = router;
