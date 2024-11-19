@@ -155,7 +155,30 @@ const WelcomeScreenController = {
       await prisma.welcomeScreen.delete({ where: { id } });
       res.send("Велком-скрин удален");
     } catch (error) {
-      console.error("Delete Welcom Screen Error", error);
+      console.error("Delete Welcome Screen Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Получение списка велком-скринов, которые пользователь еще не видел
+  getWelcomeScreenForUser: async (req, res) => {
+    const userId = req.user.userID;
+
+    try {
+      const welcomeScreens = await prisma.welcomeScreen.findMany({
+        where: {
+          NOT: {
+            userWelcomeScreen: {
+              some: { userId: userId },
+            },
+          },
+        },
+        orderBy: { order: "asc" }, // Сортировка по порядку
+      });
+
+      res.json(welcomeScreens);
+    } catch (error) {
+      console.error("Welcome Screen For User Error", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },

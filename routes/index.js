@@ -142,5 +142,10 @@ router.delete(
   authenticateToken,
   WelcomeScreenController.deleteWelcomeScreen
 );
+router.get(
+  "/welcome-screens-user/",
+  authenticateToken,
+  WelcomeScreenController.getWelcomeScreenForUser
+);
 
 module.exports = router;
