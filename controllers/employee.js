@@ -39,9 +39,27 @@ const EmployeeController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+
   // Получение всех сотрудников
   getAllEmployees: async (req, res) => {
-    res.send("getAllEmployees");
+    try {
+      const allEmployees = await prisma.employee.findMany({
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (!allEmployees) {
+        return res
+          .status(404)
+          .json({ error: "Не найдено ни одного сотрудника" });
+      }
+
+      res.json(allEmployees);
+    } catch (error) {
+      console.error("Get All Employees Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
   // Получение сотрудника по ID
   getEmployeeById: async (req, res) => {
