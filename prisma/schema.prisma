@@ -117,6 +117,7 @@ model WelcomeScreen {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   content     String
+  link        String?
   userType    String   // Для какого типа пользователя этот скрин
   page        String   // Опционально: Указывает, для какой страницы предназначен экран
   group       String   // Объединение скринов в группы
