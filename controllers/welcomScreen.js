@@ -168,7 +168,7 @@ const WelcomeScreenController = {
       const welcomeScreens = await prisma.welcomeScreen.findMany({
         where: {
           NOT: {
-            userWelcomeScreen: {
+            userWelcomeScreens: {
               some: { userId: userId },
             },
           },
