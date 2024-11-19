@@ -3,6 +3,7 @@ const { prisma } = require("../prisma/prisma-client");
 const WelcomeScreenController = {
   // Создание велком-скрина
   createWelcomeScreen: async (req, res) => {
+    const userId = req.user.userID;
     const {
       title,
       content,
@@ -12,6 +13,16 @@ const WelcomeScreenController = {
       order,
       isActive = false,
     } = req.body;
+
+    const employee = await prisma.employee.findUnique({
+      where: { userId },
+    });
+
+    if (!employee) {
+      return res.status(403).json({
+        error: "Нет доступа",
+      });
+    }
 
     if (!title || !content || !userType || !page || !group || !order) {
       return res.status(400).json({
@@ -41,7 +52,18 @@ const WelcomeScreenController = {
 
   // Получение всех велком-скринов
   getAllWelcomeScreen: async (req, res) => {
+    const userId = req.user.userID;
     try {
+      const employee = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!employee) {
+        return res.status(403).json({
+          error: "Нет доступа",
+        });
+      }
+
       const allWelcomeScreen = await prisma.welcomeScreen.findMany({
         orderBy: {
           createdAt: "desc",
@@ -64,6 +86,7 @@ const WelcomeScreenController = {
   // Редактирование велком-скрина
   updateWelcomeScreen: async (req, res) => {
     const { id } = req.params;
+    const userId = req.user.userID;
     const { title, content, userType, page, group, order, isActive } = req.body;
 
     try {
@@ -73,6 +96,16 @@ const WelcomeScreenController = {
 
       if (!welcomeScreen) {
         return res.status(400).json({ error: "Не удалось найти велком-скрин" });
+      }
+
+      const employee = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!employee) {
+        return res.status(403).json({
+          error: "Нет доступа",
+        });
       }
 
       const updateWelcomeScreen = await prisma.welcomeScreen.update({

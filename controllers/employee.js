@@ -32,6 +32,7 @@ const EmployeeController = {
           status,
         },
       });
+
       res.json(employee);
     } catch (error) {
       console.log("Error Create Employee", error);
