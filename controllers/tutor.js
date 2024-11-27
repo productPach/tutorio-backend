@@ -145,6 +145,7 @@ const TutorController = {
       tutorAdress,
       tutorTrip,
       profileInfo,
+      isGroup,
       status,
     } = req.body;
 
@@ -179,6 +180,7 @@ const TutorController = {
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,
           profileInfo: profileInfo || undefined,
+          isGroup: isGroup || false,
           status: status || undefined,
         },
       });

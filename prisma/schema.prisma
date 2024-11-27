@@ -55,6 +55,7 @@ model Tutor {
   tutorAdress   String?
   tutorTrip     String[]   @default([])
   profileInfo   String?
+  isGroup       Boolean    @default(false)
   status        String
   response      Response[]
 }
