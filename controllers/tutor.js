@@ -231,6 +231,48 @@ const TutorController = {
     }
   },
 
+  // Контроллер для удаления аватара репетитора
+  deleteTutorAvatar: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Найти репетитора в базе данных
+      const tutor = await tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ message: "Репетитор не найден" });
+      }
+
+      // Проверить, есть ли у репетитора аватар
+      if (!tutor.avatarUrl) {
+        return res
+          .status(400)
+          .json({ message: "У репетитора нет аватара для удаления" });
+      }
+
+      // Удалить файл аватара с сервера
+      const avatarPath = path.resolve("uploads", tutor.avatarUrl); // Путь до файла
+      if (fs.existsSync(avatarPath)) {
+        fs.unlinkSync(avatarPath); // Удаление файла
+      }
+
+      // Обновляем фотографию
+      const updatedTutor = await prisma.tutor.update({
+        where: { id },
+        data: {
+          avatarUrl: null, // Указываем путь к загруженному файлу
+        },
+      });
+
+      res.json(updatedTutor);
+    } catch (error) {
+      console.error("Ошибка при удалении аватара:", error);
+      res.status(500).json({ message: "Ошибка при удалении аватара" });
+    }
+  },
+
   // Удаление репетитора
   deleteTutor: async (req, res) => {
     const { id } = req.params;
