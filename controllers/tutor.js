@@ -253,7 +253,10 @@ const TutorController = {
       }
 
       // Удалить файл аватара с сервера
-      const avatarPath = path.resolve("uploads", tutor.avatarUrl); // Путь до файла
+      const avatarPath = path.resolve(
+        "uploads",
+        tutor.avatarUrl.replace(/^\/uploads\//, "")
+      ); // Убираем /uploads из пути
       if (fs.existsSync(avatarPath)) {
         fs.unlinkSync(avatarPath); // Удаление файла
       }
