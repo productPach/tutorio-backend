@@ -54,6 +54,7 @@ model Tutor {
   tutorPlace    String[]   @default([])
   tutorAdress   String?
   tutorTrip     String[]   @default([])
+  profileInfo   String?
   status        String
   response      Response[]
 }

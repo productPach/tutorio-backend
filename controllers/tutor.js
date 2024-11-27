@@ -144,6 +144,7 @@ const TutorController = {
       tutorPlace,
       tutorAdress,
       tutorTrip,
+      profileInfo,
       status,
     } = req.body;
 
@@ -177,6 +178,7 @@ const TutorController = {
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,
+          profileInfo: profileInfo || undefined,
           status: status || undefined,
         },
       });
