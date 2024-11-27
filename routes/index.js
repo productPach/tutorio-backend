@@ -87,6 +87,11 @@ router.get("/tutors", authenticateToken, TutorController.getAllTutors);
 router.get("/tutors/:id", authenticateToken, TutorController.getTutorById);
 router.patch("/tutors/:id", authenticateToken, TutorController.updateTutor);
 router.delete("/tutors/:id", authenticateToken, TutorController.deleteTutor);
+router.delete(
+  "/tutors/:id/avatar",
+  authenticateToken,
+  TutorController.deleteTutorAvatar
+);
 
 // Роуты для сотрудника
 router.post("/employees", authenticateToken, EmployeeController.createEmployee);
