@@ -179,7 +179,7 @@ const TutorController = {
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,
-          profileInfo: profileInfo || undefined,
+          profileInfo: profileInfo,
           isGroup: isGroup || false,
           status: status || undefined,
         },
