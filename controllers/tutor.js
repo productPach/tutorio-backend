@@ -237,7 +237,7 @@ const TutorController = {
       const { id } = req.params;
 
       // Найти репетитора в базе данных
-      const tutor = await tutor.findUnique({
+      const tutor = await prisma.tutor.findUnique({
         where: { id },
       });
 
