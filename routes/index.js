@@ -29,6 +29,23 @@ const storage = multer.diskStorage({
 
 const uploads = multer({ storage: storage });
 
+// Хранилище для дипломов
+const diplomaStorage = multer.diskStorage({
+  destination: (req, file, next) => {
+    next(null, "uploads/diplomas"); // Указываем папку для дипломов
+  },
+  filename: (req, file, next) => {
+    const uniqueSuffix = Date.now() + "-" + Math.floor(Math.random() * 10000);
+    const userId = req.user.userID;
+    const filename = `${userId}_${uniqueSuffix}${path.extname(
+      file.originalname
+    )}`;
+    next(null, filename);
+  },
+});
+
+const diplomaUploads = multer({ storage: diplomaStorage });
+
 // Роуты для пользователя
 router.post("/register-user", UserController.register);
 router.post("/login", UserController.login);
@@ -95,13 +112,13 @@ router.delete(
 router.post(
   "/tutorsEducation",
   authenticateToken,
-  uploads.single("diploma"),
+  diplomaUploads.single("diploma"),
   TutorController.addEducation
 );
 router.patch(
   "/tutorsEducation/:id/:educationId",
   authenticateToken,
-  uploads.single("diploma"),
+  diplomaUploads.single("diploma"),
   TutorController.updateEducation
 );
 router.delete(

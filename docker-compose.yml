@@ -9,6 +9,7 @@ services:
       DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
     volumes:
       - ./uploads:/app/uploads
+      - ./uploads/diplomas:/app/uploads/diplomas
 
   tutorio-mongodb:
     image: prismagraphql/mongo-single-replica:5.0.3

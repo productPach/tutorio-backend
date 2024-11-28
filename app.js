@@ -27,6 +27,10 @@ if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads");
 }
 
+if (!fs.existsSync("uploads/diplomas")) {
+  fs.mkdirSync("uploads/diplomas", { recursive: true });
+}
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
