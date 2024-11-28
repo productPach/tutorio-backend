@@ -92,6 +92,23 @@ router.delete(
   authenticateToken,
   TutorController.deleteTutorAvatar
 );
+router.post(
+  "/tutorsEducation",
+  authenticateToken,
+  uploads.single("diploma"),
+  TutorController.addEducation
+);
+router.patch(
+  "/tutorsEducation/:id/:educationId",
+  authenticateToken,
+  uploads.single("diploma"),
+  TutorController.updateEducation
+);
+router.delete(
+  "/tutorsEducation/:id/:educationId",
+  authenticateToken,
+  TutorController.deleteEducation
+);
 
 // Роуты для сотрудника
 router.post("/employees", authenticateToken, EmployeeController.createEmployee);
