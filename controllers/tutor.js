@@ -145,6 +145,7 @@ const TutorController = {
       tutorAdress,
       tutorTrip,
       profileInfo,
+      experience,
       isGroup,
       status,
     } = req.body;
@@ -180,6 +181,7 @@ const TutorController = {
           tutorAdress: tutorAdress || undefined,
           tutorTrip: tutorTrip || undefined,
           profileInfo: profileInfo,
+          experience: experience || undefined,
           isGroup: isGroup || false,
           status: status || undefined,
         },
@@ -307,6 +309,168 @@ const TutorController = {
       res.send("Репетитор удален");
     } catch (error) {
       console.error("Delete Tutor Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Добавление нового места образования
+  addEducation: async (req, res) => {
+    const {
+      educationInfo,
+      educationStartYear,
+      educationEndYear,
+      isShowDiplom,
+    } = req.body;
+    const { id } = req.params;
+
+    if (!educationInfo || !educationStartYear) {
+      return res
+        .status(400)
+        .json({ error: "Не заполнены все обязательные поля" });
+    }
+
+    let diplomaUrl;
+
+    if (req.file && req.file.path) {
+      diplomaUrl = `/uploads/${req.file.filename}`;
+    }
+
+    try {
+      // Проверяем, существует ли репетитор
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // Создаем новое место образования
+      const education = await prisma.tutorEducation.create({
+        data: {
+          tutorId: id,
+          educationInfo,
+          educationStartYear: parseInt(educationStartYear, 10),
+          educationEndYear: educationEndYear
+            ? parseInt(educationEndYear, 10)
+            : null,
+          educationDiplomUrl: diplomaUrl || null,
+          isShowDiplom: isShowDiplom === "true", // Если приходит как строка
+        },
+      });
+
+      res.json(education);
+    } catch (error) {
+      console.error("Error adding education:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Обновление места образования
+  updateEducation: async (req, res) => {
+    const {
+      educationInfo,
+      educationStartYear,
+      educationEndYear,
+      isShowDiplom,
+    } = req.body;
+    const { id, educationId } = req.params; // id репетитора и id образования
+
+    if (!educationInfo || !educationStartYear) {
+      return res
+        .status(400)
+        .json({ error: "Не заполнены все обязательные поля" });
+    }
+
+    let diplomaUrl;
+
+    // Если есть файл диплома, то обрабатываем его
+    if (req.file && req.file.path) {
+      diplomaUrl = `/uploads/${req.file.filename}`;
+    }
+
+    try {
+      // Проверяем, существует ли репетитор
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // Проверяем, существует ли образование
+      const education = await prisma.tutorEducation.findUnique({
+        where: { id: educationId },
+      });
+
+      if (!education) {
+        return res.status(404).json({ error: "Место образования не найдено" });
+      }
+
+      // Обновляем место образования
+      const updatedEducation = await prisma.tutorEducation.update({
+        where: { id: educationId },
+        data: {
+          educationInfo,
+          educationStartYear: parseInt(educationStartYear, 10),
+          educationEndYear: educationEndYear
+            ? parseInt(educationEndYear, 10)
+            : null,
+          educationDiplomUrl: diplomaUrl || education.educationDiplomUrl, // Если нового диплома нет, оставляем старый
+          isShowDiplom: isShowDiplom === "true", // Если приходит как строка
+        },
+      });
+
+      res.json(updatedEducation);
+    } catch (error) {
+      console.error("Error updating education:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Удаление места образования
+  deleteEducation: async (req, res) => {
+    const { id, educationId } = req.params; // id репетитора и id образования
+
+    try {
+      // Проверяем, существует ли репетитор
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // Проверяем, существует ли образование
+      const education = await prisma.tutorEducation.findUnique({
+        where: { id: educationId },
+      });
+
+      if (!education) {
+        return res.status(404).json({ error: "Место образования не найдено" });
+      }
+
+      // Если образование связано с файлом диплома, удаляем файл
+      if (education.educationDiplomUrl) {
+        const diplomPath = path.resolve(
+          "uploads", // Папка, где хранится файл
+          education.educationDiplomUrl.replace(/^\/uploads\//, "") // Убираем /uploads из пути
+        );
+        if (fs.existsSync(diplomPath)) {
+          fs.unlinkSync(diplomPath); // Удаление файла диплома
+        }
+      }
+
+      // Удаляем место образования
+      await prisma.tutorEducation.delete({
+        where: { id: educationId },
+      });
+
+      res.json({ message: "Место образования успешно удалено" });
+    } catch (error) {
+      console.error("Error deleting education:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
