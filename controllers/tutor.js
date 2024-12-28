@@ -322,9 +322,8 @@ const TutorController = {
       educationEndYear,
       isShowDiplom,
     } = req.body;
-    const { id } = req.params;
 
-    if (!educationInfo || !educationStartYear) {
+    if (!tutorId || !educationInfo || !educationStartYear) {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
@@ -339,7 +338,7 @@ const TutorController = {
     try {
       // Проверяем, существует ли репетитор
       const tutor = await prisma.tutor.findUnique({
-        where: { id },
+        where: { tutorId },
       });
 
       if (!tutor) {
