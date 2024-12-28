@@ -2,6 +2,7 @@ const { prisma } = require("../prisma/prisma-client");
 const jdenticon = require("jdenticon");
 const path = require("path");
 const fs = require("fs");
+const { connect } = require("http2");
 
 const TutorController = {
   // Создание репетитора
@@ -367,7 +368,7 @@ const TutorController = {
         where: { id },
         data: {
           educations: {
-            push: { id: education.id }, // Добавляем новое место образования
+            connect: { id: education.id }, // Добавляем новое место образования
           },
         },
       });
