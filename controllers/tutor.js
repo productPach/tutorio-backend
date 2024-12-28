@@ -316,14 +316,14 @@ const TutorController = {
   // Добавление нового места образования
   addEducation: async (req, res) => {
     const {
-      tutorId,
       educationInfo,
       educationStartYear,
       educationEndYear,
       isShowDiplom,
     } = req.body;
+    const { id } = req.params;
 
-    if (!tutorId || !educationInfo || !educationStartYear) {
+    if (!educationInfo || !educationStartYear) {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
@@ -338,7 +338,7 @@ const TutorController = {
     try {
       // Проверяем, существует ли репетитор
       const tutor = await prisma.tutor.findUnique({
-        where: { tutorId },
+        where: { id },
       });
 
       if (!tutor) {
@@ -348,7 +348,7 @@ const TutorController = {
       // Создаем новое место образования
       const education = await prisma.tutorEducation.create({
         data: {
-          tutorId,
+          tutorId: id,
           educationInfo,
           educationStartYear: parseInt(educationStartYear, 10),
           educationEndYear: educationEndYear
