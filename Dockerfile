@@ -1,8 +1,11 @@
 # Используем стабильный образ линукс Alpine с версией Node.js 18
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Указываем нашу рабочую директорию
 WORKDIR /app
+
+# Устанавливаем OpenSSL
+RUN apk update && apk add --no-cache openssl
 
 # Скопировать package.json и package-lock.json внутрь контейнера
 COPY package*.json ./
