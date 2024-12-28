@@ -119,6 +119,9 @@ const TutorController = {
     try {
       const tutor = await prisma.tutor.findUnique({
         where: { userId: req.user.userID },
+        include: {
+          educations: true, // Включаем связанные места образования
+        },
       });
 
       if (!tutor) {
@@ -359,7 +362,18 @@ const TutorController = {
         },
       });
 
-      res.json(education);
+      // Обновляем репетитора, добавляя новое место образования в поле `educations`
+      const updatedTutor = await prisma.tutor.update({
+        where: { id },
+        data: {
+          educations: {
+            push: { id: education.id }, // Добавляем новое место образования
+          },
+        },
+      });
+
+      // Возвращаем обновленного репетитора с новым местом образования
+      res.json(updatedTutor);
     } catch (error) {
       console.error("Error adding education:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -419,6 +433,16 @@ const TutorController = {
             : null,
           educationDiplomUrl: diplomaUrl || education.educationDiplomUrl, // Если нового диплома нет, оставляем старый
           isShowDiplom: isShowDiplom === "true", // Если приходит как строка
+        },
+      });
+
+      // Обновляем репетитора, добавляя новое место образования в поле `educations`
+      await prisma.tutor.update({
+        where: { id },
+        data: {
+          educations: {
+            connect: { id: education.id }, // Соединяем новое место образования с репетитором
+          },
         },
       });
 
