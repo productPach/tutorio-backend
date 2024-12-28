@@ -316,6 +316,7 @@ const TutorController = {
   // Добавление нового места образования
   addEducation: async (req, res) => {
     const {
+      tutorId,
       educationInfo,
       educationStartYear,
       educationEndYear,
@@ -348,7 +349,7 @@ const TutorController = {
       // Создаем новое место образования
       const education = await prisma.tutorEducation.create({
         data: {
-          tutorId: id,
+          tutorId,
           educationInfo,
           educationStartYear: parseInt(educationStartYear, 10),
           educationEndYear: educationEndYear
