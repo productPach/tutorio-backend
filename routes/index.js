@@ -110,7 +110,7 @@ router.delete(
   TutorController.deleteTutorAvatar
 );
 router.post(
-  "/tutorsEducation/:id",
+  "/tutorsEducation",
   authenticateToken,
   diplomaUploads.single("diploma"),
   TutorController.addEducation
