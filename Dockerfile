@@ -1,5 +1,5 @@
 # Используем стабильный образ линукс Alpine с версией Node.js 18
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Указываем нашу рабочую директорию
 WORKDIR /app
