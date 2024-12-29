@@ -508,7 +508,16 @@ const TutorController = {
         where: { id: educationId },
       });
 
-      res.json({ message: "Место образования успешно удалено" });
+      // Обновляем репетитора, чтобы вернуть его данные с актуализированным списком образований
+      const updatedTutor = await prisma.tutor.findUnique({
+        where: { id },
+        include: {
+          educations: true, // Включаем все образования
+        },
+      });
+
+      // Возвращаем обновленного репетитора
+      res.json(updatedTutor);
     } catch (error) {
       console.error("Error deleting education:", error);
       res.status(500).json({ error: "Internal server error" });
