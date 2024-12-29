@@ -379,8 +379,15 @@ const TutorController = {
         },
       });
 
-      // Возвращаем обновленного репетитора с новым местом образования
-      res.json(education);
+      // Возвращаем обновленного репетитора с местами образования
+      const updatedTutor = await prisma.tutor.findUnique({
+        where: { id },
+        include: {
+          educations: true, // Включаем связанные места образования
+        },
+      });
+
+      res.json(updatedTutor);
     } catch (error) {
       console.error("Error adding education:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -443,7 +450,15 @@ const TutorController = {
         },
       });
 
-      res.json(updatedEducation);
+      // Возвращаем обновленного репетитора с местами образования
+      const updatedTutor = await prisma.tutor.findUnique({
+        where: { id },
+        include: {
+          educations: true, // Включаем связанные места образования
+        },
+      });
+
+      res.json(updatedTutor);
     } catch (error) {
       console.error("Error updating education:", error);
       res.status(500).json({ error: "Internal server error" });
