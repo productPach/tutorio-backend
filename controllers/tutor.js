@@ -479,6 +479,10 @@ const TutorController = {
         return res.status(404).json({ error: "Репетитор не найден" });
       }
 
+      if (tutor.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
       // Проверяем, существует ли образование
       const education = await prisma.tutorEducation.findUnique({
         where: { id: educationId },
