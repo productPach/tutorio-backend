@@ -82,6 +82,9 @@ const TutorController = {
         orderBy: {
           createdAt: "desc",
         },
+        include: {
+          educations: true, // Включаем связанные места образования
+        },
       });
 
       if (!allTutors) {
@@ -102,7 +105,12 @@ const TutorController = {
     const { id } = req.params;
 
     try {
-      const tutor = await prisma.tutor.findUnique({ where: { id } });
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+        include: {
+          educations: true, // Включаем связанные места образования
+        },
+      });
 
       if (!tutor) {
         return res.status(404).json({ error: "Репетитор не найден" });
@@ -191,7 +199,15 @@ const TutorController = {
         },
       });
 
-      res.json(updateTutor);
+      // Отдельный запрос для получения связанных данных
+      const tutorNew = await prisma.tutor.findUnique({
+        where: { id },
+        include: {
+          educations: true, // Включаем связанные места образования
+        },
+      });
+
+      res.json(tutorNew);
     } catch (error) {
       console.error("Update Tutor Error", error);
       res.status(500).json({ error: "Internal server error" });
@@ -363,18 +379,8 @@ const TutorController = {
         },
       });
 
-      // Обновляем репетитора, добавляя новое место образования в поле `educations`
-      const updatedTutor = await prisma.tutor.update({
-        where: { id },
-        data: {
-          educations: {
-            connect: { id: education.id }, // Добавляем новое место образования
-          },
-        },
-      });
-
       // Возвращаем обновленного репетитора с новым местом образования
-      res.json(updatedTutor);
+      res.json(education);
     } catch (error) {
       console.error("Error adding education:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -434,16 +440,6 @@ const TutorController = {
             : null,
           educationDiplomUrl: diplomaUrl || education.educationDiplomUrl, // Если нового диплома нет, оставляем старый
           isShowDiplom: isShowDiplom === "true", // Если приходит как строка
-        },
-      });
-
-      // Обновляем репетитора, добавляя новое место образования в поле `educations`
-      await prisma.tutor.update({
-        where: { id },
-        data: {
-          educations: {
-            connect: { id: education.id }, // Соединяем новое место образования с репетитором
-          },
         },
       });
 
