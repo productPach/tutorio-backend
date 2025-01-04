@@ -71,7 +71,7 @@ model TutorEducation {
   educationInfo      String // Название вуза, факультет, специализация
   educationStartYear Int // Год начала обучения
   educationEndYear   Int? // Год окончания обучения (опционально, если еще учится)
-  educationDiplomUrl String? // УРЛ на фото диплома
+  educationDiplomUrl String[] // УРЛ на фото диплома
   isShowDiplom       Boolean  @default(false) // Показывать ли фото диплома ученикам
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt

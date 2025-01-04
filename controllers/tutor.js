@@ -349,10 +349,13 @@ const TutorController = {
         .json({ error: "Не заполнены все обязательные поля" });
     }
 
-    let diplomaUrl;
+    let diplomaUrls = [];
 
-    if (req.file && req.file.path) {
-      diplomaUrl = `/uploads/${req.file.filename}`;
+    // Проверяем и сохраняем пути к загруженным файлам
+    if (req.files && req.files.length > 0) {
+      diplomaUrls = req.files.map(
+        (file) => `/uploads/diplomas/${file.filename}`
+      );
     }
 
     try {
@@ -374,7 +377,7 @@ const TutorController = {
           educationEndYear: educationEndYear
             ? parseInt(educationEndYear, 10)
             : null,
-          educationDiplomUrl: diplomaUrl || null,
+          educationDiplomUrls: diplomaUrls, // Сохраняем массив ссылок на файлы
           isShowDiplom: isShowDiplom === "true", // Если приходит как строка
         },
       });
