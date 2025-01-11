@@ -118,7 +118,7 @@ router.post(
 router.patch(
   "/tutorsEducation/:id/:educationId",
   authenticateToken,
-  diplomaUploads.single("diploma"),
+  diplomaUploads.array("diploma", 5),
   TutorController.updateEducation
 );
 router.delete(

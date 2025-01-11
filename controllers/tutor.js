@@ -489,15 +489,25 @@ const TutorController = {
         return res.status(404).json({ error: "Место образования не найдено" });
       }
 
-      // Если образование связано с файлом диплома, удаляем файл
-      if (education.educationDiplomUrl) {
-        const diplomPath = path.resolve(
-          "uploads", // Папка, где хранится файл
-          education.educationDiplomUrl.replace(/^\/uploads\//, "") // Убираем /uploads из пути
-        );
-        if (fs.existsSync(diplomPath)) {
-          fs.unlinkSync(diplomPath); // Удаление файла диплома
-        }
+      // Если у образования есть файлы дипломов, удаляем их
+      if (
+        education.educationDiplomUrl &&
+        Array.isArray(education.educationDiplomUrl)
+      ) {
+        education.educationDiplomUrl.forEach((diplomUrl) => {
+          const diplomPath = path.resolve(
+            "uploads/diplomas", // Папка, где хранятся дипломы
+            diplomUrl.replace(/^\/uploads\/diplomas\//, "") // Убираем /uploads/diplomas из пути
+          );
+
+          if (fs.existsSync(diplomPath)) {
+            try {
+              fs.unlinkSync(diplomPath); // Удаление файла диплома
+            } catch (err) {
+              console.error(`Не удалось удалить файл: ${diplomPath}`, err);
+            }
+          }
+        });
       }
 
       // Удаляем место образования
@@ -516,8 +526,8 @@ const TutorController = {
       // Возвращаем обновленного репетитора
       res.json(updatedTutor);
     } catch (error) {
-      console.error("Error deleting education:", error);
-      res.status(500).json({ error: "Internal server error" });
+      console.error("Ошибка при удалении образования:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
     }
   },
 };
