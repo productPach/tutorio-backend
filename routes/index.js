@@ -112,7 +112,7 @@ router.delete(
 router.post(
   "/tutorsEducation/:id",
   authenticateToken,
-  diplomaUploads.single("diploma"),
+  diplomaUploads.array("diploma", 5),
   TutorController.addEducation
 );
 router.patch(

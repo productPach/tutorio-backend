@@ -69,8 +69,8 @@ model TutorEducation {
   tutorId            String   @db.ObjectId
   tutor              Tutor    @relation(fields: [tutorId], references: [id], onDelete: Cascade)
   educationInfo      String // Название вуза, факультет, специализация
-  educationStartYear Int // Год начала обучения
-  educationEndYear   Int? // Год окончания обучения (опционально, если еще учится)
+  educationStartYear String // Год начала обучения
+  educationEndYear   String? // Год окончания обучения (опционально, если еще учится)
   educationDiplomUrl String[] // УРЛ на фото диплома
   isShowDiplom       Boolean  @default(false) // Показывать ли фото диплома ученикам
   createdAt          DateTime @default(now())

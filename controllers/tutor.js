@@ -351,7 +351,6 @@ const TutorController = {
 
     let diplomaUrls = [];
 
-    // Проверяем и сохраняем пути к загруженным файлам
     if (req.files && req.files.length > 0) {
       diplomaUrls = req.files.map(
         (file) => `/uploads/diplomas/${file.filename}`
@@ -359,7 +358,6 @@ const TutorController = {
     }
 
     try {
-      // Проверяем, существует ли репетитор
       const tutor = await prisma.tutor.findUnique({
         where: { id },
       });
@@ -368,7 +366,6 @@ const TutorController = {
         return res.status(404).json({ error: "Репетитор не найден" });
       }
 
-      // Создаем новое место образования
       const education = await prisma.tutorEducation.create({
         data: {
           tutorId: id,
@@ -377,16 +374,15 @@ const TutorController = {
           educationEndYear: educationEndYear
             ? parseInt(educationEndYear, 10)
             : null,
-          educationDiplomUrls: diplomaUrls, // Сохраняем массив ссылок на файлы
-          isShowDiplom: isShowDiplom === "true", // Если приходит как строка
+          educationDiplomUrl: diplomaUrls, // Сохраняем массив URL
+          isShowDiplom: isShowDiplom === "true",
         },
       });
 
-      // Возвращаем обновленного репетитора с местами образования
       const updatedTutor = await prisma.tutor.findUnique({
         where: { id },
         include: {
-          educations: true, // Включаем связанные места образования
+          educations: true,
         },
       });
 
