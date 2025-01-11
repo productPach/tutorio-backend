@@ -370,10 +370,8 @@ const TutorController = {
         data: {
           tutorId: id,
           educationInfo,
-          educationStartYear: parseInt(educationStartYear, 10),
-          educationEndYear: educationEndYear
-            ? parseInt(educationEndYear, 10)
-            : null,
+          educationStartYear: educationStartYear,
+          educationEndYear: educationEndYear ? educationEndYear : null,
           educationDiplomUrl: diplomaUrls, // Сохраняем массив URL
           isShowDiplom: isShowDiplom === "true",
         },
