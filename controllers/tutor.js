@@ -578,7 +578,15 @@ const TutorController = {
         },
       });
 
-      return res.json(updatedEducation);
+      // Обновляем репетитора, чтобы вернуть его данные с актуализированным списком образований
+      const updatedTutor = await prisma.tutor.findUnique({
+        where: { id },
+        include: {
+          educations: true, // Включаем все образования
+        },
+      });
+
+      return res.json(updatedTutor);
     } catch (error) {
       console.error("Ошибка при удалении фото:", error);
       res.status(500).json({ error: "Произошла ошибка при удалении фото" });
