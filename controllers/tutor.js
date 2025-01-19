@@ -438,10 +438,8 @@ const TutorController = {
         where: { id: educationId },
         data: {
           educationInfo,
-          educationStartYear: parseInt(educationStartYear, 10),
-          educationEndYear: educationEndYear
-            ? parseInt(educationEndYear, 10)
-            : null,
+          educationStartYear: educationStartYear,
+          educationEndYear: educationEndYear,
           educationDiplomUrl: diplomaUrl || education.educationDiplomUrl, // Если нового диплома нет, оставляем старый
           isShowDiplom: isShowDiplom === "true", // Если приходит как строка
         },
