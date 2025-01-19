@@ -126,6 +126,11 @@ router.delete(
   authenticateToken,
   TutorController.deleteEducation
 );
+router.delete(
+  "/tutorsFileEducation/:id/:educationId",
+  authenticateToken,
+  TutorController.deleteDiploma
+);
 
 // Роуты для сотрудника
 router.post("/employees", authenticateToken, EmployeeController.createEmployee);

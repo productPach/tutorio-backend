@@ -532,6 +532,58 @@ const TutorController = {
       res.status(500).json({ error: "Внутренняя ошибка сервера" });
     }
   },
+
+  // Удаление документа из образования
+  deleteDiploma: async (req, res) => {
+    const { id, educationId } = req.params;
+    const { fileName } = req.body; // Получаем имя файла из тела запроса
+
+    try {
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      if (tutor.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
+      const education = await prisma.tutorEducation.findUnique({
+        where: { id: educationId },
+      });
+
+      if (!education) {
+        return res.status(404).json({ error: "Место образования не найдено" });
+      }
+
+      // Удаляем конкретный файл
+      const filePath = path.resolve("uploads/diplomas", fileName); // Путь к файлу
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath); // Удаляем файл
+      }
+
+      // Обновляем данные о дипломах
+      const updatedEducation = await prisma.tutorEducation.update({
+        where: { id: educationId },
+        data: {
+          educationDiplomUrl: {
+            // Убираем удаленное фото из списка
+            set: education.educationDiplomUrl.filter(
+              (url) => !url.includes(fileName)
+            ),
+          },
+        },
+      });
+
+      return res.json(updatedEducation);
+    } catch (error) {
+      console.error("Ошибка при удалении фото:", error);
+      res.status(500).json({ error: "Произошла ошибка при удалении фото" });
+    }
+  },
 };
 
 module.exports = TutorController;
