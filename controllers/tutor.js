@@ -407,12 +407,14 @@ const TutorController = {
         .json({ error: "Не заполнены все обязательные поля" });
     }
 
-    let diplomaUrl;
+    let diplomaUrls = [];
 
-    // Если есть файл диплома, то обрабатываем его
-    if (req.file && req.file.path) {
-      diplomaUrl = `/uploads/${req.file.filename}`;
+    if (req.files && req.files.length > 0) {
+      diplomaUrls = req.files.map(
+        (file) => `/uploads/diplomas/${file.filename}`
+      );
     }
+    console.log("Uploaded file:", req.file);
 
     try {
       // Проверяем, существует ли репетитор
@@ -440,7 +442,8 @@ const TutorController = {
           educationInfo,
           educationStartYear: educationStartYear,
           educationEndYear: educationEndYear,
-          educationDiplomUrl: diplomaUrl || education.educationDiplomUrl, // Если нового диплома нет, оставляем старый
+          educationDiplomUrl:
+            diplomaUrls.length > 0 ? diplomaUrls : education.educationDiplomUrl, // Если нового диплома нет, оставляем старый
           isShowDiplom: isShowDiplom === "true", // Если приходит как строка
         },
       });
