@@ -414,7 +414,6 @@ const TutorController = {
         (file) => `/uploads/diplomas/${file.filename}`
       );
     }
-    console.log("Uploaded file:", req.file);
 
     try {
       // Проверяем, существует ли репетитор
@@ -440,10 +439,12 @@ const TutorController = {
         where: { id: educationId },
         data: {
           educationInfo,
-          educationStartYear: educationStartYear,
-          educationEndYear: educationEndYear,
+          educationStartYear,
+          educationEndYear,
           educationDiplomUrl:
-            diplomaUrls.length > 0 ? diplomaUrls : education.educationDiplomUrl, // Если нового диплома нет, оставляем старый
+            diplomaUrls.length > 0
+              ? [...education.educationDiplomUrl, ...diplomaUrls] // Добавляем новые дипломы к старым
+              : education.educationDiplomUrl, // Если новых дипломов нет, оставляем старые
           isShowDiplom: isShowDiplom === "true", // Если приходит как строка
         },
       });
