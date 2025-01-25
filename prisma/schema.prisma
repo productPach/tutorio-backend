@@ -175,7 +175,7 @@ model UserWelcomeScreen {
 
 model City {
   id             String         @id @default(auto()) @map("_id") @db.ObjectId
-  title          String
+  title          String         @unique
   area           String
   shortTitle     String
   districts      District[]
