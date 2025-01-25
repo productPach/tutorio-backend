@@ -195,9 +195,9 @@ router.get(
 
 // Роуты для городов, областей, локаций города и областей
 router.post("/cities", LocationController.createCity);
-router.post("/districts", LocationController.createDistrict);
-router.post("/metros", LocationController.createMetro);
-router.post("/regional-cities", LocationController.createRegionalCity);
+router.post("/districts/:cityId", LocationController.createDistrict);
+router.post("/metros/:districtId", LocationController.createMetro);
+router.post("/regional-cities/:cityId", LocationController.createRegionalCity);
 router.get("/cities", LocationController.getAllCity);
 router.get("/city/:id", LocationController.getCityById);
 router.put("/city/:id", LocationController.updateCityById);
