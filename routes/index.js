@@ -8,6 +8,7 @@ const {
   TutorController,
   EmployeeController,
   WelcomeScreenController,
+  LocationController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const uploadDestination = "uploads";
@@ -191,5 +192,17 @@ router.get(
   authenticateToken,
   WelcomeScreenController.getWelcomeScreenForUser
 );
+
+// Роуты для городов, областей, локаций города и областей
+router.post("/cities", LocationController.createCity);
+router.post("/districts", LocationController.createDistrict);
+router.post("/metros", LocationController.createMetro);
+router.post("/regional-cities", LocationController.createRegionalCity);
+router.get("/cities", LocationController.getAllCity);
+router.get("/city/:id", LocationController.getCityById);
+router.put("/city/:id", LocationController.updateCityById);
+router.put("/district/:id", LocationController.updateDistrictById);
+router.put("/metro/:id", LocationController.updateMetroById);
+router.put("/regional-city/:id", LocationController.updateRegionalCityById);
 
 module.exports = router;

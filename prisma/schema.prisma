@@ -55,6 +55,8 @@ model Tutor {
   tutorPlace  String[]         @default([])
   tutorAdress String?
   tutorTrip   String[]         @default([])
+  tutorTripCityData String?
+  tutorTripCity String[]
   profileInfo String?
   experience  String?
   educations  TutorEducation[] // Связь с местами образования
@@ -169,4 +171,38 @@ model UserWelcomeScreen {
   @@unique([userId, welcomeId]) // Уникальная связь между пользователем и экраном
   @@index([userId]) // Индекс для ускорения выборки по пользователю
   @@index([welcomeId]) // Индекс для ускорения выборки по экрану
+}
+
+model City {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  area           String
+  shortTitle     String
+  districts      District[]
+  regionalCities RegionalCity[]
+}
+
+model District {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  metros    Metro[]
+  cityId    String   @db.ObjectId
+  city      City     @relation(fields: [cityId], references: [id])
+}
+
+model Metro {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  color      String?
+  lineName   String?
+  lineNumber String?
+  districtId String   @db.ObjectId
+  district   District @relation(fields: [districtId], references: [id])
+}
+
+model RegionalCity {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  title  String
+  cityId String  @db.ObjectId
+  city   City    @relation(fields: [cityId], references: [id])
 }
