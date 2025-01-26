@@ -41,29 +41,30 @@ model Student {
 }
 
 model Tutor {
-  id          String           @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String           @unique @db.ObjectId
-  user        User             @relation(fields: [userId], references: [id])
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  name        String?
-  phone       String           @unique
-  email       String?
-  avatarUrl   String?
-  subject     String[]         @default([])
-  region      String?
-  tutorPlace  String[]         @default([])
-  tutorAdress String?
-  tutorTrip   String[]         @default([])
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String           @unique @db.ObjectId
+  user              User             @relation(fields: [userId], references: [id])
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  name              String?
+  phone             String           @unique
+  email             String?
+  avatarUrl         String?
+  subject           String[]         @default([])
+  region            String?
+  tutorPlace        String[]         @default([])
+  tutorAdress       String?
+  tutorTrip         String[]         @default([])
   tutorTripCityData String?
-  tutorTripCity String[]
-  profileInfo String?
-  experience  String?
-  educations  TutorEducation[] // Связь с местами образования
-  documents   TutorDocument[] // Связь с документами
-  isGroup     Boolean          @default(false)
-  status      String
-  response    Response[]
+  tutorTripCity     String[]         @default([])
+  tutorTripArea     String[]         @default([])
+  profileInfo       String?
+  experience        String?
+  educations        TutorEducation[] // Связь с местами образования
+  documents         TutorDocument[] // Связь с документами
+  isGroup           Boolean          @default(false)
+  status            String
+  response          Response[]
 }
 
 model TutorEducation {
