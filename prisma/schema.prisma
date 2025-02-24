@@ -51,6 +51,8 @@ model Tutor {
   email             String?
   avatarUrl         String?
   subject           String[]         @default([])
+  subjectPrices     Json?             // Массив цен по предметам
+  defaultPrice      Int?              // Общая цена
   region            String?
   tutorPlace        String[]         @default([])
   tutorAdress       String?

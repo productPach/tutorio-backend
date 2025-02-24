@@ -152,6 +152,8 @@ const TutorController = {
       name,
       email,
       subject,
+      subjectPrices,
+      defaultPrice,
       region,
       tutorPlace,
       tutorAdress,
@@ -191,6 +193,8 @@ const TutorController = {
           email: email || undefined,
           avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl, // Если нет новой фотографии, оставляем старую
           subject: subject || undefined,
+          subjectPrices: subjectPrices || undefined, // Массив цен по предметам
+          defaultPrice: defaultPrice || undefined,
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
