@@ -51,8 +51,6 @@ model Tutor {
   email             String?
   avatarUrl         String?
   subject           String[]         @default([])
-  subjectPrices     Json?             // Массив цен по предметам
-  defaultPrice      Int?              // Общая цена
   region            String?
   tutorPlace        String[]         @default([])
   tutorAdress       String?
@@ -62,11 +60,23 @@ model Tutor {
   tutorTripArea     String[]         @default([])
   profileInfo       String?
   experience        String?
-  educations        TutorEducation[] // Связь с местами образования
-  documents         TutorDocument[] // Связь с документами
+  educations        TutorEducation[]
+  documents         TutorDocument[]
   isGroup           Boolean          @default(false)
   status            String
   response          Response[]
+  subjectPrices TutorSubjectPrice[]
+}
+
+model TutorSubjectPrice {
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  tutorId    String         @db.ObjectId
+  tutor      Tutor          @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  subjectId  String         @db.ObjectId // id предмета
+  format     String         // "online" | "home" | "travel" | "group"
+  price      Int
+  duration   String         // "45" | "60" | "90" | "120" | "day"
+  @@unique([tutorId, subjectId, format]) // Уникальная комбинация
 }
 
 model TutorEducation {

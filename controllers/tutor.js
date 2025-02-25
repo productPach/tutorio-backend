@@ -147,13 +147,11 @@ const TutorController = {
   // Изменение репетитора
   updateTutor: async (req, res) => {
     const { id } = req.params;
-
     const {
       name,
       email,
       subject,
       subjectPrices,
-      defaultPrice,
       region,
       tutorPlace,
       tutorAdress,
@@ -167,10 +165,9 @@ const TutorController = {
       status,
     } = req.body;
 
-    let avatarUrl; // Переменная для хранения пути к загруженной фотографии
-    // Проверяем, есть ли загруженный файл
+    let avatarUrl;
     if (req.file) {
-      avatarUrl = req.file.filename; // Получаем имя загруженного файла
+      avatarUrl = req.file.filename;
     }
 
     try {
@@ -186,15 +183,14 @@ const TutorController = {
         return res.status(403).json({ error: "Нет доступа" });
       }
 
-      const updateTutor = await prisma.tutor.update({
+      // Обновляем основные данные репетитора
+      const updatedTutor = await prisma.tutor.update({
         where: { id },
         data: {
           name: name || undefined,
           email: email || undefined,
-          avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl, // Если нет новой фотографии, оставляем старую
+          avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl,
           subject: subject || undefined,
-          subjectPrices: subjectPrices || undefined, // Массив цен по предметам
-          defaultPrice: defaultPrice || undefined,
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
@@ -202,18 +198,42 @@ const TutorController = {
           tutorTripCityData: tutorTripCityData || undefined,
           tutorTripCity: tutorTripCity || undefined,
           tutorTripArea: tutorTripArea || undefined,
-          profileInfo: profileInfo,
+          profileInfo: profileInfo || undefined,
           experience: experience || undefined,
           isGroup: isGroup || false,
           status: status || undefined,
         },
       });
 
-      // Отдельный запрос для получения связанных данных
+      // Если переданы subjectPrices, обновляем их
+      if (Array.isArray(subjectPrices) && subjectPrices.length > 0) {
+        // Удаляем старые записи о ценах репетитора
+        await prisma.tutorSubjectPrice.deleteMany({
+          where: { tutorId: id },
+        });
+
+        // Создаём новые записи
+        const newPrices = subjectPrices.flatMap(({ subjectId, prices }) =>
+          prices.map(({ format, price, duration }) => ({
+            tutorId: id,
+            subjectId,
+            format,
+            price,
+            duration,
+          }))
+        );
+
+        await prisma.tutorSubjectPrice.createMany({
+          data: newPrices,
+        });
+      }
+
+      // Загружаем обновлённые данные репетитора вместе с образованием
       const tutorNew = await prisma.tutor.findUnique({
         where: { id },
         include: {
-          educations: true, // Включаем связанные места образования
+          educations: true,
+          subjectPrices: true, // Подгружаем цены
         },
       });
 
@@ -325,13 +345,17 @@ const TutorController = {
         return res.status(403).json({ error: "Нет доступа" });
       }
 
-      // СДЕЛАТЬ УДАЛЕНИЕ ОТКЛИКОВ!!!
-      //   await prisma.response.deleteMany({
-      //     where: {
-      //       studentId: id,
-      //     },
-      //   });
+      // Удаление цен по предметам репетитора
+      await prisma.tutorSubjectPrice.deleteMany({
+        where: { tutorId: id },
+      });
 
+      // Удаление откликов (если нужно)
+      await prisma.response.deleteMany({
+        where: { studentId: id },
+      });
+
+      // Удаление самого репетитора
       await prisma.tutor.delete({
         where: { id },
       });
