@@ -171,21 +171,23 @@ const TutorController = {
     }
 
     try {
+      const tutorId = new ObjectId(id); // Приводим id репетитора к ObjectId
+
       const tutor = await prisma.tutor.findUnique({
-        where: { id },
+        where: { id: tutorId },
       });
 
       if (!tutor) {
         return res.status(400).json({ error: "Не удалось найти репетитора" });
       }
 
-      if (tutor.userId !== req.user.userID) {
+      if (tutor.userId.toString() !== req.user.userID) {
         return res.status(403).json({ error: "Нет доступа" });
       }
 
       // Обновляем основные данные репетитора
       const updatedTutor = await prisma.tutor.update({
-        where: { id },
+        where: { id: tutorId },
         data: {
           name: name || undefined,
           email: email || undefined,
@@ -212,20 +214,17 @@ const TutorController = {
 
       // Если переданы subjectPrices, обновляем их
       if (Array.isArray(subjectPrices) && subjectPrices.length > 0) {
-        console.log(
-          "subjectPrices received:",
-          JSON.stringify(subjectPrices, null, 2)
-        );
+        console.log("Updating subjectPrices...");
 
-        // Собираем массив subjectId, которые нужно обновить
+        // Собираем массив subjectId, конвертируя их в ObjectId
         const subjectIdsToUpdate = subjectPrices.map(
-          ({ subjectId }) => subjectId
+          ({ subjectId }) => new ObjectId(subjectId)
         );
 
         // Удаляем только записи с этими subjectId для данного репетитора
         await prisma.tutorSubjectPrice.deleteMany({
           where: {
-            tutorId: id,
+            tutorId: tutorId,
             subjectId: { in: subjectIdsToUpdate },
           },
         });
@@ -233,8 +232,8 @@ const TutorController = {
         // Создаём новые записи
         const newPrices = subjectPrices.flatMap(({ subjectId, prices }) =>
           prices.map(({ format, price, duration }) => ({
-            tutorId: id,
-            subjectId,
+            tutorId: tutorId,
+            subjectId: new ObjectId(subjectId),
             format,
             price: Number(price), // Приведение типа
             duration,
@@ -248,7 +247,7 @@ const TutorController = {
 
       // Загружаем обновлённые данные репетитора вместе с образованием
       const tutorNew = await prisma.tutor.findUnique({
-        where: { id },
+        where: { id: tutorId },
         include: {
           educations: true,
           subjectPrices: true, // Подгружаем цены
