@@ -604,7 +604,7 @@ const TutorController = {
     const { tutorId, subjectId, format, price, duration } = req.body;
 
     try {
-      const newPrice = await prisma.tutorSubjectPrice.create({
+      await prisma.tutorSubjectPrice.create({
         data: {
           tutorId,
           subjectId,
@@ -614,7 +614,13 @@ const TutorController = {
         },
       });
 
-      res.status(201).json(newPrice);
+      // Получаем репетитора с актуальными ценами
+      const tutor = await prisma.tutor.findUnique({
+        where: { id: tutorId },
+        include: { subjectPrices: true }, // Загружаем цены
+      });
+
+      res.status(201).json(tutor);
     } catch (error) {
       console.error("Add Subject Price Error:", error);
       res.status(500).json({ error: "Ошибка при добавлении цены" });
@@ -623,7 +629,7 @@ const TutorController = {
 
   // Обновление цены по предмету
   updateSubjectPrice: async (req, res) => {
-    const { id } = req.params; // Берем ID из URL
+    const { id } = req.params; // Берем ID цены из URL
     const { price, duration } = req.body;
 
     try {
@@ -635,7 +641,7 @@ const TutorController = {
         return res.status(404).json({ error: "Цена не найдена" });
       }
 
-      const updatedPrice = await prisma.tutorSubjectPrice.update({
+      await prisma.tutorSubjectPrice.update({
         where: { id },
         data: {
           price: Number(price),
@@ -643,7 +649,13 @@ const TutorController = {
         },
       });
 
-      res.json(updatedPrice);
+      // Получаем обновленного репетитора с ценами
+      const tutor = await prisma.tutor.findUnique({
+        where: { id: existingPrice.tutorId },
+        include: { subjectPrices: true },
+      });
+
+      res.json(tutor);
     } catch (error) {
       console.error("Update Subject Price Error:", error);
       res.status(500).json({ error: "Ошибка при обновлении цены" });
