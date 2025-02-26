@@ -147,11 +147,11 @@ const TutorController = {
   // Изменение репетитора
   updateTutor: async (req, res) => {
     const { id } = req.params;
+
     const {
       name,
       email,
       subject,
-      subjectPrices,
       region,
       tutorPlace,
       tutorAdress,
@@ -171,23 +171,20 @@ const TutorController = {
     }
 
     try {
-      const tutorId = new ObjectId(id); // Приводим id репетитора к ObjectId
-
       const tutor = await prisma.tutor.findUnique({
-        where: { id: tutorId },
+        where: { id },
       });
 
       if (!tutor) {
         return res.status(400).json({ error: "Не удалось найти репетитора" });
       }
 
-      if (tutor.userId.toString() !== req.user.userID) {
+      if (tutor.userId !== req.user.userID) {
         return res.status(403).json({ error: "Нет доступа" });
       }
 
-      // Обновляем основные данные репетитора
       const updatedTutor = await prisma.tutor.update({
-        where: { id: tutorId },
+        where: { id },
         data: {
           name: name || undefined,
           email: email || undefined,
@@ -207,50 +204,12 @@ const TutorController = {
         },
       });
 
-      console.log(
-        "subjectPrices received:",
-        JSON.stringify(subjectPrices, null, 2)
-      );
-
-      // Если переданы subjectPrices, обновляем их
-      if (Array.isArray(subjectPrices) && subjectPrices.length > 0) {
-        console.log("Updating subjectPrices...");
-
-        // Собираем массив subjectId, конвертируя их в ObjectId
-        const subjectIdsToUpdate = subjectPrices.map(
-          ({ subjectId }) => new ObjectId(subjectId)
-        );
-
-        // Удаляем только записи с этими subjectId для данного репетитора
-        await prisma.tutorSubjectPrice.deleteMany({
-          where: {
-            tutorId: tutorId,
-            subjectId: { in: subjectIdsToUpdate },
-          },
-        });
-
-        // Создаём новые записи
-        const newPrices = subjectPrices.flatMap(({ subjectId, prices }) =>
-          prices.map(({ format, price, duration }) => ({
-            tutorId: tutorId,
-            subjectId: new ObjectId(subjectId),
-            format,
-            price: Number(price), // Приведение типа
-            duration,
-          }))
-        );
-
-        await prisma.tutorSubjectPrice.createMany({
-          data: newPrices,
-        });
-      }
-
-      // Загружаем обновлённые данные репетитора вместе с образованием
+      // Получаем обновлённые данные с вложениями
       const tutorNew = await prisma.tutor.findUnique({
-        where: { id: tutorId },
+        where: { id },
         include: {
           educations: true,
-          subjectPrices: true, // Подгружаем цены
+          subjectPrices: true, // Подгрузит цены репетитора
         },
       });
 
@@ -362,17 +321,13 @@ const TutorController = {
         return res.status(403).json({ error: "Нет доступа" });
       }
 
-      // Удаление цен по предметам репетитора
-      await prisma.tutorSubjectPrice.deleteMany({
-        where: { tutorId: id },
-      });
+      // СДЕЛАТЬ УДАЛЕНИЕ ОТКЛИКОВ!!!
+      //   await prisma.response.deleteMany({
+      //     where: {
+      //       studentId: id,
+      //     },
+      //   });
 
-      // Удаление откликов (если нужно)
-      await prisma.response.deleteMany({
-        where: { studentId: id },
-      });
-
-      // Удаление самого репетитора
       await prisma.tutor.delete({
         where: { id },
       });
@@ -641,6 +596,56 @@ const TutorController = {
     } catch (error) {
       console.error("Ошибка при удалении фото:", error);
       res.status(500).json({ error: "Произошла ошибка при удалении фото" });
+    }
+  },
+
+  // Добавление новой цены по предмету
+  addSubjectPrice: async (req, res) => {
+    const { tutorId, subjectId, format, price, duration } = req.body;
+
+    try {
+      const newPrice = await prisma.tutorSubjectPrice.create({
+        data: {
+          tutorId,
+          subjectId,
+          format,
+          price: Number(price),
+          duration,
+        },
+      });
+
+      res.status(201).json(newPrice);
+    } catch (error) {
+      console.error("Add Subject Price Error:", error);
+      res.status(500).json({ error: "Ошибка при добавлении цены" });
+    }
+  },
+
+  // Обновление цены по предмету
+  updateSubjectPrice: async (req, res) => {
+    const { tutorId, subjectId, format, price, duration } = req.body;
+
+    try {
+      const existingPrice = await prisma.tutorSubjectPrice.findFirst({
+        where: { tutorId, subjectId, format },
+      });
+
+      if (!existingPrice) {
+        return res.status(404).json({ error: "Цена не найдена" });
+      }
+
+      const updatedPrice = await prisma.tutorSubjectPrice.update({
+        where: { id: existingPrice.id },
+        data: {
+          price: Number(price),
+          duration,
+        },
+      });
+
+      res.json(updatedPrice);
+    } catch (error) {
+      console.error("Update Subject Price Error:", error);
+      res.status(500).json({ error: "Ошибка при обновлении цены" });
     }
   },
 };
