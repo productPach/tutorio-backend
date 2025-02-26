@@ -83,7 +83,8 @@ const TutorController = {
           createdAt: "desc",
         },
         include: {
-          educations: true, // Включаем связанные места образования
+          educations: true,
+          subjectPrices: true, // Включаем связанные места образования
         },
       });
 
@@ -108,7 +109,8 @@ const TutorController = {
       const tutor = await prisma.tutor.findUnique({
         where: { id },
         include: {
-          educations: true, // Включаем связанные места образования
+          educations: true,
+          subjectPrices: true, // Включаем связанные места образования
         },
       });
 
@@ -387,7 +389,8 @@ const TutorController = {
       const updatedTutor = await prisma.tutor.findUnique({
         where: { id },
         include: {
-          educations: true,
+          educations: true, // Включаем связанные места образования
+          subjectPrices: true, // Включаем связанные цены
         },
       });
 
@@ -461,6 +464,7 @@ const TutorController = {
         where: { id },
         include: {
           educations: true, // Включаем связанные места образования
+          subjectPrices: true, // Включаем связанные цены
         },
       });
 
@@ -528,7 +532,8 @@ const TutorController = {
       const updatedTutor = await prisma.tutor.findUnique({
         where: { id },
         include: {
-          educations: true, // Включаем все образования
+          educations: true, // Включаем связанные места образования
+          subjectPrices: true, // Включаем связанные цены
         },
       });
 
@@ -589,7 +594,8 @@ const TutorController = {
       const updatedTutor = await prisma.tutor.findUnique({
         where: { id },
         include: {
-          educations: true, // Включаем все образования
+          educations: true, // Включаем связанные места образования
+          subjectPrices: true, // Включаем связанные цены
         },
       });
 
@@ -618,7 +624,10 @@ const TutorController = {
       // Получаем репетитора с актуальными ценами
       const tutor = await prisma.tutor.findUnique({
         where: { id: tutorId },
-        include: { subjectPrices: true }, // Загружаем цены
+        include: {
+          educations: true, // Включаем связанные места образования
+          subjectPrices: true, // Включаем связанные цены
+        }, // Загружаем цены
       });
 
       res.status(201).json(tutor);
@@ -653,7 +662,10 @@ const TutorController = {
       // Получаем обновленного репетитора с ценами
       const tutor = await prisma.tutor.findUnique({
         where: { id: existingPrice.tutorId },
-        include: { subjectPrices: true },
+        include: {
+          educations: true, // Включаем связанные места образования
+          subjectPrices: true, // Включаем связанные цены
+        },
       });
 
       res.json(tutor);
