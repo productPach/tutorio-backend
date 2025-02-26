@@ -195,12 +195,12 @@ const TutorController = {
         (subj) => !newSubjects.includes(subj)
       );
 
-      // Удаляем цены, если предмет был удалён
-      if (removedSubjects.length > 0) {
+      // Удаляем цены, если предмет был удалён (НО ТОЛЬКО ЕСЛИ subject ПРИШЕЛ В ЗАПРОСЕ)
+      if (subject !== undefined && removedSubjects.length > 0) {
         await prisma.tutorSubjectPrice.deleteMany({
           where: {
             tutorId: id,
-            subjectId: { in: removedSubjects }, // Удаляем все цены для этих предметов
+            subjectId: { in: removedSubjects },
           },
         });
       }
@@ -224,6 +224,8 @@ const TutorController = {
         }
       }
 
+      console.log("updateTutor req.body:", req.body);
+
       // Обновляем данные репетитора
       const updatedTutor = await prisma.tutor.update({
         where: { id },
@@ -245,6 +247,7 @@ const TutorController = {
           isGroup: isGroup || false,
           status: status || undefined,
         },
+        include: { subjectPrices: true },
       });
 
       // Получаем обновлённые данные с вложениями
