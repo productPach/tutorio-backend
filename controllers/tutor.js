@@ -154,7 +154,8 @@ const TutorController = {
     const {
       name,
       email,
-      subject, // Список предметов (важно!)
+      subject, // Список предметов
+      subjectComments,
       region,
       tutorPlace,
       tutorAdress,
@@ -204,6 +205,25 @@ const TutorController = {
         });
       }
 
+      // Фильтруем комментарии: оставляем только те, у которых subjectId есть в новом списке предметов
+      const updatedComments = tutor.subjectComments.filter((comment) =>
+        newSubjects.includes(comment.subjectId)
+      );
+
+      // Добавляем новые комментарии, если они есть в запросе
+      if (subjectComments) {
+        for (const newComment of subjectComments) {
+          const existingIndex = updatedComments.findIndex(
+            (c) => c.subjectId === newComment.subjectId
+          );
+          if (existingIndex !== -1) {
+            updatedComments[existingIndex] = newComment; // Обновляем существующий комментарий
+          } else {
+            updatedComments.push(newComment); // Добавляем новый
+          }
+        }
+      }
+
       // Обновляем данные репетитора
       const updatedTutor = await prisma.tutor.update({
         where: { id },
@@ -211,7 +231,8 @@ const TutorController = {
           name: name || undefined,
           email: email || undefined,
           avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl,
-          subject: subject || undefined, // Обновляем список предметов
+          subject: newSubjects || undefined, // Обновляем список предметов
+          subjectComments: updatedComments || undefined, // Обновляем комментарии
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,

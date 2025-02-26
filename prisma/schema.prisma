@@ -51,6 +51,7 @@ model Tutor {
   email             String?
   avatarUrl         String?
   subject           String[]         @default([])
+  subjectComments   Json             @default("[]")
   region            String?
   tutorPlace        String[]         @default([])
   tutorAdress       String?
