@@ -205,11 +205,29 @@ const TutorController = {
         },
       });
 
+      console.log(
+        "subjectPrices received:",
+        JSON.stringify(subjectPrices, null, 2)
+      );
+
       // Если переданы subjectPrices, обновляем их
       if (Array.isArray(subjectPrices) && subjectPrices.length > 0) {
-        // Удаляем старые записи о ценах репетитора
+        console.log(
+          "subjectPrices received:",
+          JSON.stringify(subjectPrices, null, 2)
+        );
+
+        // Собираем массив subjectId, которые нужно обновить
+        const subjectIdsToUpdate = subjectPrices.map(
+          ({ subjectId }) => subjectId
+        );
+
+        // Удаляем только записи с этими subjectId для данного репетитора
         await prisma.tutorSubjectPrice.deleteMany({
-          where: { tutorId: id },
+          where: {
+            tutorId: id,
+            subjectId: { in: subjectIdsToUpdate },
+          },
         });
 
         // Создаём новые записи
@@ -218,7 +236,7 @@ const TutorController = {
             tutorId: id,
             subjectId,
             format,
-            price,
+            price: Number(price), // Приведение типа
             duration,
           }))
         );
