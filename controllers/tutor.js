@@ -231,7 +231,7 @@ const TutorController = {
           name: name || undefined,
           email: email || undefined,
           avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl,
-          subject: newSubjects || undefined, // Обновляем список предметов
+          subject: subject || undefined, // Обновляем список предметов
           subjectComments: updatedComments || undefined, // Обновляем комментарии
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
