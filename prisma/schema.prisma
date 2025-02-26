@@ -72,7 +72,7 @@ model TutorSubjectPrice {
   id         String         @id @default(auto()) @map("_id") @db.ObjectId
   tutorId    String         @db.ObjectId
   tutor      Tutor          @relation("TutorToSubjectPrices", fields: [tutorId], references: [id], onDelete: Cascade)
-  subjectId  String         @db.ObjectId // id предмета
+  subjectId  String         // id предмета
   format     String         // "online" | "home" | "travel" | "group"
   price      Int
   duration   String         // "45" | "60" | "90" | "120" | "day"
