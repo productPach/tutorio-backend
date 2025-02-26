@@ -204,15 +204,18 @@ const TutorController = {
         });
       }
 
-      // Объявляем `updatedComments`, чтобы избежать ошибок, если `subjectComments` нет в запросе
+      // Обновляем комментарии
       let updatedComments = tutor.subjectComments;
 
-      // Обновляем комментарии, только если `subjectComments` переданы
-      if (subjectComments !== undefined) {
-        updatedComments = tutor.subjectComments.filter((comment) =>
-          newSubjects.includes(comment.subjectId)
+      if (subject !== undefined) {
+        // Удаляем комментарии к удалённым предметам
+        updatedComments = updatedComments.filter(
+          (comment) => !removedSubjects.includes(comment.subjectId)
         );
+      }
 
+      // Если в запросе пришли новые комментарии, обновляем их
+      if (subjectComments !== undefined) {
         for (const newComment of subjectComments) {
           const existingIndex = updatedComments.findIndex(
             (c) => c.subjectId === newComment.subjectId
@@ -244,9 +247,9 @@ const TutorController = {
           experience: experience || undefined,
           isGroup: isGroup || false,
           status: status || undefined,
-          ...(subjectComments !== undefined && {
-            subjectComments: updatedComments,
-          }), // Обновляем только если переданы
+          ...(subject !== undefined || subjectComments !== undefined
+            ? { subjectComments: updatedComments }
+            : {}), // Обновляем, если пришли новые предметы или комментарии
         },
         include: { subjectPrices: true },
       });
