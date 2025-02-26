@@ -154,7 +154,7 @@ const TutorController = {
     const {
       name,
       email,
-      subject,
+      subject, // Список предметов (важно!)
       region,
       tutorPlace,
       tutorAdress,
@@ -176,6 +176,7 @@ const TutorController = {
     try {
       const tutor = await prisma.tutor.findUnique({
         where: { id },
+        include: { subjectPrices: true }, // Загружаем цены
       });
 
       if (!tutor) {
@@ -186,13 +187,31 @@ const TutorController = {
         return res.status(403).json({ error: "Нет доступа" });
       }
 
+      // Находим удалённые предметы
+      const oldSubjects = tutor.subject || [];
+      const newSubjects = subject || [];
+      const removedSubjects = oldSubjects.filter(
+        (subj) => !newSubjects.includes(subj)
+      );
+
+      // Удаляем цены, если предмет был удалён
+      if (removedSubjects.length > 0) {
+        await prisma.tutorSubjectPrice.deleteMany({
+          where: {
+            tutorId: id,
+            subjectId: { in: removedSubjects }, // Удаляем все цены для этих предметов
+          },
+        });
+      }
+
+      // Обновляем данные репетитора
       const updatedTutor = await prisma.tutor.update({
         where: { id },
         data: {
           name: name || undefined,
           email: email || undefined,
           avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl,
-          subject: subject || undefined,
+          subject: subject || undefined, // Обновляем список предметов
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
