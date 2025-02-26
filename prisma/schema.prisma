@@ -65,13 +65,13 @@ model Tutor {
   isGroup           Boolean          @default(false)
   status            String
   response          Response[]
-  subjectPrices TutorSubjectPrice[]
+  subjectPrices     TutorSubjectPrice[] @relation("TutorToSubjectPrices")
 }
 
 model TutorSubjectPrice {
   id         String         @id @default(auto()) @map("_id") @db.ObjectId
   tutorId    String         @db.ObjectId
-  tutor      Tutor          @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  tutor      Tutor          @relation("TutorToSubjectPrices", fields: [tutorId], references: [id], onDelete: Cascade)
   subjectId  String         @db.ObjectId // id предмета
   format     String         // "online" | "home" | "travel" | "group"
   price      Int

@@ -122,6 +122,17 @@ router.patch(
   diplomaUploads.array("diploma", 5),
   TutorController.updateEducation
 );
+// Роуты для управления ценами
+router.post(
+  "/tutorsSubjectPrice",
+  authenticateToken,
+  TutorController.addSubjectPrice
+);
+router.patch(
+  "/tutorsSubjectPrice/:id",
+  authenticateToken,
+  TutorController.updateSubjectPrice
+);
 router.delete(
   "/tutorsEducation/:id/:educationId",
   authenticateToken,

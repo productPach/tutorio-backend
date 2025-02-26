@@ -623,11 +623,12 @@ const TutorController = {
 
   // Обновление цены по предмету
   updateSubjectPrice: async (req, res) => {
-    const { tutorId, subjectId, format, price, duration } = req.body;
+    const { id } = req.params; // Берем ID из URL
+    const { price, duration } = req.body;
 
     try {
-      const existingPrice = await prisma.tutorSubjectPrice.findFirst({
-        where: { tutorId, subjectId, format },
+      const existingPrice = await prisma.tutorSubjectPrice.findUnique({
+        where: { id },
       });
 
       if (!existingPrice) {
@@ -635,7 +636,7 @@ const TutorController = {
       }
 
       const updatedPrice = await prisma.tutorSubjectPrice.update({
-        where: { id: existingPrice.id },
+        where: { id },
         data: {
           price: Number(price),
           duration,
