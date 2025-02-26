@@ -150,7 +150,6 @@ const TutorController = {
   // Изменение репетитора
   updateTutor: async (req, res) => {
     const { id } = req.params;
-
     const {
       name,
       email,
@@ -205,13 +204,15 @@ const TutorController = {
         });
       }
 
-      // Фильтруем комментарии: оставляем только те, у которых subjectId есть в новом списке предметов
-      const updatedComments = tutor.subjectComments.filter((comment) =>
-        newSubjects.includes(comment.subjectId)
-      );
+      // Объявляем `updatedComments`, чтобы избежать ошибок, если `subjectComments` нет в запросе
+      let updatedComments = tutor.subjectComments;
 
-      // Добавляем новые комментарии, если они есть в запросе
-      if (subjectComments) {
+      // Обновляем комментарии, только если `subjectComments` переданы
+      if (subjectComments !== undefined) {
+        updatedComments = tutor.subjectComments.filter((comment) =>
+          newSubjects.includes(comment.subjectId)
+        );
+
         for (const newComment of subjectComments) {
           const existingIndex = updatedComments.findIndex(
             (c) => c.subjectId === newComment.subjectId
@@ -224,8 +225,6 @@ const TutorController = {
         }
       }
 
-      console.log("updateTutor req.body:", req.body);
-
       // Обновляем данные репетитора
       const updatedTutor = await prisma.tutor.update({
         where: { id },
@@ -234,7 +233,6 @@ const TutorController = {
           email: email || undefined,
           avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl,
           subject: subject || undefined, // Обновляем список предметов
-          subjectComments: updatedComments || undefined, // Обновляем комментарии
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
           tutorAdress: tutorAdress || undefined,
@@ -246,6 +244,9 @@ const TutorController = {
           experience: experience || undefined,
           isGroup: isGroup || false,
           status: status || undefined,
+          ...(subjectComments !== undefined && {
+            subjectComments: updatedComments,
+          }), // Обновляем только если переданы
         },
         include: { subjectPrices: true },
       });
