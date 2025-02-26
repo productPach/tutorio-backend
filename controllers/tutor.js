@@ -130,6 +130,7 @@ const TutorController = {
         where: { userId: req.user.userID },
         include: {
           educations: true, // Включаем связанные места образования
+          subjectPrices: true, // Включаем связанные цены
         },
       });
 
