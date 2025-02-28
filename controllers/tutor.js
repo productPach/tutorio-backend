@@ -248,7 +248,7 @@ const TutorController = {
           isGroup: isGroup || false,
           status: status || undefined,
           ...(subject !== undefined || subjectComments !== undefined
-            ? { subjectComments: updatedComments }
+            ? { subjectComments: structuredClone(updatedComments) }
             : {}), // Обновляем, если пришли новые предметы или комментарии
         },
         include: { subjectPrices: true },
