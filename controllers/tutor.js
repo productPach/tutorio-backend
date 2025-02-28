@@ -214,6 +214,14 @@ const TutorController = {
         );
       }
 
+      // 🔥 Удаляем комментарии, если их нет в переданном `subjectComments`
+      if (subjectComments !== undefined) {
+        const newSubjectIds = subjectComments.map((c) => c.subjectId);
+        updatedComments = updatedComments.filter((comment) =>
+          newSubjectIds.includes(comment.subjectId)
+        );
+      }
+
       // Если в запросе пришли новые комментарии, обновляем их
       if (subjectComments !== undefined) {
         for (const newComment of subjectComments) {
