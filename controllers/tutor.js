@@ -248,7 +248,11 @@ const TutorController = {
           isGroup: isGroup || false,
           status: status || undefined,
           ...(subject !== undefined || subjectComments !== undefined
-            ? { subjectComments: JSON.parse(JSON.stringify(updatedComments)) }
+            ? {
+                subjectComments: JSON.parse(
+                  JSON.stringify([...updatedComments])
+                ),
+              }
             : {}), // Обновляем, если пришли новые предметы или комментарии
         },
         include: { subjectPrices: true },
