@@ -253,7 +253,7 @@ const TutorController = {
           tutorTripArea: tutorTripArea || undefined,
           profileInfo: profileInfo || undefined,
           experience: experience || undefined,
-          isGroup: isGroup || false,
+          isGroup: isGroup !== undefined ? isGroup : tutor.isGroup,
           status: status || undefined,
           ...(subject !== undefined || subjectComments !== undefined
             ? {
