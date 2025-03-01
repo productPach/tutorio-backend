@@ -9,6 +9,7 @@ const {
   EmployeeController,
   WelcomeScreenController,
   LocationController,
+  WikiController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const uploadDestination = "uploads";
@@ -215,5 +216,28 @@ router.put("/city/:id", LocationController.updateCityById);
 router.put("/district/:id", LocationController.updateDistrictById);
 router.put("/metro/:id", LocationController.updateMetroById);
 router.put("/regional-city/:id", LocationController.updateRegionalCityById);
+
+// Роуты для топиков (Topic)
+router.post("/topics", authenticateToken, WikiController.createTopic);
+router.get("/topics", authenticateToken, WikiController.getAllTopics);
+router.get("/topics/:id", authenticateToken, WikiController.getTopicById);
+router.patch("/topics/:id", authenticateToken, WikiController.updateTopic);
+router.delete("/topics/:id", authenticateToken, WikiController.deleteTopic);
+
+// Роуты для тем (Theme)
+router.get("/themes", authenticateToken, WikiController.getAllThemes);
+router.get(
+  "/topics/:id/themes",
+  authenticateToken,
+  WikiController.getThemesByTopic
+);
+router.post(
+  "/topics/:id/themes",
+  authenticateToken,
+  WikiController.createTheme
+);
+router.get("/themes/:id", authenticateToken, WikiController.getThemeById);
+router.patch("/themes/:id", authenticateToken, WikiController.updateTheme);
+router.delete("/themes/:id", authenticateToken, WikiController.deleteTheme);
 
 module.exports = router;
