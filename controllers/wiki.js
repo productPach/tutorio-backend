@@ -102,11 +102,11 @@ const WikiController = {
 
   // Получение тем для конкретного топика
   getThemesByTopic: async (req, res) => {
-    const { topicId } = req.params;
+    const { topicId } = req.params.topicId;
 
     try {
       const themes = await prisma.theme.findMany({
-        where: { topicId },
+        where: { topicId: topicId },
       });
 
       res.status(200).json(themes);
