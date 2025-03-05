@@ -153,6 +153,8 @@ const TutorController = {
     const {
       name,
       email,
+      telegram,
+      skype,
       subject, // Список предметов
       subjectComments,
       region,
@@ -166,6 +168,18 @@ const TutorController = {
       experience,
       isGroup,
       status,
+      isPublicProfile,
+      isStudentResponses,
+      isNotifications,
+      isNotificationsOrders,
+      isNotificationsResponse,
+      isNotificationsPromo,
+      isNotificationsSms,
+      isNotificationsEmail,
+      isNotificationsTelegram,
+      isNotificationsMobilePush,
+      isNotificationsWebPush,
+      isNotificationsVk,
     } = req.body;
 
     let avatarUrl;
@@ -242,6 +256,8 @@ const TutorController = {
         data: {
           name: name || undefined,
           email: email || undefined,
+          telegram: telegram || undefined,
+          skype: skype || undefined,
           avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl,
           subject: subject || undefined, // Обновляем список предметов
           region: region || undefined,
@@ -254,6 +270,54 @@ const TutorController = {
           profileInfo: profileInfo || undefined,
           experience: experience || undefined,
           isGroup: isGroup !== undefined ? isGroup : tutor.isGroup,
+          isPublicProfile:
+            isPublicProfile !== undefined
+              ? isPublicProfile
+              : tutor.isPublicProfile,
+          isStudentResponses:
+            isStudentResponses !== undefined
+              ? isStudentResponses
+              : tutor.isStudentResponses,
+          isNotifications:
+            isNotifications !== undefined
+              ? isNotifications
+              : tutor.isNotifications,
+          isNotificationsOrders:
+            isNotificationsOrders !== undefined
+              ? isNotificationsOrders
+              : tutor.isNotificationsOrders,
+          isNotificationsResponse:
+            isNotificationsResponse !== undefined
+              ? isNotificationsResponse
+              : tutor.isNotificationsResponse,
+          isNotificationsPromo:
+            isNotificationsPromo !== undefined
+              ? isNotificationsPromo
+              : tutor.isNotificationsPromo,
+          isNotificationsSms:
+            isNotificationsSms !== undefined
+              ? isNotificationsSms
+              : tutor.isNotificationsSms,
+          isNotificationsEmail:
+            isNotificationsEmail !== undefined
+              ? isNotificationsEmail
+              : tutor.isNotificationsEmail,
+          isNotificationsTelegram:
+            isNotificationsTelegram !== undefined
+              ? isNotificationsTelegram
+              : tutor.isNotificationsTelegram,
+          isNotificationsVk:
+            isNotificationsVk !== undefined
+              ? isNotificationsVk
+              : tutor.isNotificationsVk,
+          isNotificationsMobilePush:
+            isNotificationsMobilePush !== undefined
+              ? isNotificationsMobilePush
+              : tutor.isNotificationsMobilePush,
+          isNotificationsWebPush:
+            isNotificationsWebPush !== undefined
+              ? isNotificationsWebPush
+              : tutor.isNotificationsWebPush,
           status: status || undefined,
           ...(subject !== undefined || subjectComments !== undefined
             ? {

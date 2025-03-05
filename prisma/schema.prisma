@@ -41,32 +41,46 @@ model Student {
 }
 
 model Tutor {
-  id                String           @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String           @unique @db.ObjectId
-  user              User             @relation(fields: [userId], references: [id])
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  name              String?
-  phone             String           @unique
-  email             String?
-  avatarUrl         String?
-  subject           String[]         @default([])
-  subjectComments   Json             @default("[]")
-  region            String?
-  tutorPlace        String[]         @default([])
-  tutorAdress       String?
-  tutorTrip         String[]         @default([])
-  tutorTripCityData String?
-  tutorTripCity     String[]         @default([])
-  tutorTripArea     String[]         @default([])
-  profileInfo       String?
-  experience        String?
-  educations        TutorEducation[]
-  documents         TutorDocument[]
-  isGroup           Boolean          @default(false)
-  status            String
-  response          Response[]
-  subjectPrices     TutorSubjectPrice[] @relation("TutorToSubjectPrices")
+  id                          String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId                      String           @unique @db.ObjectId
+  user                        User             @relation(fields: [userId], references: [id])
+  createdAt                   DateTime         @default(now())
+  updatedAt                   DateTime         @updatedAt
+  name                        String?
+  phone                       String           @unique
+  email                       String?
+  telegram                    String?
+  skype                       String?
+  avatarUrl                   String?
+  subject                     String[]         @default([])
+  subjectComments             Json             @default("[]")
+  region                      String?
+  tutorPlace                  String[]         @default([])
+  tutorAdress                 String?
+  tutorTrip                   String[]         @default([])
+  tutorTripCityData           String?
+  tutorTripCity               String[]         @default([])
+  tutorTripArea               String[]         @default([])
+  profileInfo                 String?
+  experience                  String?
+  educations                  TutorEducation[]
+  documents                   TutorDocument[]
+  isGroup                     Boolean          @default(false)
+  status                      String
+  response                    Response[]
+  subjectPrices               TutorSubjectPrice[] @relation("TutorToSubjectPrices")
+  isPublicProfile             Boolean          @default(true) // для "Публичной анкеты"
+  isStudentResponses          Boolean          @default(true) // для "Получать отклики от учеников"
+  isNotifications             Boolean          @default(true) // "Получать уведомления"
+  isNotificationsOrders       Boolean          @default(true) // для "Новых заказов"
+  isNotificationsResponse     Boolean          @default(true) // для "Откликов от учеников"
+  isNotificationsPromo        Boolean          @default(true)
+  isNotificationsSms          Boolean          @default(true)
+  isNotificationsEmail        Boolean          @default(true)
+  isNotificationsTelegram     Boolean          @default(true)
+  isNotificationsMobilePush   Boolean          @default(true)
+  isNotificationsWebPush      Boolean          @default(true)
+  isNotificationsVk           Boolean          @default(true)
 }
 
 model TutorSubjectPrice {
