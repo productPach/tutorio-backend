@@ -10,6 +10,7 @@ const {
   WelcomeScreenController,
   LocationController,
   WikiController,
+  MailController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const uploadDestination = "uploads";
@@ -239,5 +240,8 @@ router.post(
 router.get("/themes/:id", authenticateToken, WikiController.getThemeById);
 router.patch("/themes/:id", authenticateToken, WikiController.updateTheme);
 router.delete("/themes/:id", authenticateToken, WikiController.deleteTheme);
+
+// Роуты для e-mail рассылок
+router.post("/send-email", MailController.sendEmail);
 
 module.exports = router;

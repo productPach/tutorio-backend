@@ -49,6 +49,7 @@ model Tutor {
   name                        String?
   phone                       String           @unique
   email                       String?
+  isVerifedEmail              Boolean          @default(false)
   telegram                    String?
   skype                       String?
   avatarUrl                   String?

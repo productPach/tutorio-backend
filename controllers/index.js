@@ -6,6 +6,7 @@ const EmployeeController = require("./employee");
 const WelcomeScreenController = require("./welcomScreen");
 const LocationController = require("./location");
 const WikiController = require("./wiki");
+const MailController = require("./mail");
 module.exports = {
   UserController,
   StudentController,
@@ -15,4 +16,5 @@ module.exports = {
   WelcomeScreenController,
   LocationController,
   WikiController,
+  MailController,
 };
