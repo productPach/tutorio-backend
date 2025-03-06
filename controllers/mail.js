@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const MAILOPOST_API_URL = "https://api.mailopost.ru/v1";
-const API_TOKEN = process.env.MAILOPOST_API_TOKEN;
+const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
 
 const MailController = {
   // Отправка письма
