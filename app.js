@@ -6,8 +6,18 @@ const logger = require("morgan");
 const fs = require("fs");
 const cors = require("cors");
 require("dotenv").config();
+const { Server } = require("socket.io");
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3001",
+  },
+});
+
+// Подключаем WebSocket-модуль
+require("./sockets/emailVerificationSocket")(io);
 
 // CORS middleware setup
 app.use(cors({ origin: "http://localhost:3001" })); // Настраиваем разрешение запросов с определенного источника
@@ -47,4 +57,4 @@ app.use(function (err, req, res, next) {
   res.render("error");
 });
 
-module.exports = app;
+module.exports = { app, server };
