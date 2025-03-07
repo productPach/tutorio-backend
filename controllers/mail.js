@@ -6,9 +6,9 @@ const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
 const MailController = {
   // Отправка письма
   sendEmail: async (req, res) => {
-    const { to, subject, text } = req.body;
+    const { to, subject, text, html } = req.body;
 
-    if (!to || !subject || !text) {
+    if (!to || !subject || (!text && !html)) {
       return res.status(400).json({ error: "Все поля обязательны" });
     }
 
