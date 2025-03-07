@@ -91,6 +91,8 @@ router.post(
   uploads.single("avatar"),
   TutorController.createTutor
 );
+// Подтверждение email по токену
+router.get("/tutors/verify-email", TutorController.verifyEmail);
 // Роут для обновления фотографии репетитора
 router.put(
   "/tutors/:id/avatar",
@@ -242,6 +244,11 @@ router.patch("/themes/:id", authenticateToken, WikiController.updateTheme);
 router.delete("/themes/:id", authenticateToken, WikiController.deleteTheme);
 
 // Роуты для e-mail рассылок
-router.post("/send-email", MailController.sendEmail);
+router.post("/send-email", authenticateToken, MailController.sendEmail);
+router.post(
+  "/send-verification-email",
+  authenticateToken,
+  MailController.sendVerificationEmail
+);
 
 module.exports = router;

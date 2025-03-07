@@ -75,6 +75,48 @@ const TutorController = {
     }
   },
 
+  verifyEmail: async (req, res) => {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ error: "Токен обязателен" });
+    }
+
+    try {
+      // Проверяем, существует ли репетитор с таким токеном и с действующим сроком его действия
+      const tutor = await prisma.tutor.findFirst({
+        where: {
+          emailVerificationToken: token,
+          emailTokenExpires: { gt: new Date() }, // Проверяем, не истек ли токен
+        },
+      });
+
+      if (!tutor) {
+        return res.status(400).json({ error: "Неверный или истекший токен" });
+      }
+
+      // Если email уже подтвержден, то сообщаем об этом
+      if (tutor.isVerifedEmail) {
+        return res.status(400).json({ error: "Email уже подтвержден" });
+      }
+
+      // Подтверждаем email
+      await prisma.tutor.update({
+        where: { id: tutor.id },
+        data: {
+          isVerifedEmail: true,
+          emailVerificationToken: null, // Удаляем использованный токен
+          emailTokenExpires: null,
+        },
+      });
+
+      res.json({ message: "Email подтверждён" });
+    } catch (error) {
+      console.error("Ошибка подтверждения email:", error.message);
+      res.status(500).json({ error: "Ошибка подтверждения email" });
+    }
+  },
+
   // Получение всех репетиторов
   getAllTutors: async (req, res) => {
     try {

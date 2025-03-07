@@ -82,6 +82,8 @@ model Tutor {
   isNotificationsMobilePush   Boolean          @default(true)
   isNotificationsWebPush      Boolean          @default(true)
   isNotificationsVk           Boolean          @default(true)
+  emailVerificationToken      String?          @unique
+  emailTokenExpires           DateTime?
 }
 
 model TutorSubjectPrice {
