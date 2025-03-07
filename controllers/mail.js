@@ -16,11 +16,12 @@ const MailController = {
       const response = await axios.post(
         `${MAILOPOST_API_URL}/email/messages`,
         {
-          from_email: "myrepetitorinfo@yandex.ru", // Укажите ваш email-отправитель
+          from_email: "info@tutorio.ru", // Укажите ваш email-отправитель
           from_name: "Павел", // Укажите имя отправителя
           to,
           subject,
           text,
+          html, // HTML-версия письма
         },
         {
           headers: {
