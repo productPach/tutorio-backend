@@ -195,6 +195,7 @@ const TutorController = {
     const {
       name,
       email,
+      isVerifedEmail,
       telegram,
       skype,
       subject, // Список предметов
@@ -298,6 +299,10 @@ const TutorController = {
         data: {
           name: name || undefined,
           email: email || undefined,
+          isVerifedEmail:
+            isVerifedEmail !== undefined
+              ? isVerifedEmail
+              : tutor.isVerifedEmail,
           telegram: telegram || undefined,
           skype: skype || undefined,
           avatarUrl: avatarUrl ? `/uploads/${avatarUrl}` : tutor.avatarUrl,
