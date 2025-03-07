@@ -50,56 +50,56 @@ const MailController = {
   },
 
   sendVerificationEmail: async (req, res) => {
-    // Получаем данные из запроса
-    const { id } = req.params;
+    // Получаем id из тела запроса
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Не указан id репетитора" });
+    }
 
     // Находим репетитора по userId
     const tutor = await prisma.tutor.findUnique({
       where: { id },
     });
 
-    // Если репетитор не найден
     if (!tutor) {
       return res.status(404).json({ error: "Репетитор не найден" });
     }
 
-    // Генерация нового токена для подтверждения email
+    // Генерация токена подтверждения
     const emailVerificationToken = jwt.sign(
-      { tutorId: id, email: tutor.email }, // информация для токена
-      process.env.SECRET_KEY, // Секретный ключ для подписи
-      { expiresIn: "1h" } // Срок действия токена (1 час)
+      { tutorId: id, email: tutor.email },
+      process.env.SECRET_KEY,
+      { expiresIn: "1h" }
     );
 
-    // Обновляем репетитора с новым токеном подтверждения
+    // Обновляем репетитора
     await prisma.tutor.update({
       where: { id },
       data: {
-        emailVerificationToken, // Сохраняем токен в базе данных
-        emailTokenExpires: new Date(Date.now() + 3600000), // Время истечения токена (1 час)
+        emailVerificationToken,
+        emailTokenExpires: new Date(Date.now() + 3600000),
       },
     });
 
-    // Составляем текст письма
-    const subject = "Подтверждение почты";
-    const text = `Здравствуйте, ${tutor.name}!\n\nДля подтверждения вашего адреса электронной почты, пожалуйста, перейдите по следующей ссылке: \n\nhttp://yourdomain.com/verify-email?token=${emailVerificationToken}\n\nСсылка действительна 1 час.`;
-    // Логика для установки правильного домена
-    let domain = "";
-    if (environment === "development") {
-      domain = "http://localhost:3001"; // Локальный домен для разработки
-    } else {
-      domain = "https://tutorio.ru"; // Продукционный домен
-    }
-    const html = `
-  <p>Здравствуйте, ${tutor.name}!</p>
-  <p>Для подтверждения вашего адреса электронной почты, пожалуйста, нажмите на кнопку ниже:</p>
-  <a href="${domain}/verify-email?token=${emailVerificationToken}" 
-     style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px; text-align: center;">
-    Подтвердить почту
-  </a>
-  <p>Ссылка действительна 1 час.</p>
-`;
+    // Определяем домен
+    const domain =
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:3001"
+        : "https://tutorio.ru";
 
-    // Отправка письма через MailoPost API
+    // HTML-шаблон письма
+    const html = `
+        <p>Здравствуйте, ${tutor.name}!</p>
+        <p>Для подтверждения вашего адреса электронной почты, пожалуйста, нажмите на кнопку ниже:</p>
+        <a href="${domain}/verify-email?token=${emailVerificationToken}" 
+           style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px; text-align: center;">
+            Подтвердить почту
+        </a>
+        <p>Ссылка действительна 1 час.</p>
+    `;
+
+    // Отправка письма
     try {
       const response = await axios.post(
         `${MAILOPOST_API_URL}/email/messages`,
@@ -107,8 +107,8 @@ const MailController = {
           from_email: "info@tutorio.ru",
           from_name: "Tutorio",
           to: tutor.email,
-          subject,
-          text,
+          subject: "Подтверждение почты",
+          text: `Перейдите по ссылке для подтверждения: ${domain}/verify-email?token=${emailVerificationToken}`,
           html,
         },
         {
@@ -119,9 +119,8 @@ const MailController = {
         }
       );
 
-      // Ответ успешной отправки
       res.status(200).json({
-        message: "Письмо с проверкой почты отправлено",
+        message: "Письмо с подтверждением отправлено",
         data: response.data,
       });
     } catch (error) {
