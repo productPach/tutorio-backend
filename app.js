@@ -25,8 +25,10 @@ require("./sockets/emailVerificationSocket")(io);
 //app.use(cors({ origin: "http://localhost:3001" })); // Настраиваем разрешение запросов с определенного источника
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://158.160.78.58:3001"],
-    credentials: true,
+    origin: ["http://localhost:3001", "http://158.160.78.58:3001"], // Разрешаем эти домены
+    credentials: true, // Разрешаем передавать авторизационные заголовки и куки
+    methods: ["GET", "POST"], // Разрешаем эти HTTP-методы
+    allowedHeaders: ["Content-Type", "Authorization"], // Разрешаем эти заголовки
   })
 );
 
