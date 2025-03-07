@@ -17,7 +17,7 @@ const MailController = {
         `${MAILOPOST_API_URL}/email/messages`,
         {
           from_email: "info@tutorio.ru", // Укажите ваш email-отправитель
-          from_name: "Павел", // Укажите имя отправителя
+          from_name: "Tutorio", // Укажите имя отправителя
           to,
           subject,
           text,
