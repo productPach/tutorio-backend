@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { prisma } = require("../prisma/prisma-client");
+const jwt = require("jsonwebtoken");
 
 const MAILOPOST_API_URL = "https://api.mailopost.ru/v1";
 const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
