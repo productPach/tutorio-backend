@@ -10,21 +10,17 @@ module.exports = (io) => {
     socket.on("verifyEmail", (token) => {
       try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        const { tutorId } = decoded;
-        console.log("Подтверждение почты для:", socket.id);
+        const { tutorId } = decoded; // Получаем tutorId из токена
+        console.log("Подтверждение почты для:", tutorId);
 
-        // Проверяем, подключен ли уже этот tutorId
+        // Если tutorId уже подключен, отправляем событие на все сокеты с этим tutorId
         if (socketConnections[tutorId]) {
-          console.log("Этот tutorId уже подключен к сокету:", tutorId);
-          // Здесь можно отключить старый сокет, если нужно:
-          // io.to(socketConnections[tutorId]).disconnect();
+          io.to(socketConnections[tutorId]).emit("emailVerified", { tutorId });
+          console.log(`Отправлено событие "emailVerified" для: ${socket.id}`);
         }
 
-        // Сохраняем связь между tutorId и текущим сокетом
+        // Связываем текущий сокет с tutorId
         socketConnections[tutorId] = socket.id;
-
-        // Отправляем подтверждение на этот сокет
-        io.to(socket.id).emit("emailVerified", { tutorId });
       } catch (error) {
         console.error("Ошибка верификации токена:", error.message);
         socket.emit("emailVerificationError", {
