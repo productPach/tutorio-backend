@@ -15,6 +15,7 @@ module.exports = (io) => {
         if (socket.connected) {
           socket.emit("emailVerified", { tutorId });
           console.log("Отправка сокета: emailVerified");
+          console.log("Отправка сокета emailVerified на сокет ID:", socket.id);
         } else {
           console.log("Клиент отключился до получения подтверждения.");
         }
