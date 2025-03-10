@@ -4,6 +4,12 @@ module.exports = (io) => {
   io.on("connection", (socket) => {
     console.log("Пользователь подключился:", socket.id);
 
+    // Сохраняем связь tutorId с socket.id
+    socket.on("registerTutor", (tutorId) => {
+      socket.join(tutorId); // Сохраняем сокет в комнате, соответствующей tutorId
+      console.log(`Tutor ${tutorId} подключился к комнате ${socket.id}`);
+    });
+
     socket.on("verifyEmail", (token) => {
       try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
@@ -11,12 +17,9 @@ module.exports = (io) => {
 
         console.log("Подтверждение почты для:", tutorId);
 
-        // Проверяем, подключен ли пользователь перед отправкой события
-        if (socket.connected) {
-          socket.emit("emailVerified", { tutorId });
-        } else {
-          console.log("Клиент отключился до получения подтверждения.");
-        }
+        // Отправляем событие только в комнату с tutorId
+        io.to(tutorId).emit("emailVerified", { tutorId });
+        console.log(`Email verified for tutor ${tutorId}`);
       } catch (error) {
         console.error("Ошибка верификации токена:", error.message);
         socket.emit("emailVerificationError", {
