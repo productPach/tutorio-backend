@@ -1,13 +1,22 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = (io) => {
+  // Хранение информации о подключенных репетиторах
+  const connectedTutors = new Set();
+
   io.on("connection", (socket) => {
     console.log("Пользователь подключился:", socket.id);
 
     // Сохраняем связь tutorId с socket.id
     socket.on("registerTutor", (tutorId) => {
-      socket.join(tutorId); // Сохраняем сокет в комнате, соответствующей tutorId
-      console.log(`Tutor ${tutorId} подключился к комнате ${socket.id}`);
+      // Проверяем, если tutorId уже подключен
+      if (!connectedTutors.has(tutorId)) {
+        connectedTutors.add(tutorId);
+        socket.join(tutorId); // Подключаем сокет к комнате, если еще не подключен
+        console.log(`Tutor ${tutorId} подключился к комнате ${tutorId}`);
+      } else {
+        console.log(`Tutor ${tutorId} уже в комнате`);
+      }
     });
 
     socket.on("verifyEmail", (token) => {
@@ -30,6 +39,15 @@ module.exports = (io) => {
 
     socket.on("disconnect", () => {
       console.log("Пользователь отключился:", socket.id);
+
+      // Удаляем tutorId из connectedTutors при отключении
+      for (let tutorId of connectedTutors) {
+        if (socket.rooms.has(tutorId)) {
+          connectedTutors.delete(tutorId);
+          console.log(`Tutor ${tutorId} отключился.`);
+          break;
+        }
+      }
     });
   });
 };
