@@ -1,3 +1,5 @@
+const jwt = require("jsonwebtoken");
+
 module.exports = (io) => {
   io.on("connection", (socket) => {
     console.log("Пользователь подключился:", socket.id);
