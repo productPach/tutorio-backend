@@ -48,6 +48,15 @@ module.exports = (io) => {
         }
       }
       console.log("Пользователь отключился:", socket.id);
+
+      // Удаляем tutorId из connectedTutors при отключении
+      for (let tutorId of connectedTutors) {
+        if (socket.rooms.has(tutorId)) {
+          connectedTutors.delete(tutorId);
+          console.log(`Tutor ${tutorId} отключился.`);
+          break;
+        }
+      }
     });
   });
 };
