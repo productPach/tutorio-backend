@@ -11,7 +11,7 @@ module.exports = (io) => {
       try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
         const { tutorId } = decoded;
-        console.log("Подтверждение почты для:", tutorId);
+        console.log("Подтверждение почты для:", socket.id);
 
         // Проверяем, подключен ли уже этот tutorId
         if (socketConnections[tutorId]) {
