@@ -58,50 +58,52 @@ const MailController = {
       return res.status(400).json({ error: "Не указан id репетитора" });
     }
 
-    // Находим репетитора по userId
-    const tutor = await prisma.tutor.findUnique({
-      where: { id },
-    });
-
-    if (!tutor) {
-      return res.status(404).json({ error: "Репетитор не найден" });
-    }
-
-    // Генерация токена подтверждения
-    const emailVerificationToken = jwt.sign(
-      { tutorId: id, email: tutor.email },
-      process.env.SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-
-    // Обновляем репетитора
-    await prisma.tutor.update({
-      where: { id },
-      data: {
-        emailVerificationToken,
-        emailTokenExpires: new Date(Date.now() + 3600000),
-      },
-    });
-
     // Определяем домен
     const domain =
       process.env.NODE_ENV === "development"
         ? "http://localhost:3001"
         : "https://tutorio.ru";
 
-    // HTML-шаблон письма
-    const html = `
-        <p>Здравствуйте, ${tutor.name}!</p>
-        <p>Для подтверждения вашего адреса электронной почты, пожалуйста, нажмите на кнопку ниже:</p>
-        <a href="${domain}/verify-email?token=${emailVerificationToken}" 
-           style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px; text-align: center;">
-            Подтвердить почту
-        </a>
-        <p>Ссылка действительна 1 час.</p>
-    `;
-
-    // Отправка письма
     try {
+      // Находим репетитора по userId
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // Если почта уже подтверждена, не отправляем письмо повторно
+      if (tutor.isVerifedEmail) {
+        return res.status(400).json({ error: "Email уже подтвержден" });
+      }
+
+      // Проверяем, установлен ли SECRET_KEY
+      if (!process.env.SECRET_KEY) {
+        console.error("SECRET_KEY не установлен в .env");
+        return res.status(500).json({ error: "Ошибка сервера" });
+      }
+
+      // Генерация токена подтверждения
+      const emailVerificationToken = jwt.sign(
+        { tutorId: id, email: tutor.email },
+        process.env.SECRET_KEY,
+        { expiresIn: "1h" }
+      );
+
+      // HTML-шаблон письма
+      const html = `
+          <p>Здравствуйте, ${tutor.name}!</p>
+          <p>Для подтверждения вашего адреса электронной почты, пожалуйста, нажмите на кнопку ниже:</p>
+          <a href="${domain}/verify-email?token=${emailVerificationToken}" 
+             style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px; text-align: center;">
+              Подтвердить почту
+          </a>
+          <p>Ссылка действительна 1 час.</p>
+      `;
+
+      // Отправка письма
       const response = await axios.post(
         `${MAILOPOST_API_URL}/email/messages`,
         {
@@ -118,6 +120,11 @@ const MailController = {
             "Content-Type": "application/json",
           },
         }
+      );
+
+      console.log(
+        `Письмо отправлено на ${tutor.email}, статус:`,
+        response.status
       );
 
       res.status(200).json({
