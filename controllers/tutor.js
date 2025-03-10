@@ -2,6 +2,7 @@ const { prisma } = require("../prisma/prisma-client");
 const jdenticon = require("jdenticon");
 const path = require("path");
 const fs = require("fs");
+const jwt = require("jsonwebtoken");
 const { connect } = require("http2");
 
 const TutorController = {
@@ -83,37 +84,36 @@ const TutorController = {
     }
 
     try {
-      // Проверяем, существует ли репетитор с таким токеном и с действующим сроком его действия
-      const tutor = await prisma.tutor.findFirst({
-        where: {
-          emailVerificationToken: token,
-          emailTokenExpires: { gt: new Date() }, // Проверяем, не истек ли токен
-        },
+      // 🔹 Расшифровываем токен, извлекаем tutorId и email
+      const decoded = jwt.verify(token, process.env.SECRET_KEY);
+      const { tutorId, email } = decoded;
+
+      // 🔹 Ищем репетитора по ID и email
+      const tutor = await prisma.tutor.findUnique({
+        where: { id: tutorId, email },
       });
 
       if (!tutor) {
         return res.status(400).json({ error: "Неверный или истекший токен" });
       }
 
-      // Если email уже подтвержден, то сообщаем об этом
+      // 🔹 Если email уже подтвержден, возвращаем ошибку
       if (tutor.isVerifedEmail) {
         return res.status(400).json({ error: "Email уже подтвержден" });
       }
 
-      // Подтверждаем email
+      // 🔹 Подтверждаем email
       await prisma.tutor.update({
-        where: { id: tutor.id },
+        where: { id: tutorId },
         data: {
           isVerifedEmail: true,
-          emailVerificationToken: null, // Удаляем использованный токен
-          emailTokenExpires: null,
         },
       });
 
       res.json({ message: "Email подтверждён" });
     } catch (error) {
       console.error("Ошибка подтверждения email:", error.message);
-      res.status(500).json({ error: "Ошибка подтверждения email" });
+      res.status(400).json({ error: "Неверный или истекший токен" });
     }
   },
 
