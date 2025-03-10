@@ -1,20 +1,21 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = (io) => {
-  // Хранение информации о подключенных репетиторах
-  const connectedTutors = new Set();
+  // Мапа для отслеживания текущих пользователей, уже подключенных к комнате
+  const connectedTutors = new Map();
 
   io.on("connection", (socket) => {
     console.log("Пользователь подключился:", socket.id);
 
-    // Сохраняем связь tutorId с socket.id
+    // Сохраняем связь tutorId с socket.id, но только если пользователь ещё не подключен
     socket.on("registerTutor", (tutorId) => {
-      // Проверяем, если tutorId уже подключен
       if (!connectedTutors.has(tutorId)) {
-        connectedTutors.add(tutorId);
-        socket.join(tutorId); // Подключаем сокет к комнате, если еще не подключен
+        // Если репетитор ещё не подключен, подключаем к комнате
+        socket.join(tutorId);
+        connectedTutors.set(tutorId, socket.id); // Добавляем tutorId в мапу
         console.log(`Tutor ${tutorId} подключился к комнате ${tutorId}`);
       } else {
+        // Если уже подключен, просто сообщаем
         console.log(`Tutor ${tutorId} уже в комнате`);
       }
     });
@@ -38,16 +39,15 @@ module.exports = (io) => {
     });
 
     socket.on("disconnect", () => {
-      console.log("Пользователь отключился:", socket.id);
-
-      // Удаляем tutorId из connectedTutors при отключении
-      for (let tutorId of connectedTutors) {
-        if (socket.rooms.has(tutorId)) {
+      // Удаляем tutorId из мапы при отключении
+      for (let [tutorId, socketId] of connectedTutors) {
+        if (socketId === socket.id) {
           connectedTutors.delete(tutorId);
-          console.log(`Tutor ${tutorId} отключился.`);
+          console.log(`Tutor ${tutorId} отключился от комнаты`);
           break;
         }
       }
+      console.log("Пользователь отключился:", socket.id);
     });
   });
 };
