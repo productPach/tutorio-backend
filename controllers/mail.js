@@ -94,7 +94,7 @@ const MailController = {
 
       // Отправка письма
       const response = await axios.post(
-        `${MAILOPOST_API_URL}/email/templates/:template_id/messages`,
+        `${MAILOPOST_API_URL}/email/templates/1457785/messages`,
         {
           to: tutor.email,
           params: {
