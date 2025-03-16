@@ -77,7 +77,11 @@ router.get(
   authenticateToken,
   StudentController.getStudentById
 );
-router.put("/students/:id", authenticateToken, StudentController.updateStudent);
+router.patch(
+  "/students/:id",
+  authenticateToken,
+  StudentController.updateStudent
+);
 router.delete(
   "/students/:id",
   authenticateToken,
