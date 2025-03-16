@@ -195,7 +195,6 @@ const TutorController = {
     const {
       name,
       email,
-      phone,
       isVerifedEmail,
       telegram,
       skype,
@@ -299,7 +298,6 @@ const TutorController = {
         where: { id },
         data: {
           name: name || undefined,
-          phone: phone || undefined,
           email: email || undefined,
           isVerifedEmail:
             isVerifedEmail !== undefined
@@ -379,20 +377,20 @@ const TutorController = {
         include: { subjectPrices: true },
       });
 
-      if (phone !== undefined) {
-        const student = await prisma.student.findUnique({
-          where: { userId: userID },
-        });
+      // if (phone !== undefined) {
+      //   const student = await prisma.student.findUnique({
+      //     where: { userId: userID },
+      //   });
 
-        if (student) {
-          await prisma.student.update({
-            where: { userId: userID },
-            data: {
-              phone: phone || undefined,
-            },
-          });
-        }
-      }
+      //   if (student) {
+      //     await prisma.student.update({
+      //       where: { userId: userID },
+      //       data: {
+      //         phone: phone || undefined,
+      //       },
+      //     });
+      //   }
+      // }
 
       // Получаем обновлённые данные с вложениями
       const tutorNew = await prisma.tutor.findUnique({

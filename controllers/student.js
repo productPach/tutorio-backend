@@ -100,7 +100,7 @@ const StudentController = {
   updateStudent: async (req, res) => {
     const { id } = req.params;
 
-    const { name, phone, email, region, status } = req.body;
+    const { name, email, region, status } = req.body;
 
     try {
       const student = await prisma.student.findUnique({
@@ -119,27 +119,26 @@ const StudentController = {
         where: { id },
         data: {
           name: name || undefined,
-          phone: phone || undefined,
           email: email || undefined,
           region: region || undefined,
           status: status || undefined,
         },
       });
 
-      if (phone !== undefined) {
-        const tutor = await prisma.tutor.findUnique({
-          where: { userId: userID },
-        });
+      // if (phone !== undefined) {
+      //   const tutor = await prisma.tutor.findUnique({
+      //     where: { userId: userID },
+      //   });
 
-        if (tutor) {
-          await prisma.tutor.update({
-            where: { userId: userID },
-            data: {
-              phone: phone || undefined,
-            },
-          });
-        }
-      }
+      //   if (tutor) {
+      //     await prisma.tutor.update({
+      //       where: { userId: userID },
+      //       data: {
+      //         phone: phone || undefined,
+      //       },
+      //     });
+      //   }
+      // }
 
       res.json(updateStudent);
     } catch (error) {
