@@ -335,6 +335,24 @@ const UserController = {
       res.status(500).json({ error: "Ошибка сервера" });
     }
   },
+
+  // Получение списка ответов
+  getAllSurveyResponse: async (req, res) => {
+    try {
+      const surveyResponses = await prisma.surveyResponse.findMany({
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (surveyResponses.length === 0) {
+        return res.status(404).json({ error: "Нет ни одного ответа" });
+      }
+
+      res.json(surveyResponses);
+    } catch (error) {
+      console.error("Survey Responses Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
 };
 
 module.exports = UserController;
