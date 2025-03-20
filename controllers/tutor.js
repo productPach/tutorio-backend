@@ -527,6 +527,54 @@ const TutorController = {
     }
   },
 
+  // Запрос на удаление от репетитора
+  deleteRequest: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      if (tutor.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
+      // Проверяем, существует ли уже запрос
+      const existingRequest = await prisma.deletedRequest.findUnique({
+        where: { userId: tutor.userId },
+      });
+
+      if (existingRequest) {
+        return res
+          .status(409)
+          .json({ message: "Запрос на удаление уже существует" });
+      }
+
+      // Устанавливаем дату удаления через 30 дней
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      const deleteRequest = await prisma.deletedRequest.create({
+        data: {
+          userId: tutor.userId,
+          tutor: { connect: { id: tutor.id } },
+          requestedAt: new Date(),
+          expiresAt,
+        },
+      });
+
+      res.status(201).json(deleteRequest);
+    } catch (error) {
+      console.error("Delete Request Tutor Error", error);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
   // Добавление нового места образования
   addEducation: async (req, res) => {
     const {

@@ -15,29 +15,30 @@ datasource db {
 }
 
 model User {
-  id           String              @id @default(auto()) @map("_id") @db.ObjectId
-  phone        String              @unique
-  password     String
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  student      Student?
-  tutor        Tutor?
-  employee     Employee?
-  welcomeState UserWelcomeScreen[]
+  id                      String              @id @default(auto()) @map("_id") @db.ObjectId
+  phone                   String              @unique
+  password                String
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  student                 Student?
+  tutor                   Tutor?
+  employee                Employee?
+  welcomeState            UserWelcomeScreen[]
 }
 
 model Student {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @unique @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name      String
-  phone     String   @unique
-  email     String?
-  region    String
-  status    String
-  orders    Order[]
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId              String   @unique @db.ObjectId
+  user                User     @relation(fields: [userId], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  name                String
+  phone               String   @unique
+  email               String?
+  region              String
+  status              String
+  orders              Order[]
+  deletedRequest      DeletedRequest?
 }
 
 model Tutor {
@@ -82,6 +83,7 @@ model Tutor {
   isNotificationsMobilePush   Boolean          @default(true)
   isNotificationsWebPush      Boolean          @default(true)
   isNotificationsVk           Boolean          @default(true)
+  deletedRequest              DeletedRequest?
 }
 
 model TutorSubjectPrice {
@@ -255,4 +257,21 @@ model Theme {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   topic     Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+}
+
+model SurveyResponse {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  createdAt DateTime @default(now())
+  question  String
+  answer    String
+}
+
+model DeletedRequest {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String?   @unique @map("user_id") @db.ObjectId
+  student     Student?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tutor       Tutor?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  requestedAt DateTime @default(now())
+  expiresAt   DateTime  // Дата окончательного удаления
 }

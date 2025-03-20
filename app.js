@@ -8,6 +8,7 @@ const fs = require("fs");
 const cors = require("cors");
 require("dotenv").config();
 const { Server } = require("socket.io");
+const startCrons = require("./cron");
 
 const app = express();
 const server = http.createServer(app);
@@ -68,5 +69,8 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500);
   res.render("error");
 });
+
+// Запускаем крон-задачи
+startCrons();
 
 module.exports = { app, server };
