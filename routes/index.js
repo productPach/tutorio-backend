@@ -63,6 +63,11 @@ router.post(
   authenticateToken,
   UserController.showWelcomeScreen
 );
+router.delete(
+  "/users/cancel-delete-request",
+  authenticateToken,
+  UserController.cancelDeleteRequest
+);
 
 // Роуты для ученика
 router.post("/students", authenticateToken, StudentController.createStudent);
