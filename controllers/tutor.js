@@ -545,8 +545,8 @@ const TutorController = {
       }
 
       // Проверяем, существует ли уже запрос
-      const existingRequest = await prisma.deletedRequest.findUnique({
-        where: { userId: tutor.userId },
+      const existingRequest = await prisma.deletedRequest.findFirst({
+        where: { userId: tutor.userId }, // Теперь используем findFirst
       });
 
       if (existingRequest) {
@@ -561,8 +561,7 @@ const TutorController = {
 
       const deleteRequest = await prisma.deletedRequest.create({
         data: {
-          userId: tutor.userId,
-          tutor: { connect: { id: tutor.id } },
+          userId: tutor.userId, // Теперь будет корректно работать
           requestedAt: new Date(),
           expiresAt,
         },
