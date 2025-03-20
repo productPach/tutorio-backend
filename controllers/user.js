@@ -308,6 +308,47 @@ const UserController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+
+  // Удаление запроса на удаление ))
+  cancelDeleteRequest: async (req, res) => {
+    const { role } = req.body; // Получаем роль (tutor или student)
+
+    try {
+      // Проверяем, передана ли роль
+      if (!role || (role !== "tutor" && role !== "student")) {
+        return res.status(400).json({ error: "Некорректная роль" });
+      }
+
+      // Ищем запрос на удаление по userId и роли
+      const deleteRequest = await prisma.deletedRequest.findUnique({
+        where: {
+          userId_role: {
+            userId: req.user.userID,
+            role,
+          },
+        },
+      });
+
+      if (!deleteRequest) {
+        return res.status(404).json({ error: "Запрос на удаление не найден" });
+      }
+
+      // Удаляем запрос
+      await prisma.deletedRequest.delete({
+        where: {
+          userId_role: {
+            userId: req.user.userID,
+            role,
+          },
+        },
+      });
+
+      res.status(200).json({ message: "Запрос на удаление отменён" });
+    } catch (error) {
+      console.error("Cancel Delete Request Error:", error);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
 };
 
 module.exports = UserController;
