@@ -63,6 +63,11 @@ router.post(
   authenticateToken,
   UserController.showWelcomeScreen
 );
+router.post(
+  "/survey-response",
+  authenticateToken,
+  UserController.addSurveyResponse
+);
 
 // Роуты для ученика
 router.post("/students", authenticateToken, StudentController.createStudent);
@@ -112,6 +117,11 @@ router.get("/currentTutor", authenticateToken, TutorController.currentTutor);
 router.get("/tutors", authenticateToken, TutorController.getAllTutors);
 router.get("/tutors/:id", authenticateToken, TutorController.getTutorById);
 router.patch("/tutors/:id", authenticateToken, TutorController.updateTutor);
+router.post(
+  "/tutors/delete-request/:id",
+  authenticateToken,
+  TutorController.deleteRequest
+);
 router.delete("/tutors/:id", authenticateToken, TutorController.deleteTutor);
 router.delete(
   "/tutors/:id/avatar",
