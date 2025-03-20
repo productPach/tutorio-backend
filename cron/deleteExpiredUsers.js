@@ -7,12 +7,15 @@ const deleteExpiredUsers = () => {
     console.log("🔄 Запуск cron-задачи по удалению учеников и репетиторов...");
 
     try {
-      const now = new Date();
+      const nowUtc = new Date().toISOString(); // Приводим к UTC в формате ISO
 
       // Находим запросы на удаление, срок которых истёк
       const expiredRequests = await prisma.deletedRequest.findMany({
-        where: { expiresAt: { lte: now } },
+        where: { expiresAt: { lte: nowUtc } },
       });
+
+      console.log("Текущее UTC время:", nowUtc);
+      console.log("Найденные запросы:", expiredRequests);
 
       for (const request of expiredRequests) {
         const { userId, role } = request;
