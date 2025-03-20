@@ -24,6 +24,7 @@ model User {
   tutor                   Tutor?
   employee                Employee?
   welcomeState            UserWelcomeScreen[]
+  deletedRequests DeletedRequest[] @relation("UserToDeletedRequest")
 }
 
 model Student {
@@ -38,7 +39,6 @@ model Student {
   region              String
   status              String
   orders              Order[]
-  deletedRequest      DeletedRequest?
 }
 
 model Tutor {
@@ -83,7 +83,6 @@ model Tutor {
   isNotificationsMobilePush   Boolean          @default(true)
   isNotificationsWebPush      Boolean          @default(true)
   isNotificationsVk           Boolean          @default(true)
-  deletedRequest              DeletedRequest?
 }
 
 model TutorSubjectPrice {
@@ -259,19 +258,13 @@ model Theme {
   topic     Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
 }
 
-model SurveyResponse {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @unique @db.ObjectId
-  createdAt DateTime @default(now())
-  question  String
-  answer    String
-}
-
 model DeletedRequest {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String?   @unique @map("user_id") @db.ObjectId
-  student     Student?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  tutor       Tutor?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String?   @db.ObjectId
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull, name: "UserToDeletedRequest")
+  role       String   // "tutor" или "student"
   requestedAt DateTime @default(now())
-  expiresAt   DateTime  // Дата окончательного удаления
+  expiresAt  DateTime  // Дата окончательного удаления
+  @@unique([userId, role]) // Гарантирует, что у одного юзера не будет двух запросов на одну роль
+  answer      String?
 }

@@ -308,51 +308,6 @@ const UserController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
-
-  // Добавление ответа в опрос
-  addSurveyResponse: async (req, res) => {
-    const { question, answer } = req.body;
-
-    try {
-      if (!question || !answer) {
-        return res
-          .status(400)
-          .json({ error: "Не заполнены все обязательные поля" });
-      }
-
-      const surveyResponse = await prisma.surveyResponse.create({
-        data: {
-          userId: req.user.userID,
-          question,
-          answer,
-          createdAt: new Date(),
-        },
-      });
-
-      res.status(201).json(surveyResponse);
-    } catch (error) {
-      console.error("Survey Response Error", error);
-      res.status(500).json({ error: "Ошибка сервера" });
-    }
-  },
-
-  // Получение списка ответов
-  getAllSurveyResponse: async (req, res) => {
-    try {
-      const surveyResponses = await prisma.surveyResponse.findMany({
-        orderBy: { createdAt: "desc" },
-      });
-
-      if (surveyResponses.length === 0) {
-        return res.status(404).json({ error: "Нет ни одного ответа" });
-      }
-
-      res.json(surveyResponses);
-    } catch (error) {
-      console.error("Survey Responses Error", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  },
 };
 
 module.exports = UserController;
