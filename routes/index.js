@@ -64,16 +64,6 @@ router.post(
   UserController.showWelcomeScreen
 );
 
-router.post(
-  "/survey-response",
-  authenticateToken,
-  UserController.addSurveyResponse
-);
-router.get(
-  "/survey-response",
-  authenticateToken,
-  UserController.getAllSurveyResponse
-);
 // Роуты для ученика
 router.post("/students", authenticateToken, StudentController.createStudent);
 router.get(

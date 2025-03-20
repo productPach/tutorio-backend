@@ -530,6 +530,7 @@ const TutorController = {
   // Запрос на удаление от репетитора
   deleteRequest: async (req, res) => {
     const { id } = req.params;
+    const { answer } = req.body; // Получаем причину удаления
 
     try {
       const tutor = await prisma.tutor.findUnique({
@@ -544,9 +545,14 @@ const TutorController = {
         return res.status(403).json({ error: "Нет доступа" });
       }
 
-      // Проверяем, существует ли уже запрос
-      const existingRequest = await prisma.deletedRequest.findFirst({
-        where: { userId: tutor.userId }, // Теперь используем findFirst
+      // Проверяем, существует ли уже запрос на удаление для репетитора
+      const existingRequest = await prisma.deletedRequest.findUnique({
+        where: {
+          userId_role: {
+            userId: tutor.userId,
+            role: "tutor",
+          },
+        },
       });
 
       if (existingRequest) {
@@ -561,7 +567,9 @@ const TutorController = {
 
       const deleteRequest = await prisma.deletedRequest.create({
         data: {
-          userId: tutor.userId, // Теперь будет корректно работать
+          userId: tutor.userId,
+          role: "tutor", // Теперь указываем роль
+          answer, // Сохраняем причину удаления
           requestedAt: new Date(),
           expiresAt,
         },
