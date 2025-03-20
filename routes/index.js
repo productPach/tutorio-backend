@@ -63,7 +63,7 @@ router.post(
   authenticateToken,
   UserController.showWelcomeScreen
 );
-router.delete(
+router.post(
   "/users/cancel-delete-request",
   authenticateToken,
   UserController.cancelDeleteRequest
