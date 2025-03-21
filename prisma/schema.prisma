@@ -37,6 +37,7 @@ model Student {
   phone               String   @unique
   email               String?
   region              String
+  avatarUrl           String?
   status              String
   orders              Order[]
 }

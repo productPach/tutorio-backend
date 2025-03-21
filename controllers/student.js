@@ -3,7 +3,7 @@ const { prisma } = require("../prisma/prisma-client");
 const StudentController = {
   // Создание ученика
   createStudent: async (req, res) => {
-    const { name, phone, email, region, status } = req.body;
+    const { name, phone, email, avatarUrl, region, status } = req.body;
     const userId = req.user.userID;
 
     if (!name || !phone || !region || !status) {
@@ -29,6 +29,7 @@ const StudentController = {
           name,
           phone,
           email: email || undefined,
+          avatarUrl,
           region,
           status,
         },

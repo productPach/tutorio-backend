@@ -32,6 +32,7 @@ const deleteExpiredUsers = () => {
           });
           if (student) {
             email = student.email; // Получаем email студента
+            // Сделать удаление заказов и откликов!!!
             await prisma.student.deleteMany({ where: { userId } });
             console.log(`✅ Удалён студент с userId: ${userId}`);
           }
