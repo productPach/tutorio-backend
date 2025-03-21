@@ -94,12 +94,7 @@ router.delete(
 );
 
 // Роуты для репетитора
-router.post(
-  "/tutors",
-  authenticateToken,
-  uploads.single("avatar"),
-  TutorController.createTutor
-);
+router.post("/tutors", authenticateToken, TutorController.createTutor);
 // Подтверждение email по токену
 router.get("/tutors/verify-email", TutorController.verifyEmail);
 // Роут для обновления фотографии репетитора
