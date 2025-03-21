@@ -21,57 +21,92 @@ const deleteExpiredUsers = () => {
 
       for (const request of expiredRequests) {
         const { userId, role } = request;
+        let email;
 
         if (role === "student") {
-          await prisma.student.deleteMany({ where: { userId } });
-          console.log(`✅ Удалён студент с userId: ${userId}`);
-        } else if (role === "tutor") {
-          // Перед удалением репетитора удаляем связанные файлы дипломов
-          const educations = await prisma.tutorEducation.findMany({
-            where: { tutor: { userId } },
-          });
-
-          await Promise.all(
-            educations.flatMap((education) =>
-              education.educationDiplomUrl.map(async (url) => {
-                const fileName = path.basename(url);
-                const filePath = path.resolve("uploads/diplomas", fileName);
-                try {
-                  await fs.unlink(filePath); // Асинхронное удаление файла диплома
-                  console.log(`🗑 Удалён файл диплома: ${filePath}`);
-                } catch (error) {
-                  console.error(
-                    `❌ Ошибка при удалении файла диплома ${filePath}:`,
-                    error
-                  );
-                }
-              })
-            )
-          );
-
-          // Удаление аватара репетитора (если есть)
-          const tutor = await prisma.tutor.findUnique({
+          const student = await prisma.student.findUnique({
             where: { userId },
           });
-
-          if (tutor && tutor.avatarUrl) {
-            const avatarPath = path.resolve(
-              "uploads",
-              tutor.avatarUrl.replace(/^\/uploads\//, "") // Убираем `/uploads/` из пути
-            );
-            try {
-              await fs.unlink(avatarPath);
-              console.log(`🗑 Удалён файл аватара: ${avatarPath}`);
-            } catch (error) {
-              console.error(
-                `❌ Ошибка при удалении файла аватара ${avatarPath}:`,
-                error
-              );
-            }
+          if (student) {
+            email = student.email; // Получаем email студента
+            await prisma.student.deleteMany({ where: { userId } });
+            console.log(`✅ Удалён студент с userId: ${userId}`);
           }
+        } else if (role === "tutor") {
+          const tutor = await prisma.tutor.findUnique({ where: { userId } });
+          if (tutor) {
+            email = tutor.email; // Получаем email репетитора
+            // Перед удалением репетитора удаляем связанные файлы дипломов
+            const educations = await prisma.tutorEducation.findMany({
+              where: { tutor: { userId } },
+            });
 
-          await prisma.tutor.deleteMany({ where: { userId } });
-          console.log(`✅ Удалён репетитор с userId: ${userId}`);
+            await Promise.all(
+              educations.flatMap((education) =>
+                education.educationDiplomUrl.map(async (url) => {
+                  const fileName = path.basename(url);
+                  const filePath = path.resolve("uploads/diplomas", fileName);
+                  try {
+                    await fs.unlink(filePath); // Асинхронное удаление файла диплома
+                    console.log(`🗑 Удалён файл диплома: ${filePath}`);
+                  } catch (error) {
+                    console.error(
+                      `❌ Ошибка при удалении файла диплома ${filePath}:`,
+                      error
+                    );
+                  }
+                })
+              )
+            );
+
+            if (tutor && tutor.avatarUrl) {
+              const avatarPath = path.resolve(
+                "uploads",
+                tutor.avatarUrl.replace(/^\/uploads\//, "") // Убираем `/uploads/` из пути
+              );
+              try {
+                await fs.unlink(avatarPath);
+                console.log(`🗑 Удалён файл аватара: ${avatarPath}`);
+              } catch (error) {
+                console.error(
+                  `❌ Ошибка при удалении файла аватара ${avatarPath}:`,
+                  error
+                );
+              }
+            }
+
+            await prisma.tutor.deleteMany({ where: { userId } });
+            console.log(`✅ Удалён репетитор с userId: ${userId}`);
+          }
+        }
+
+        if (email) {
+          // Отправка уведомления о подтверждённом удалении
+          try {
+            const response = await axios.post(
+              `${MAILOPOST_API_URL}/email/templates/1234567/messages`, // ID шаблона письма о подтверждённом удалении
+              {
+                to: email,
+                params: {
+                  userRole: role === "student" ? "ученика" : "репетитора",
+                },
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${API_TOKEN}`, // Замена на реальный API токен
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            console.log(
+              `📧 Письмо об удалении отправлено на ${email}, статус: ${response.status}`
+            );
+          } catch (error) {
+            console.error(
+              `❌ Ошибка при отправке письма об удалении на ${email}:`,
+              error
+            );
+          }
         }
 
         // Проверяем, осталась ли у пользователя другая роль
