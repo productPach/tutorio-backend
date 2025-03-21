@@ -1,7 +1,10 @@
+const axios = require("axios");
 const cron = require("node-cron");
 const { prisma } = require("../prisma/prisma-client");
 const path = require("path");
 const fs = require("fs").promises;
+const MAILOPOST_API_URL = "https://api.mailopost.ru/v1";
+const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
 
 // Удаление пользователей с истекшим сроком удаления (каждый день в 00:00)
 const deleteExpiredUsers = () => {
@@ -47,7 +50,18 @@ const deleteExpiredUsers = () => {
                   const fileName = path.basename(url);
                   const filePath = path.resolve("uploads/diplomas", fileName);
                   try {
-                    await fs.unlink(filePath); // Асинхронное удаление файла диплома
+                    await fs.unlink(filePath).catch((err) => {
+                      if (err.code === "ENOENT") {
+                        console.log(
+                          `⚠️ Файл диплома уже отсутствует: ${filePath}`
+                        );
+                      } else {
+                        console.error(
+                          `❌ Ошибка при удалении файла диплома: ${filePath}`,
+                          err
+                        );
+                      }
+                    });
                     console.log(`🗑 Удалён файл диплома: ${filePath}`);
                   } catch (error) {
                     console.error(
@@ -65,7 +79,18 @@ const deleteExpiredUsers = () => {
                 tutor.avatarUrl.replace(/^\/uploads\//, "") // Убираем `/uploads/` из пути
               );
               try {
-                await fs.unlink(avatarPath);
+                await fs.unlink(avatarPath).catch((err) => {
+                  if (err.code === "ENOENT") {
+                    console.log(
+                      `⚠️ Файл аватара уже отсутствует: ${avatarPath}`
+                    );
+                  } else {
+                    console.error(
+                      `❌ Ошибка при удалении файла аватара: ${avatarPath}`,
+                      err
+                    );
+                  }
+                });
                 console.log(`🗑 Удалён файл аватара: ${avatarPath}`);
               } catch (error) {
                 console.error(
@@ -84,12 +109,9 @@ const deleteExpiredUsers = () => {
           // Отправка уведомления о подтверждённом удалении
           try {
             const response = await axios.post(
-              `${MAILOPOST_API_URL}/email/templates/1234567/messages`, // ID шаблона письма о подтверждённом удалении
+              `${MAILOPOST_API_URL}/email/templates/1464084/messages`, // ID шаблона письма о подтверждённом удалении
               {
                 to: email,
-                params: {
-                  userRole: role === "student" ? "ученика" : "репетитора",
-                },
               },
               {
                 headers: {
