@@ -12,7 +12,6 @@ const TutorController = {
       name,
       phone,
       email,
-      avatarUrl,
       subject,
       region,
       tutorPlace,
@@ -26,19 +25,6 @@ const TutorController = {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
-    }
-
-    let avatarGenerateUrl;
-
-    let filePath;
-
-    if (req.file && req.file.path) {
-      filePath = req.file.path;
-    } else {
-      const png = jdenticon.toPng(name, 200);
-      const avatarName = `${name}_${Date.now()}.png`;
-      avatarGenerateUrl = path.join(__dirname, "../uploads", avatarName);
-      fs.writeFileSync(avatarGenerateUrl, png);
     }
 
     try {
@@ -58,9 +44,6 @@ const TutorController = {
           name: name || undefined,
           phone,
           email: email || undefined,
-          avatarUrl: avatarUrl
-            ? `/uploads/${avatarUrl}`
-            : `/uploads/${avatarGenerateUrl}`,
           subject: subject || undefined,
           region: region || undefined,
           tutorPlace: tutorPlace || undefined,
