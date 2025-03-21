@@ -8,7 +8,7 @@ const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
 
 // Удаление пользователей с истекшим сроком удаления (каждый день в 00:00)
 const deleteExpiredUsers = () => {
-  cron.schedule("30 13 * * *", async () => {
+  cron.schedule("40 13 * * *", async () => {
     console.log("🔄 Запуск cron-задачи по удалению учеников и репетиторов...");
 
     try {
@@ -36,6 +36,11 @@ const deleteExpiredUsers = () => {
             console.log(`✅ Удалён студент с userId: ${userId}`);
           }
         } else if (role === "tutor") {
+          if (!userId) {
+            console.error("userId is null или undefined, пропускаем удаление.");
+            return; // Пропускаем обработку, если userId отсутствует
+          }
+
           const tutor = await prisma.tutor.findUnique({ where: { userId } });
           if (tutor) {
             email = tutor.email; // Получаем email репетитора
