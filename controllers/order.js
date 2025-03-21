@@ -114,6 +114,35 @@ const OrderController = {
     }
   },
 
+  // Получение заказа по studentId
+  getOrdersByStudentId: async (req, res) => {
+    const { studentId } = req.params; // Используем studentId из параметров маршрута
+    try {
+      const orders = await prisma.order.findMany({
+        where: { studentId }, // Ищем по studentId
+        include: {
+          student: true, // Включаем информацию о студенте
+          response: {
+            include: {
+              tutor: true, // Включаем информацию о репетиторах в откликах
+            },
+          },
+        },
+      });
+
+      if (!orders || orders.length === 0) {
+        return res
+          .status(404)
+          .json({ error: "Заказы для указанного студента не найдены" });
+      }
+
+      res.json(orders); // Возвращаем массив заказов
+    } catch (error) {
+      console.error("Get Orders By StudentId Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Получение заказа по ID
   getOrderById: async (req, res) => {
     const { id } = req.params;
