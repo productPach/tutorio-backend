@@ -5,7 +5,7 @@ const fs = require("fs").promises;
 
 // Удаление пользователей с истекшим сроком удаления (каждый день в 00:00)
 const deleteExpiredUsers = () => {
-  cron.schedule("00 11 * * *", async () => {
+  cron.schedule("20 11 * * *", async () => {
     console.log("🔄 Запуск cron-задачи по удалению учеников и репетиторов...");
 
     try {
@@ -75,13 +75,17 @@ const deleteExpiredUsers = () => {
         }
 
         // Проверяем, осталась ли у пользователя другая роль
-        //   const hasStudent = await prisma.student.findFirst({ where: { userId } });
-        //   const hasTutor = await prisma.tutor.findFirst({ where: { userId } });
+        const hasStudent = await prisma.student.findFirst({
+          where: { userId },
+        });
+        const hasTutor = await prisma.tutor.findFirst({ where: { userId } });
 
-        //   if (!hasStudent && !hasTutor) {
-        //     await prisma.user.delete({ where: { id: userId } });
-        //     console.log(`✅ Удалён пользователь ${userId}, так как у него не осталось ролей`);
-        //   }
+        if (!hasStudent && !hasTutor) {
+          await prisma.user.delete({ where: { id: userId } });
+          console.log(
+            `✅ Удалён пользователь ${userId}, так как у него не осталось ролей`
+          );
+        }
 
         // Удаляем только **конкретный** запрос на удаление (по userId и role)
         // await prisma.deletedRequest.delete({
