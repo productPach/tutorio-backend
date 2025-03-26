@@ -104,6 +104,8 @@ const StudentController = {
     const {
       name,
       email,
+      telegram,
+      skype,
       region,
       status,
       isVerifedEmail,
@@ -140,6 +142,8 @@ const StudentController = {
             isVerifedEmail !== undefined
               ? isVerifedEmail
               : student.isVerifedEmail,
+          telegram: telegram || undefined,
+          skype: skype || undefined,
           region: region || undefined,
           status: status || undefined,
           isNotifications:
