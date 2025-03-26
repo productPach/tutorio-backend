@@ -101,7 +101,22 @@ const StudentController = {
   updateStudent: async (req, res) => {
     const { id } = req.params;
 
-    const { name, email, region, status } = req.body;
+    const {
+      name,
+      email,
+      region,
+      status,
+      isVerifedEmail,
+      isNotifications,
+      isNotificationsResponse,
+      isNotificationsPromo,
+      isNotificationsSms,
+      isNotificationsEmail,
+      isNotificationsTelegram,
+      isNotificationsMobilePush,
+      isNotificationsWebPush,
+      isNotificationsVk,
+    } = req.body;
 
     try {
       const student = await prisma.student.findUnique({
@@ -121,8 +136,49 @@ const StudentController = {
         data: {
           name: name || undefined,
           email: email || undefined,
+          isVerifedEmail:
+            isVerifedEmail !== undefined
+              ? isVerifedEmail
+              : student.isVerifedEmail,
           region: region || undefined,
           status: status || undefined,
+          isNotifications:
+            isNotifications !== undefined
+              ? isNotifications
+              : student.isNotifications,
+
+          isNotificationsResponse:
+            isNotificationsResponse !== undefined
+              ? isNotificationsResponse
+              : student.isNotificationsResponse,
+          isNotificationsPromo:
+            isNotificationsPromo !== undefined
+              ? isNotificationsPromo
+              : student.isNotificationsPromo,
+          isNotificationsSms:
+            isNotificationsSms !== undefined
+              ? isNotificationsSms
+              : student.isNotificationsSms,
+          isNotificationsEmail:
+            isNotificationsEmail !== undefined
+              ? isNotificationsEmail
+              : student.isNotificationsEmail,
+          isNotificationsTelegram:
+            isNotificationsTelegram !== undefined
+              ? isNotificationsTelegram
+              : student.isNotificationsTelegram,
+          isNotificationsVk:
+            isNotificationsVk !== undefined
+              ? isNotificationsVk
+              : student.isNotificationsVk,
+          isNotificationsMobilePush:
+            isNotificationsMobilePush !== undefined
+              ? isNotificationsMobilePush
+              : student.isNotificationsMobilePush,
+          isNotificationsWebPush:
+            isNotificationsWebPush !== undefined
+              ? isNotificationsWebPush
+              : student.isNotificationsWebPush,
         },
       });
 

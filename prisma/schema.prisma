@@ -28,18 +28,30 @@ model User {
 }
 
 model Student {
-  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId              String   @unique @db.ObjectId
-  user                User     @relation(fields: [userId], references: [id])
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  name                String
-  phone               String   @unique
-  email               String?
-  region              String
-  avatarUrl           String?
-  status              String
-  orders              Order[]
+  id                          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId                      String   @unique @db.ObjectId
+  user                        User     @relation(fields: [userId], references: [id])
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
+  name                        String
+  phone                       String   @unique
+  email                       String?
+  isVerifedEmail              Boolean          @default(false)
+  telegram                    String?
+  skype                       String?
+  region                      String
+  avatarUrl                   String?
+  isNotifications             Boolean          @default(true) // "Получать уведомления"
+  isNotificationsResponse     Boolean          @default(true) // для "Откликов от репетиторов"
+  isNotificationsPromo        Boolean          @default(true)
+  isNotificationsSms          Boolean          @default(true)
+  isNotificationsEmail        Boolean          @default(true)
+  isNotificationsTelegram     Boolean          @default(true)
+  isNotificationsMobilePush   Boolean          @default(true)
+  isNotificationsWebPush      Boolean          @default(true)
+  isNotificationsVk           Boolean          @default(true)
+  status                      String
+  orders                      Order[]
 }
 
 model Tutor {
