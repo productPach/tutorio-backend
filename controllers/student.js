@@ -241,6 +241,61 @@ const StudentController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+
+  // Запрос на удаление от ученика
+  deleteRequest: async (req, res) => {
+    const { id } = req.params;
+    const { answer } = req.body; // Получаем причину удаления
+
+    try {
+      const student = await prisma.student.findUnique({
+        where: { id },
+      });
+
+      if (!student) {
+        return res.status(404).json({ error: "Ученик не найден" });
+      }
+
+      if (student.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
+      // Проверяем, существует ли уже запрос на удаление для репетитора
+      const existingRequest = await prisma.deletedRequest.findUnique({
+        where: {
+          userId_role: {
+            userId: student.userId,
+            role: "student",
+          },
+        },
+      });
+
+      if (existingRequest) {
+        return res
+          .status(409)
+          .json({ message: "Запрос на удаление уже существует" });
+      }
+
+      // Устанавливаем дату удаления через 30 дней
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      const deleteRequest = await prisma.deletedRequest.create({
+        data: {
+          userId: student.userId,
+          role: "student", // Теперь указываем роль
+          answer, // Сохраняем причину удаления
+          requestedAt: new Date(),
+          expiresAt,
+        },
+      });
+
+      res.status(201).json(deleteRequest);
+    } catch (error) {
+      console.error("Delete Request Student Error", error);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
 };
 
 module.exports = StudentController;

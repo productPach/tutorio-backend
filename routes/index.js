@@ -92,6 +92,11 @@ router.delete(
   authenticateToken,
   StudentController.deleteStudent
 );
+router.post(
+  "/students/delete-request/:id",
+  authenticateToken,
+  StudentController.deleteRequest
+);
 
 // Роуты для репетитора
 router.post("/tutors", authenticateToken, TutorController.createTutor);
