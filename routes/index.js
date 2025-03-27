@@ -267,10 +267,5 @@ router.post(
   authenticateToken,
   MailController.sendVerificationEmail
 );
-router.post(
-  "/send-verification-email-student",
-  authenticateToken,
-  MailController.sendVerificationEmailStudent
-);
 
 module.exports = router;
