@@ -130,6 +130,87 @@ const MailController = {
       });
     }
   },
+
+  sendVerificationEmailStudent: async (req, res) => {
+    // Получаем id из тела запроса
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "Не указан id ученика" });
+    }
+
+    // Определяем домен
+    const domain =
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:3001"
+        : "https://tutorio.ru";
+
+    try {
+      // Находим репетитора по userId
+      const student = await prisma.student.findUnique({
+        where: { id },
+      });
+
+      if (!student) {
+        return res.status(404).json({ error: "Ученик не найден" });
+      }
+
+      // Если почта уже подтверждена, не отправляем письмо повторно
+      if (student.isVerifedEmail) {
+        return res.status(400).json({ error: "Email уже подтвержден" });
+      }
+
+      // Проверяем, установлен ли SECRET_KEY
+      if (!process.env.SECRET_KEY) {
+        console.error("SECRET_KEY не установлен в .env");
+        return res.status(500).json({ error: "Ошибка сервера" });
+      }
+
+      // Генерация токена подтверждения
+      const emailVerificationToken = jwt.sign(
+        { studentId: id, email: student.email },
+        process.env.SECRET_KEY,
+        { expiresIn: "1h" }
+      );
+
+      // Отправка письма
+      const response = await axios.post(
+        `${MAILOPOST_API_URL}/email/templates/1457785/messages`,
+        {
+          to: tutor.email,
+          params: {
+            domain: domain,
+            emailVerificationToken: emailVerificationToken,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${API_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log(
+        `Письмо отправлено на ${student.email}, статус:`,
+        response.status
+      );
+
+      res.status(200).json({
+        message: "Письмо с подтверждением отправлено",
+        data: response.data,
+      });
+    } catch (error) {
+      console.error(
+        "Ошибка при отправке письма:",
+        error.response?.data || error.message
+      );
+      res.status(500).json({
+        error: "Ошибка при отправке письма",
+        details: error.response?.data || error.message,
+      });
+    }
+  },
 };
 
 module.exports = MailController;

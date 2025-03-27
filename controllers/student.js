@@ -41,6 +41,47 @@ const StudentController = {
     }
   },
 
+  verifyEmailStudent: async (req, res) => {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ error: "Токен обязателен" });
+    }
+
+    try {
+      // 🔹 Расшифровываем токен, извлекаем tutorId и email
+      const decoded = jwt.verify(token, process.env.SECRET_KEY);
+      const { studentId, email } = decoded;
+
+      // 🔹 Ищем репетитора по ID и email
+      const student = await prisma.student.findUnique({
+        where: { id: studentId, email },
+      });
+
+      if (!student) {
+        return res.status(400).json({ error: "Неверный или истекший токен" });
+      }
+
+      // 🔹 Если email уже подтвержден, возвращаем ошибку
+      if (student.isVerifedEmail) {
+        return res.status(400).json({ error: "Email уже подтвержден" });
+      }
+
+      // 🔹 Подтверждаем email
+      await prisma.student.update({
+        where: { id: studentId },
+        data: {
+          isVerifedEmail: true,
+        },
+      });
+
+      res.json({ message: "Email подтверждён" });
+    } catch (error) {
+      console.error("Ошибка подтверждения email:", error.message);
+      res.status(400).json({ error: "Неверный или истекший токен" });
+    }
+  },
+
   // Получение всех учеников
   getAllStudents: async (req, res) => {
     try {

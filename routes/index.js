@@ -71,6 +71,8 @@ router.post(
 
 // Роуты для ученика
 router.post("/students", authenticateToken, StudentController.createStudent);
+// Подтверждение email по токену
+router.get("/students/verify-email", StudentController.verifyEmailStudent);
 router.get(
   "/currentStudent",
   authenticateToken,
@@ -264,6 +266,11 @@ router.post(
   "/send-verification-email",
   authenticateToken,
   MailController.sendVerificationEmail
+);
+router.post(
+  "/send-verification-email-student",
+  authenticateToken,
+  MailController.sendVerificationEmailStudent
 );
 
 module.exports = router;
