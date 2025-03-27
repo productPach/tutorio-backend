@@ -69,11 +69,11 @@ const TutorController = {
     try {
       // 🔹 Расшифровываем токен, извлекаем tutorId и email
       const decoded = jwt.verify(token, process.env.SECRET_KEY);
-      const { tutorId, email } = decoded;
+      const { userId, email } = decoded;
 
       // 🔹 Ищем репетитора по ID и email
       const tutor = await prisma.tutor.findUnique({
-        where: { id: tutorId, email },
+        where: { id: userId, email },
       });
 
       if (!tutor) {
@@ -87,7 +87,7 @@ const TutorController = {
 
       // 🔹 Подтверждаем email
       await prisma.tutor.update({
-        where: { id: tutorId },
+        where: { id: userId },
         data: {
           isVerifedEmail: true,
         },
