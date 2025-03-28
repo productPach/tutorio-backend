@@ -33,26 +33,24 @@ module.exports = (io) => {
     socket.on("verifyEmail", (token) => {
       try {
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        const { tutorId, studentId } = decoded;
+        const { userId, userType } = decoded; // Декодируем userId и userType
 
-        console.log("Подтверждение почты для:", tutorId || studentId);
+        console.log("Подтверждение почты для:", userId);
 
-        // Если это репетитор, отправляем событие на все сокеты для этого tutorId
-        if (tutorId && socketConnections.tutors[tutorId]) {
-          socketConnections.tutors[tutorId].forEach((socketId) => {
-            io.to(socketId).emit("emailVerified", { tutorId });
+        if (userType === "tutor" && socketConnections.tutors[userId]) {
+          socketConnections.tutors[userId].forEach((socketId) => {
+            io.to(socketId).emit("emailVerified", { tutorId: userId });
             console.log(
-              `Отправлено событие "emailVerified" для tutorId: ${tutorId} на сокет: ${socketId}`
+              `Отправлено событие "emailVerified" для tutorId: ${userId} на сокет: ${socketId}`
             );
           });
         }
 
-        // Если это ученик, отправляем событие на все сокеты для этого studentId
-        if (studentId && socketConnections.students[studentId]) {
-          socketConnections.students[studentId].forEach((socketId) => {
-            io.to(socketId).emit("emailVerified", { studentId });
+        if (userType === "student" && socketConnections.students[userId]) {
+          socketConnections.students[userId].forEach((socketId) => {
+            io.to(socketId).emit("emailVerified", { studentId: userId });
             console.log(
-              `Отправлено событие "emailVerified" для studentId: ${studentId} на сокет: ${socketId}`
+              `Отправлено событие "emailVerified" для studentId: ${userId} на сокет: ${socketId}`
             );
           });
         }
