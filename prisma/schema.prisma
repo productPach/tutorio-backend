@@ -148,7 +148,7 @@ model Employee {
 model Order {
   id                     String     @id @default(auto()) @map("_id") @db.ObjectId
   studentId              String     @db.ObjectId
-  student                Student    @relation(fields: [studentId], references: [id])
+  student                Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
   response               Response[]
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
