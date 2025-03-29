@@ -27,6 +27,13 @@ const deleteExpiredUsers = () => {
         let email;
 
         if (role === "student") {
+          if (!userId) {
+            console.error(
+              "⚠️ userId is null или undefined, пропускаем текущую запись."
+            );
+            continue; // Пропускаем текущую запись
+          }
+
           const student = await prisma.student.findUnique({
             where: { userId },
           });
