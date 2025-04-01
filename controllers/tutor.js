@@ -192,6 +192,7 @@ const TutorController = {
       tutorTripArea,
       profileInfo,
       experience,
+      badges,
       isGroup,
       status,
       isPublicProfile,
@@ -206,6 +207,7 @@ const TutorController = {
       isNotificationsMobilePush,
       isNotificationsWebPush,
       isNotificationsVk,
+      lastOnline,
     } = req.body;
 
     let avatarUrl;
@@ -276,6 +278,10 @@ const TutorController = {
         }
       }
 
+      // Обновляем время последнего онлайна, если параметр был передан
+      const currentTime = new Date();
+      const lastOnlineTime = lastOnline ? new Date(lastOnline) : currentTime;
+
       // Обновляем данные репетитора
       const updatedTutor = await prisma.tutor.update({
         where: { id },
@@ -299,6 +305,7 @@ const TutorController = {
           tutorTripArea: tutorTripArea || undefined,
           profileInfo: profileInfo || undefined,
           experience: experience || undefined,
+          badges: badges !== undefined ? badges : tutor.badges,
           isGroup: isGroup !== undefined ? isGroup : tutor.isGroup,
           isPublicProfile:
             isPublicProfile !== undefined
@@ -349,6 +356,7 @@ const TutorController = {
               ? isNotificationsWebPush
               : tutor.isNotificationsWebPush,
           status: status || undefined,
+          lastOnline: lastOnlineTime, // Обновляем статус "онлайн"
           ...(subject !== undefined || subjectComments !== undefined
             ? {
                 subjectComments: JSON.parse(

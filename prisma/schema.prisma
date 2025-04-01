@@ -96,6 +96,8 @@ model Tutor {
   isNotificationsMobilePush   Boolean          @default(true)
   isNotificationsWebPush      Boolean          @default(true)
   isNotificationsVk           Boolean          @default(true)
+  badges                      String[] @default([]) // Список шильдиков
+  lastOnline                  DateTime? // Дата последнего захода (если есть активность)
 }
 
 model TutorSubjectPrice {
