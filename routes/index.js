@@ -11,6 +11,7 @@ const {
   LocationController,
   WikiController,
   MailController,
+  ChatController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const uploadDestination = "uploads";
@@ -267,5 +268,9 @@ router.post(
   authenticateToken,
   MailController.sendVerificationEmail
 );
+
+// Роуты для чатов и сообщений
+router.post("/chat", authenticateToken, ChatController.createChat);
+router.post("/message", authenticateToken, ChatController.sendMessage);
 
 module.exports = router;
