@@ -7,6 +7,7 @@ const WelcomeScreenController = require("./welcomScreen");
 const LocationController = require("./location");
 const WikiController = require("./wiki");
 const MailController = require("./mail");
+const ChatController = require("./chat");
 module.exports = {
   UserController,
   StudentController,
@@ -17,4 +18,5 @@ module.exports = {
   LocationController,
   WikiController,
   MailController,
+  ChatController,
 };
