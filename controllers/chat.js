@@ -40,7 +40,7 @@ const ChatController = {
 
   // Отправка сообщения в чат
   sendMessage: async (req, res) => {
-    const { chatId, senderId, text } = req.body;
+    const { chatId, senderId, text, themeOrder } = req.body;
 
     if (!chatId || !senderId || !text) {
       return res
@@ -78,6 +78,7 @@ const ChatController = {
 
       // Получаем email получателя (репетитор или ученик)
       let recipientEmail = null;
+      let templateId;
 
       if (chat.tutorId === recipientId) {
         // Получаем email репетитора
@@ -86,6 +87,7 @@ const ChatController = {
           select: { email: true },
         });
         recipientEmail = tutor?.email;
+        templateId = 1479204;
       } else {
         // Получаем email ученика
         const student = await prisma.student.findUnique({
@@ -93,28 +95,38 @@ const ChatController = {
           select: { email: true },
         });
         recipientEmail = student?.email;
+        templateId = 1479198;
       }
 
       if (!recipientEmail) {
         return res.status(404).json({ error: "Email получателя не найден" });
       }
 
+      // Определяем домен
+      const domain =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:3001"
+          : "https://tutorio.ru";
+
+      const link = `${domain}/student/order/${orderId}`;
+
       // Отправка письма
-      //   const response = await axios.post(
-      //     `${MAILOPOST_API_URL}/email/templates/1457785/messages`,
-      //     {
-      //       to: recipientEmail,
-      //       params: {
-      //         message: text,
-      //       },
-      //     },
-      //     {
-      //       headers: {
-      //         Authorization: `Bearer ${API_TOKEN}`,
-      //         "Content-Type": "application/json",
-      //       },
-      //     }
-      //   );
+      const response = await axios.post(
+        `${MAILOPOST_API_URL}/email/templates/${templateId}/messages`,
+        {
+          to: recipientEmail,
+          params: {
+            link: link,
+            themeOrder: themeOrder,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${API_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       console.log(
         `Письмо отправлено на ${recipientEmail}, статус:`,
