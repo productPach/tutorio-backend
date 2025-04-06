@@ -152,12 +152,12 @@ const OrderController = {
         where: { id },
         include: {
           student: true,
-        },
-        chats: {
-          include: {
-            tutor: true,
-            student: true,
-            messages: true,
+          chats: {
+            include: {
+              tutor: true,
+              student: true,
+              messages: true,
+            },
           },
         },
       });
