@@ -97,6 +97,9 @@ const OrderController = {
           student: {
             include: { user: true },
           },
+          chats: {
+            include: { tutor: true },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -122,10 +125,8 @@ const OrderController = {
         where: { studentId }, // Ищем по studentId
         include: {
           student: true, // Включаем информацию о студенте
-          response: {
-            include: {
-              tutor: true, // Включаем информацию о репетиторах в откликах
-            },
+          chats: {
+            include: { tutor: true },
           },
         },
       });
@@ -152,6 +153,13 @@ const OrderController = {
         include: {
           student: true,
         },
+        chats: {
+          include: {
+            tutor: true,
+            student: true,
+            messages: true,
+          },
+        },
       });
 
       if (!order) {
@@ -164,6 +172,7 @@ const OrderController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+
   // Обновление заказа студентом
   updateOrder: async (req, res) => {
     const { id } = req.params;
@@ -232,6 +241,14 @@ const OrderController = {
           studentWishes: studentWishes || undefined,
           responseCost: responseCost || undefined,
           status: status || undefined,
+        },
+        include: {
+          chats: {
+            include: {
+              tutor: true,
+              messages: true,
+            },
+          },
         },
       });
 
