@@ -1,6 +1,9 @@
 const { prisma } = require("../prisma/prisma-client");
 const axios = require("axios");
 
+const MAILOPOST_API_URL = "https://api.mailopost.ru/v1";
+const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
+
 const ChatController = {
   // Создание чата
   createChat: async (req, res) => {
