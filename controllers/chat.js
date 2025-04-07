@@ -153,28 +153,18 @@ const ChatController = {
 
   // Обновление сообщения (текст и статус прочтения)
   updateMessage: async (req, res) => {
-    const { messageId, text, isRead } = req.body;
-    const userId = req.user.userID; // ID из модели User
+    const { messageId, text, isRead, studentId, tutorId } = req.body;
+    const userId = req.user.userID;
 
     if (!messageId) {
       return res.status(400).json({ error: "Не передан messageId" });
     }
 
     try {
-      // Получаем сообщение и чат, включая userId студентов и репетиторов
       const message = await prisma.message.findUnique({
         where: { id: messageId },
         include: {
-          chat: {
-            include: {
-              student: {
-                select: { userId: true }, // userId из User
-              },
-              tutor: {
-                select: { userId: true }, // userId из User
-              },
-            },
-          },
+          chat: true, // получаем studentId и tutorId из чата
         },
       });
 
@@ -193,12 +183,16 @@ const ChatController = {
 
       // Проверка: можно менять isRead, только если это получатель и только на true
       if (isRead !== undefined) {
-        const recipientUserId =
-          chat.tutor.userId === senderId
-            ? chat.student.userId
-            : chat.tutor.userId;
+        // Кто получатель?
+        const recipientId =
+          chat.tutorId === senderId ? chat.studentId : chat.tutorId;
 
-        if (userId !== recipientUserId || isRead !== true) {
+        // Сравниваем переданный studentId/tutorId с получателем
+        if (
+          (recipientId === chat.studentId && studentId !== recipientId) ||
+          (recipientId === chat.tutorId && tutorId !== recipientId) ||
+          isRead !== true
+        ) {
           return res.status(403).json({
             error: "Только получатель может пометить сообщение как прочитанное",
           });
