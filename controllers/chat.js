@@ -150,6 +150,75 @@ const ChatController = {
       });
     }
   },
+
+  // Обновление сообщения (текст и статус прочтения)
+  updateMessage: async (req, res) => {
+    const { messageId, text, isRead } = req.body;
+    const userId = req.user.userID;
+
+    if (!messageId) {
+      return res.status(400).json({ error: "Не передан messageId" });
+    }
+
+    try {
+      // Получаем сообщение и чат
+      const message = await prisma.message.findUnique({
+        where: { id: messageId },
+        include: {
+          chat: {
+            select: {
+              tutorId: true,
+              studentId: true,
+            },
+          },
+        },
+      });
+
+      if (!message) {
+        return res.status(404).json({ error: "Сообщение не найдено" });
+      }
+
+      const { senderId, chat } = message;
+
+      // Проверка: можно редактировать текст, только если это отправитель
+      if (text !== undefined && senderId !== userId) {
+        return res
+          .status(403)
+          .json({ error: "Только отправитель может редактировать текст" });
+      }
+
+      // Проверка: можно менять isRead, только если это получатель и только на true
+      if (isRead !== undefined) {
+        const recipientId =
+          chat.tutorId === senderId ? chat.studentId : chat.tutorId;
+
+        if (userId !== recipientId || isRead !== true) {
+          return res
+            .status(403)
+            .json({
+              error:
+                "Только получатель может пометить сообщение как прочитанное",
+            });
+        }
+      }
+
+      const updatedMessage = await prisma.message.update({
+        where: { id: messageId },
+        data: {
+          ...(text !== undefined ? { text } : {}),
+          ...(isRead !== undefined ? { isRead } : {}),
+        },
+      });
+
+      res.json(updatedMessage);
+    } catch (error) {
+      console.error("Ошибка при обновлении сообщения:", error.message);
+      res.status(500).json({
+        error: "Ошибка при обновлении сообщения",
+        details: error.message,
+      });
+    }
+  },
 };
 
 module.exports = ChatController;

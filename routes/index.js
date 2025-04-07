@@ -272,5 +272,6 @@ router.post(
 // Роуты для чатов и сообщений
 router.post("/chat", authenticateToken, ChatController.createChat);
 router.post("/message", authenticateToken, ChatController.sendMessage);
+router.put("/message", authenticateToken, ChatController.updateMessage);
 
 module.exports = router;
