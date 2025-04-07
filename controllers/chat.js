@@ -7,9 +7,9 @@ const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
 const ChatController = {
   // Создание чата
   createChat: async (req, res) => {
-    const { tutorId, studentId, orderId, initiatorRole } = req.body;
+    const { tutorId, studentId, orderId, initiatorRole, themeOrder } = req.body;
 
-    if (!tutorId || !studentId || !orderId || !initiatorRole) {
+    if (!tutorId || !studentId || !orderId || !initiatorRole || !themeOrder) {
       return res
         .status(400)
         .json({ error: "Не все обязательные поля переданы" });
@@ -34,6 +34,69 @@ const ChatController = {
           tutorHasAccess,
         },
       });
+
+      // --- Отправка письма ---
+      // Получатель — это тот, кто НЕ является инициатором
+      const recipientId = initiatorRole === "tutor" ? studentId : tutorId;
+
+      let recipientEmail = null;
+      let templateId;
+
+      if (initiatorRole === "tutor") {
+        const student = await prisma.student.findUnique({
+          where: { id: recipientId },
+          select: { email: true },
+        });
+        recipientEmail = student?.email;
+        templateId = 1479198; // Шаблон для ученика
+      } else {
+        const tutor = await prisma.tutor.findUnique({
+          where: { id: recipientId },
+          select: { email: true },
+        });
+        recipientEmail = tutor?.email;
+        templateId = 1479204; // Шаблон для репетитора
+      }
+
+      if (!recipientEmail) {
+        console.warn("Email получателя не найден");
+      } else {
+        const domain =
+          process.env.NODE_ENV === "development"
+            ? "http://localhost:3001"
+            : "https://tutorio.ru";
+
+        const link = `${domain}/student/order/${orderId}`;
+
+        try {
+          const response = await axios.post(
+            `${MAILOPOST_API_URL}/email/templates/${templateId}/messages`,
+            {
+              to: recipientEmail,
+              params: {
+                link: link,
+                themeOrder: themeOrder,
+              },
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${API_TOKEN}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          console.log(
+            `Письмо отправлено на ${recipientEmail}, статус:`,
+            response.status
+          );
+        } catch (mailError) {
+          console.error(
+            "Ошибка при отправке письма:",
+            mailError.response?.data || mailError.message
+          );
+        }
+      }
 
       res.json(newChat);
     } catch (error) {
@@ -75,67 +138,6 @@ const ChatController = {
           text,
         },
       });
-
-      // Определяем, кто получатель сообщения
-      const recipientId =
-        chat.tutorId === senderId ? chat.studentId : chat.tutorId;
-
-      // Получаем email получателя (репетитор или ученик)
-      let recipientEmail = null;
-      let templateId;
-
-      if (chat.tutorId === recipientId) {
-        // Получаем email репетитора
-        const tutor = await prisma.tutor.findUnique({
-          where: { id: recipientId },
-          select: { email: true },
-        });
-        recipientEmail = tutor?.email;
-        templateId = 1479204;
-      } else {
-        // Получаем email ученика
-        const student = await prisma.student.findUnique({
-          where: { id: recipientId },
-          select: { email: true },
-        });
-        recipientEmail = student?.email;
-        templateId = 1479198;
-      }
-
-      if (!recipientEmail) {
-        return res.status(404).json({ error: "Email получателя не найден" });
-      }
-
-      // Определяем домен
-      const domain =
-        process.env.NODE_ENV === "development"
-          ? "http://localhost:3001"
-          : "https://tutorio.ru";
-
-      const link = `${domain}/student/order/${orderId}`;
-
-      // Отправка письма
-      const response = await axios.post(
-        `${MAILOPOST_API_URL}/email/templates/${templateId}/messages`,
-        {
-          to: recipientEmail,
-          params: {
-            link: link,
-            themeOrder: themeOrder,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${API_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log(
-        `Письмо отправлено на ${recipientEmail}, статус:`,
-        response.status
-      );
 
       // Возвращаем сообщение
       res.json(newMessage);
