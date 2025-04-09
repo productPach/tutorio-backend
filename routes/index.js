@@ -281,9 +281,9 @@ router.get(
 router.get("/chat/:chatId", authenticateToken, ChatController.getChatById);
 // Получение всех чатов для пользователя (тутора или студента)
 router.get(
-  "/user/:userId/chats",
+  "/user/:userId/role/:role/chats",
   authenticateToken,
-  ChatController.getChatsByUserId
+  ChatController.getChatsByUserIdAndRole
 );
 
 module.exports = router;

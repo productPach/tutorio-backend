@@ -335,28 +335,49 @@ const ChatController = {
   },
 
   // Получение всех чатов для пользователя (тутора или студента) с непрочитанными сообщениями
-  getChatsByUserId: async (req, res) => {
-    const { userId } = req.params;
+  getChatsByUserIdAndRole: async (req, res) => {
+    const { userId, role } = req.params;
     const currentUserId = req.user?.userID;
 
-    if (!userId || !currentUserId) {
+    if (!userId || !currentUserId || !role) {
       return res
         .status(400)
-        .json({ error: "userId или userId из токена не переданы" });
+        .json({ error: "Не переданы userId, текущий пользователь или роль" });
+    }
+
+    if (userId !== currentUserId) {
+      return res
+        .status(403)
+        .json({ error: "Вы не можете получить чаты другого пользователя" });
     }
 
     try {
-      // Проверяем, что текущий пользователь — это тот же, для которого получаем чаты
-      if (currentUserId !== userId) {
+      let participantId = null;
+      let roleField = null;
+
+      if (role === "student") {
+        const student = await prisma.student.findUnique({ where: { userId } });
+        if (!student) {
+          return res.status(404).json({ error: "Студент не найден" });
+        }
+        participantId = student.id;
+        roleField = "studentId";
+      } else if (role === "tutor") {
+        const tutor = await prisma.tutor.findUnique({ where: { userId } });
+        if (!tutor) {
+          return res.status(404).json({ error: "Репетитор не найден" });
+        }
+        participantId = tutor.id;
+        roleField = "tutorId";
+      } else {
         return res
-          .status(403)
-          .json({ error: "Вы не можете получить чаты другого пользователя" });
+          .status(400)
+          .json({ error: "Роль должна быть 'student' или 'tutor'" });
       }
 
-      // Получаем все чаты, где userId является частью чата (для текущего пользователя)
       const chats = await prisma.chat.findMany({
         where: {
-          OR: [{ tutorId: userId }, { studentId: userId }],
+          [roleField]: participantId,
         },
         include: {
           tutor: {
@@ -365,14 +386,26 @@ const ChatController = {
               name: true,
               avatarUrl: true,
               lastOnline: true,
+              userId: true,
             },
           },
           student: {
             select: {
               id: true,
-              name: true,
-              avatarUrl: true,
               lastOnline: true,
+              userId: true,
+              user: {
+                select: {
+                  phone: true,
+                },
+              },
+            },
+          },
+          order: {
+            select: {
+              id: true,
+              title: true,
+              createdAt: true,
             },
           },
           messages: {
@@ -388,10 +421,9 @@ const ChatController = {
         },
       });
 
-      // Обогащаем чаты количеством непрочитанных сообщений
       const enrichedChats = chats.map((chat) => {
         const unreadCount = chat.messages.filter(
-          (msg) => !msg.isRead && msg.senderId !== currentUserId
+          (msg) => !msg.isRead && msg.senderId !== participantId
         ).length;
 
         const lastMessage = chat.messages[chat.messages.length - 1] || null;
@@ -405,7 +437,7 @@ const ChatController = {
 
       res.json(enrichedChats);
     } catch (error) {
-      console.error("Ошибка при получении чатов для пользователя:", error);
+      console.error("Ошибка при получении чатов:", error);
       res.status(500).json({ error: "Ошибка сервера" });
     }
   },
