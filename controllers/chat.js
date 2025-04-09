@@ -404,7 +404,6 @@ const ChatController = {
           order: {
             select: {
               id: true,
-              title: true,
               createdAt: true,
             },
           },
