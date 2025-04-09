@@ -22,7 +22,7 @@ const io = new Server(server, {
 });
 
 // Подключаем WebSocket-модуль
-require("./sockets/emailVerificationSocket")(io);
+require("./sockets/socketHandler")(io);
 
 // CORS middleware setup
 //app.use(cors({ origin: "http://localhost:3001" })); // Настраиваем разрешение запросов с определенного источника
