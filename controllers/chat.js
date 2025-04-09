@@ -333,6 +333,82 @@ const ChatController = {
       res.status(500).json({ error: "Ошибка сервера" });
     }
   },
+
+  // Получение всех чатов для пользователя (тутора или студента) с непрочитанными сообщениями
+  getChatsByUserId: async (req, res) => {
+    const { userId } = req.params;
+    const currentUserId = req.user?.userID;
+
+    if (!userId || !currentUserId) {
+      return res
+        .status(400)
+        .json({ error: "userId или userId из токена не переданы" });
+    }
+
+    try {
+      // Проверяем, что текущий пользователь — это тот же, для которого получаем чаты
+      if (currentUserId !== userId) {
+        return res
+          .status(403)
+          .json({ error: "Вы не можете получить чаты другого пользователя" });
+      }
+
+      // Получаем все чаты, где userId является частью чата (для текущего пользователя)
+      const chats = await prisma.chat.findMany({
+        where: {
+          OR: [{ tutorId: userId }, { studentId: userId }],
+        },
+        include: {
+          tutor: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              lastOnline: true,
+            },
+          },
+          student: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              lastOnline: true,
+            },
+          },
+          messages: {
+            orderBy: { createdAt: "asc" },
+            select: {
+              id: true,
+              text: true,
+              createdAt: true,
+              senderId: true,
+              isRead: true,
+            },
+          },
+        },
+      });
+
+      // Обогащаем чаты количеством непрочитанных сообщений
+      const enrichedChats = chats.map((chat) => {
+        const unreadCount = chat.messages.filter(
+          (msg) => !msg.isRead && msg.senderId !== currentUserId
+        ).length;
+
+        const lastMessage = chat.messages[chat.messages.length - 1] || null;
+
+        return {
+          ...chat,
+          unreadCount,
+          lastMessage,
+        };
+      });
+
+      res.json(enrichedChats);
+    } catch (error) {
+      console.error("Ошибка при получении чатов для пользователя:", error);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
 };
 
 module.exports = ChatController;
