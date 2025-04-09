@@ -392,6 +392,8 @@ const ChatController = {
           student: {
             select: {
               id: true,
+              name: true,
+              avatarUrl: true,
               lastOnline: true,
               userId: true,
               user: {
