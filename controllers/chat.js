@@ -218,6 +218,121 @@ const ChatController = {
       });
     }
   },
+
+  // Получение всех чатов по заказу с непрочитанными сообщениями (для текущего пользователя)
+  getChatsByOrderId: async (req, res) => {
+    const { orderId } = req.params;
+    const userId = req.user?.userID;
+
+    if (!orderId || !userId) {
+      return res.status(400).json({ error: "orderId или userId не переданы" });
+    }
+
+    try {
+      const chats = await prisma.chat.findMany({
+        where: { orderId },
+        include: {
+          tutor: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+              lastOnline: true,
+            },
+          },
+          student: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+              lastOnline: true,
+            },
+          },
+          messages: {
+            orderBy: { createdAt: "asc" },
+            select: {
+              id: true,
+              text: true,
+              createdAt: true,
+              senderId: true,
+              isRead: true,
+            },
+          },
+        },
+      });
+
+      const enrichedChats = chats.map((chat) => {
+        const unreadCount = chat.messages.filter(
+          (msg) => !msg.isRead && msg.senderId !== userId
+        ).length;
+
+        const lastMessage = chat.messages[chat.messages.length - 1] || null;
+
+        return {
+          ...chat,
+          unreadCount,
+          lastMessage,
+        };
+      });
+
+      res.json(enrichedChats);
+    } catch (error) {
+      console.error("Ошибка при получении чатов по заказу:", error);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // GET /api/chats/:chatId
+  getChatById: async (req, res) => {
+    const { chatId } = req.params;
+
+    if (!chatId) {
+      return res.status(400).json({ error: "chatId обязателен" });
+    }
+
+    try {
+      const chat = await prisma.chat.findUnique({
+        where: { id: chatId },
+        include: {
+          tutor: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+              lastOnline: true,
+            },
+          },
+          student: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+              lastOnline: true,
+            },
+          },
+          messages: {
+            orderBy: { createdAt: "asc" },
+            select: {
+              id: true,
+              senderId: true,
+              text: true,
+              createdAt: true,
+              isRead: true,
+            },
+          },
+        },
+      });
+
+      if (!chat) {
+        return res.status(404).json({ error: "Чат не найден" });
+      }
+
+      res.json(chat);
+    } catch (error) {
+      console.error("Ошибка при получении чата:", error);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
 };
 
 module.exports = ChatController;

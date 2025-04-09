@@ -160,6 +160,7 @@ const StudentController = {
       isNotificationsMobilePush,
       isNotificationsWebPush,
       isNotificationsVk,
+      lastOnline,
     } = req.body;
 
     try {
@@ -175,6 +176,10 @@ const StudentController = {
         return res.status(403).json({ error: "Нет доступа" });
       }
 
+      // Обновляем время последнего онлайна, если параметр был передан
+      const currentTime = new Date();
+      const lastOnlineTime = lastOnline ? new Date(lastOnline) : currentTime;
+
       const updateStudent = await prisma.student.update({
         where: { id },
         data: {
@@ -188,6 +193,7 @@ const StudentController = {
           skype: skype || undefined,
           region: region || undefined,
           status: status || undefined,
+          lastOnline: lastOnlineTime, // Обновляем статус "онлайн"
           isNotifications:
             isNotifications !== undefined
               ? isNotifications

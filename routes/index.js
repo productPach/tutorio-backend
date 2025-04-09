@@ -273,5 +273,11 @@ router.post(
 router.post("/chat", authenticateToken, ChatController.createChat);
 router.post("/message", authenticateToken, ChatController.sendMessage);
 router.put("/message", authenticateToken, ChatController.updateMessage);
+router.get(
+  "/order/:orderId/chats",
+  authenticateToken,
+  ChatController.getChatsByOrderId
+);
+router.get("/chat/:chatId", authenticateToken, ChatController.getChatById);
 
 module.exports = router;
