@@ -236,7 +236,7 @@ const ChatController = {
             select: {
               id: true,
               name: true,
-              avatar: true,
+              avatarUrl: true,
               lastOnline: true,
             },
           },
@@ -244,7 +244,7 @@ const ChatController = {
             select: {
               id: true,
               name: true,
-              avatar: true,
+              avatarUrl: true,
               lastOnline: true,
             },
           },
@@ -298,7 +298,7 @@ const ChatController = {
             select: {
               id: true,
               name: true,
-              avatar: true,
+              avatarUrl: true,
               lastOnline: true,
             },
           },
@@ -306,7 +306,7 @@ const ChatController = {
             select: {
               id: true,
               name: true,
-              avatar: true,
+              avatarUrl: true,
               lastOnline: true,
             },
           },
