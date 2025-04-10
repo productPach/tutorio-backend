@@ -87,6 +87,8 @@ module.exports = (io) => {
     socket.on("sendMessage", async ({ chatId, message }) => {
       if (!chatId || !message) return;
 
+      console.log(`Получено новое сообщение для чата ${chatId}:`, message);
+
       socket.to(chatId).emit("newMessage", message);
 
       const participants = await prisma.chat.findUnique({
@@ -96,6 +98,11 @@ module.exports = (io) => {
           studentId: true,
         },
       });
+
+      if (!participants) {
+        console.warn(`Чат ${chatId} не найден`);
+        return;
+      }
 
       const receiverId =
         message.senderId === participants.tutorId
@@ -132,6 +139,47 @@ module.exports = (io) => {
         userId,
         unreadCount,
       });
+    });
+
+    socket.on("leaveChat", ({ chatId }) => {
+      socket.leave(chatId);
+      if (socketConnections.chats[chatId]) {
+        socketConnections.chats[chatId] = socketConnections.chats[
+          chatId
+        ].filter((id) => id !== socket.id);
+        console.log(`Сокет ${socket.id} покинул чат ${chatId}`);
+      }
+    });
+
+    // Список чатов в сайдбаре
+    socket.on("getUserChats", async ({ userId }) => {
+      if (!userId) return;
+
+      const chats = await prisma.chat.findMany({
+        where: {
+          OR: [{ tutorId: userId }, { studentId: userId }],
+        },
+        include: {
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      });
+
+      const formatted = await Promise.all(
+        chats.map(async (chat) => {
+          const unreadCount = await getUnreadCount(chat.id, userId);
+          return {
+            chatId: chat.id,
+            lastMessage: chat.messages[0]?.text || "",
+            lastMessageDate: chat.messages[0]?.createdAt || null,
+            unreadCount,
+          };
+        })
+      );
+
+      socket.emit("userChats", formatted);
     });
 
     // Отключение пользователя
