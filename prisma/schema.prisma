@@ -298,7 +298,7 @@ model Chat {
   order      Order     @relation("Chats", fields: [orderId], references: [id])
   messages   Message[] @relation("ChatMessages")
   tutorHasAccess Boolean   @default(false)
-  themeOrder String
+  themeOrder String?
   createdAt  DateTime  @default(now())
 }
 
