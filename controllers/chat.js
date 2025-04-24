@@ -32,6 +32,7 @@ const ChatController = {
           tutorId,
           orderId,
           tutorHasAccess,
+          themeOrder,
         },
       });
 
@@ -107,9 +108,9 @@ const ChatController = {
 
   // Отправка сообщения в чат
   sendMessage: async (req, res) => {
-    const { chatId, senderId, text, orderId, themeOrder } = req.body;
+    const { chatId, senderId, text, orderId } = req.body;
 
-    if (!chatId || !senderId || !text || !orderId || !themeOrder) {
+    if (!chatId || !senderId || !text || !orderId) {
       return res
         .status(400)
         .json({ error: "Не все обязательные поля переданы" });
