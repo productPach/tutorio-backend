@@ -186,12 +186,27 @@ module.exports = (io) => {
     socket.on("createChat", async ({ chatId }) => {
       if (!chatId) return;
 
+      // Загружаем сам чат с данными студента и репетитора
       const chat = await prisma.chat.findUnique({
         where: { id: chatId },
         include: {
           messages: {
             orderBy: { createdAt: "desc" },
             take: 1,
+          },
+          student: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true, // добавляем данные студента
+            },
+          },
+          tutor: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true, // добавляем данные репетитора
+            },
           },
         },
       });
