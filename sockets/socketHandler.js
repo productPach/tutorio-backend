@@ -182,6 +182,53 @@ module.exports = (io) => {
       socket.emit("userChats", formatted);
     });
 
+    // Создание нового чата
+    socket.on("createChat", async ({ chatId }) => {
+      if (!chatId) return;
+
+      const chat = await prisma.chat.findUnique({
+        where: { id: chatId },
+        include: {
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      });
+
+      if (!chat) {
+        console.warn(`Чат ${chatId} не найден`);
+        return;
+      }
+
+      const chatData = {
+        chatId: chat.id,
+        lastMessage: chat.messages[0]?.text || "",
+        lastMessageDate: chat.messages[0]?.createdAt || null,
+        unreadCount: 0,
+      };
+
+      if (chat.owner === "tutor" && chat.studentId) {
+        const studentSockets = socketConnections.students[chat.studentId] || [];
+        studentSockets.forEach((socketId) => {
+          io.to(socketId).emit("newChatCreated", chatData);
+        });
+        console.log(
+          `Отправлено событие newChatCreated студенту ${chat.studentId}`
+        );
+      }
+
+      if (chat.owner === "student" && chat.tutorId) {
+        const tutorSockets = socketConnections.tutors[chat.tutorId] || [];
+        tutorSockets.forEach((socketId) => {
+          io.to(socketId).emit("newChatCreated", chatData);
+        });
+        console.log(
+          `Отправлено событие newChatCreated репетитору ${chat.tutorId}`
+        );
+      }
+    });
+
     // Отключение пользователя
     socket.on("disconnect", () => {
       console.log("Пользователь отключился:", socket.id);

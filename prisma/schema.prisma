@@ -299,6 +299,7 @@ model Chat {
   messages   Message[] @relation("ChatMessages")
   tutorHasAccess Boolean   @default(false)
   themeOrder String?
+  owner      String?
   createdAt  DateTime  @default(now())
 }
 
