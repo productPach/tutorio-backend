@@ -208,7 +208,7 @@ module.exports = (io) => {
         unreadCount: 0,
       };
 
-      if (chat.owner === "tutor" && chat.studentId) {
+      if (chat.initiatorRole === "tutor" && chat.studentId) {
         const studentSockets = socketConnections.students[chat.studentId] || [];
         studentSockets.forEach((socketId) => {
           io.to(socketId).emit("newChatCreated", chatData);
@@ -218,7 +218,7 @@ module.exports = (io) => {
         );
       }
 
-      if (chat.owner === "student" && chat.tutorId) {
+      if (chat.initiatorRole === "student" && chat.tutorId) {
         const tutorSockets = socketConnections.tutors[chat.tutorId] || [];
         tutorSockets.forEach((socketId) => {
           io.to(socketId).emit("newChatCreated", chatData);

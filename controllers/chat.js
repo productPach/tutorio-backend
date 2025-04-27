@@ -33,6 +33,7 @@ const ChatController = {
           orderId,
           tutorHasAccess,
           themeOrder,
+          initiatorRole,
         },
       });
 

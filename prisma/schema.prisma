@@ -289,18 +289,18 @@ model DeletedRequest {
 }
 
 model Chat {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  studentId  String    @db.ObjectId
-  student    Student   @relation("StudentChats", fields: [studentId], references: [id])
-  tutorId    String    @db.ObjectId
-  tutor      Tutor     @relation("TutorsChats", fields: [tutorId], references: [id])
-  orderId    String    @db.ObjectId
-  order      Order     @relation("Chats", fields: [orderId], references: [id])
-  messages   Message[] @relation("ChatMessages")
-  tutorHasAccess Boolean   @default(false)
-  themeOrder String?
-  owner      String?
-  createdAt  DateTime  @default(now())
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  studentId          String    @db.ObjectId
+  student            Student   @relation("StudentChats", fields: [studentId], references: [id])
+  tutorId            String    @db.ObjectId
+  tutor              Tutor     @relation("TutorsChats", fields: [tutorId], references: [id])
+  orderId            String    @db.ObjectId
+  order              Order     @relation("Chats", fields: [orderId], references: [id])
+  messages           Message[] @relation("ChatMessages")
+  tutorHasAccess     Boolean   @default(false)
+  themeOrder         String?
+  initiatorRole      String?
+  createdAt          DateTime  @default(now())
 }
 
 model Message {
