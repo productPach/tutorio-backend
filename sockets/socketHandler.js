@@ -201,17 +201,10 @@ module.exports = (io) => {
         return;
       }
 
-      const chatData = {
-        chatId: chat.id,
-        lastMessage: chat.messages[0]?.text || "",
-        lastMessageDate: chat.messages[0]?.createdAt || null,
-        unreadCount: 0,
-      };
-
       if (chat.initiatorRole === "tutor" && chat.studentId) {
         const studentSockets = socketConnections.students[chat.studentId] || [];
         studentSockets.forEach((socketId) => {
-          io.to(socketId).emit("newChatCreated", chatData);
+          io.to(socketId).emit("newChatCreated", chat);
         });
         console.log(
           `Отправлено событие newChatCreated студенту ${chat.studentId}`
@@ -221,7 +214,7 @@ module.exports = (io) => {
       if (chat.initiatorRole === "student" && chat.tutorId) {
         const tutorSockets = socketConnections.tutors[chat.tutorId] || [];
         tutorSockets.forEach((socketId) => {
-          io.to(socketId).emit("newChatCreated", chatData);
+          io.to(socketId).emit("newChatCreated", chat);
         });
         console.log(
           `Отправлено событие newChatCreated репетитору ${chat.tutorId}`
