@@ -7,9 +7,17 @@ const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
 const ChatController = {
   // Создание чата
   createChat: async (req, res) => {
-    const { tutorId, studentId, orderId, initiatorRole, themeOrder } = req.body;
+    const { tutorId, studentId, orderId, initiatorRole, themeOrder, status } =
+      req.body;
 
-    if (!tutorId || !studentId || !orderId || !initiatorRole || !themeOrder) {
+    if (
+      !tutorId ||
+      !studentId ||
+      !orderId ||
+      !initiatorRole ||
+      !themeOrder ||
+      !status
+    ) {
       return res
         .status(400)
         .json({ error: "Не все обязательные поля переданы" });
@@ -34,6 +42,7 @@ const ChatController = {
           tutorHasAccess,
           themeOrder,
           initiatorRole,
+          status,
         },
       });
 

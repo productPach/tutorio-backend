@@ -300,6 +300,7 @@ model Chat {
   tutorHasAccess     Boolean   @default(false)
   themeOrder         String?
   initiatorRole      String?
+  status             String?
   createdAt          DateTime  @default(now())
 }
 
