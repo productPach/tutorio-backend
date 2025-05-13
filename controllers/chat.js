@@ -116,6 +116,41 @@ const ChatController = {
     }
   },
 
+  // Изменение чата
+  updateChat: async (req, res) => {
+    const { chatId, tutorHasAccess, status } = req.body;
+
+    if (!chatId) {
+      return res.status(400).json({ error: "Не передан chatId" });
+    }
+
+    try {
+      const chat = await prisma.chat.findUnique({
+        where: { id: chatId },
+      });
+
+      if (!chat) {
+        return res.status(404).json({ error: "Чат не найден" });
+      }
+
+      const updatedChat = await prisma.chat.update({
+        where: { id: chatId },
+        data: {
+          ...(tutorHasAccess !== undefined ? { tutorHasAccess } : {}),
+          ...(status !== undefined ? { status } : {}),
+        },
+      });
+
+      res.json(updatedChat);
+    } catch (error) {
+      console.error("Ошибка при обновлении чата:", error.message);
+      res.status(500).json({
+        error: "Ошибка при обновлении чата",
+        details: error.message,
+      });
+    }
+  },
+
   // Отправка сообщения в чат
   sendMessage: async (req, res) => {
     const { chatId, senderId, text, orderId } = req.body;
