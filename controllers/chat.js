@@ -173,7 +173,7 @@ const ChatController = {
 
       // Проверка доступа репетитора
       if (chat.tutorId === senderId && !chat.tutorHasAccess) {
-        return res.status(403).json({ error: "Нет доступа к чату до оплаты" });
+        //return res.status(403).json({ error: "Нет доступа к чату до оплаты" });
       }
 
       // Создаем новое сообщение
