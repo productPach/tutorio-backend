@@ -5,7 +5,13 @@ const WikiController = {
   createTopic: async (req, res) => {
     const { title, description, order, visibleToRoles } = req.body;
 
-    if (!title || !description || order === undefined) {
+    if (
+      !title ||
+      !description ||
+      order === undefined ||
+      !Array.isArray(visibleToRoles) ||
+      visibleToRoles.length === 0
+    ) {
       return res.status(400).json({ error: "Все поля обязательны" });
     }
 
@@ -124,8 +130,9 @@ const WikiController = {
       !topicId ||
       !title ||
       !content ||
-      order ||
-      visibleToRoles === undefined
+      order === undefined ||
+      !Array.isArray(visibleToRoles) ||
+      visibleToRoles.length === 0
     ) {
       return res.status(400).json({ error: "Все поля обязательны" });
     }
