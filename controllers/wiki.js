@@ -3,7 +3,7 @@ const { prisma } = require("../prisma/prisma-client");
 const WikiController = {
   // Создание топика
   createTopic: async (req, res) => {
-    const { title, description, order } = req.body;
+    const { title, description, order, visibleToRoles } = req.body;
 
     if (!title || !description || order === undefined) {
       return res.status(400).json({ error: "Все поля обязательны" });
@@ -11,7 +11,7 @@ const WikiController = {
 
     try {
       const newTopic = await prisma.topic.create({
-        data: { title, description, order },
+        data: { title, description, order, visibleToRoles },
       });
 
       res.status(201).json(newTopic);
@@ -60,12 +60,12 @@ const WikiController = {
   // Обновление топика
   updateTopic: async (req, res) => {
     const { id } = req.params;
-    const { title, description, order } = req.body;
+    const { title, description, order, visibleToRoles } = req.body;
 
     try {
       const updatedTopic = await prisma.topic.update({
         where: { id },
-        data: { title, description, order },
+        data: { title, description, order, visibleToRoles },
       });
 
       res.status(200).json(updatedTopic);
@@ -118,15 +118,21 @@ const WikiController = {
 
   // Создание темы внутри топика
   createTheme: async (req, res) => {
-    const { topicId, title, content, order } = req.body;
+    const { topicId, title, content, order, visibleToRoles } = req.body;
 
-    if (!topicId || !title || !content || order === undefined) {
+    if (
+      !topicId ||
+      !title ||
+      !content ||
+      order ||
+      visibleToRoles === undefined
+    ) {
       return res.status(400).json({ error: "Все поля обязательны" });
     }
 
     try {
       const newTheme = await prisma.theme.create({
-        data: { topicId, title, content, order },
+        data: { topicId, title, content, order, visibleToRoles },
       });
 
       res.status(201).json(newTheme);
@@ -157,12 +163,12 @@ const WikiController = {
   // Обновление темы
   updateTheme: async (req, res) => {
     const { id } = req.params;
-    const { title, content, order } = req.body;
+    const { title, content, order, visibleToRoles } = req.body;
 
     try {
       const updatedTheme = await prisma.theme.update({
         where: { id },
-        data: { title, content, order },
+        data: { title, content, order, visibleToRoles },
       });
 
       res.status(200).json(updatedTheme);
