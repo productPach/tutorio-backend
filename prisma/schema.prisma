@@ -257,24 +257,26 @@ model RegionalCity {
 }
 
 model Topic {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String
-  order       Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  themes      Theme[]
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  description     String
+  order           Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  visibleToRoles  String[]
+  themes          Theme[]
 }
 
 model Theme {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  topicId   String  @db.ObjectId // Ссылка на `Topic`
-  title     String
-  content   String
-  order     Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  topic     Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  topicId         String  @db.ObjectId // Ссылка на `Topic`
+  title           String
+  content         String
+  order           Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  topic           Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  visibleToRoles  String[]
 }
 
 model DeletedRequest {
