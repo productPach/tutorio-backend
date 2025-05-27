@@ -243,7 +243,7 @@ router.put("/regional-city/:id", LocationController.updateRegionalCityById);
 // Роуты для топиков (Topic)
 router.post("/topics", authenticateToken, WikiController.createTopic);
 router.get("/topics", WikiController.getAllTopics);
-router.get("/topics/:id", authenticateToken, WikiController.getTopicById);
+router.get("/topics/:id", WikiController.getTopicById);
 router.patch("/topics/:id", authenticateToken, WikiController.updateTopic);
 router.delete("/topics/:id", authenticateToken, WikiController.deleteTopic);
 
