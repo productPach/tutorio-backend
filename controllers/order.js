@@ -173,6 +173,33 @@ const OrderController = {
     }
   },
 
+  // Публичный метод получения заказа по ID, без авторизации
+  getOrderByIdPublic: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const order = await prisma.order.findUnique({
+        where: { id },
+        include: {
+          student: true,
+          chats: {
+            include: {
+              tutor: true,
+            },
+          },
+        },
+      });
+
+      if (!order) {
+        return res.status(404).json({ error: "Заказ не найден" });
+      }
+
+      res.json(order);
+    } catch (error) {
+      console.error("Get Order By Id Public Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Обновление заказа студентом
   updateOrder: async (req, res) => {
     const { id } = req.params;

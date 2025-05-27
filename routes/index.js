@@ -194,6 +194,7 @@ router.post("/orders", authenticateToken, OrderController.createOrder);
 router.get("/orders", authenticateToken, OrderController.getAllOrders);
 router.get("/orders/student/:studentId", OrderController.getOrdersByStudentId);
 router.get("/orders/:id", authenticateToken, OrderController.getOrderById);
+router.get("/public/orders/:id", OrderController.getOrderByIdPublic);
 router.patch("/orders/:id", authenticateToken, OrderController.updateOrder);
 router.delete("/orders/:id", authenticateToken, OrderController.deleteOrder);
 
