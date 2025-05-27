@@ -117,6 +117,33 @@ const OrderController = {
     }
   },
 
+  // Получение всех заказов (публично, без авторизации)
+  getAllOrdersPublic: async (req, res) => {
+    try {
+      const allOrders = await prisma.order.findMany({
+        include: {
+          student: {
+            select: {
+              name: true, // или другое безопасное поле
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      if (!allOrders || allOrders.length === 0) {
+        return res.status(404).json({ error: "Не найдено ни одного заказа" });
+      }
+
+      res.json(allOrders);
+    } catch (error) {
+      console.error("Get All Orders Public Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Получение заказа по studentId
   getOrdersByStudentId: async (req, res) => {
     const { studentId } = req.params; // Используем studentId из параметров маршрута

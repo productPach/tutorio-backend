@@ -117,7 +117,7 @@ router.put(
   TutorController.updateTutorAvatar
 );
 router.get("/currentTutor", authenticateToken, TutorController.currentTutor);
-router.get("/tutors", authenticateToken, TutorController.getAllTutors);
+router.get("/tutors", TutorController.getAllTutors);
 router.get("/tutors/:id", authenticateToken, TutorController.getTutorById);
 router.patch("/tutors/:id", authenticateToken, TutorController.updateTutor);
 router.post(
@@ -192,6 +192,7 @@ router.delete(
 // Роуты для заказа
 router.post("/orders", authenticateToken, OrderController.createOrder);
 router.get("/orders", authenticateToken, OrderController.getAllOrders);
+router.get("/public/orders", OrderController.getAllOrdersPublic);
 router.get("/orders/student/:studentId", OrderController.getOrdersByStudentId);
 router.get("/orders/:id", authenticateToken, OrderController.getOrderById);
 router.get("/public/orders/:id", OrderController.getOrderByIdPublic);
@@ -241,18 +242,14 @@ router.put("/regional-city/:id", LocationController.updateRegionalCityById);
 
 // Роуты для топиков (Topic)
 router.post("/topics", authenticateToken, WikiController.createTopic);
-router.get("/topics", authenticateToken, WikiController.getAllTopics);
+router.get("/topics", WikiController.getAllTopics);
 router.get("/topics/:id", authenticateToken, WikiController.getTopicById);
 router.patch("/topics/:id", authenticateToken, WikiController.updateTopic);
 router.delete("/topics/:id", authenticateToken, WikiController.deleteTopic);
 
 // Роуты для тем (Theme)
-router.get("/themes", authenticateToken, WikiController.getAllThemes);
-router.get(
-  "/topics/:id/themes",
-  authenticateToken,
-  WikiController.getThemesByTopic
-);
+router.get("/themes", WikiController.getAllThemes);
+router.get("/topics/:id/themes", WikiController.getThemesByTopic);
 router.post(
   "/topics/:id/themes",
   authenticateToken,
