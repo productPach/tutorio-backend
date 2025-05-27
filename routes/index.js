@@ -255,7 +255,7 @@ router.post(
   authenticateToken,
   WikiController.createTheme
 );
-router.get("/themes/:id", authenticateToken, WikiController.getThemeById);
+router.get("/themes/:id", WikiController.getThemeById);
 router.patch("/themes/:id", authenticateToken, WikiController.updateTheme);
 router.delete("/themes/:id", authenticateToken, WikiController.deleteTheme);
 
