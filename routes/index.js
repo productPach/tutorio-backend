@@ -119,6 +119,7 @@ router.put(
 router.get("/currentTutor", authenticateToken, TutorController.currentTutor);
 router.get("/tutors", TutorController.getAllTutors);
 router.get("/tutors/:id", authenticateToken, TutorController.getTutorById);
+router.get("/public/tutors/:id", TutorController.getTutorByIdPublic);
 router.patch("/tutors/:id", authenticateToken, TutorController.updateTutor);
 router.post(
   "/tutors/delete-request/:id",

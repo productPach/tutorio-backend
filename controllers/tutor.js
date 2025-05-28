@@ -150,6 +150,30 @@ const TutorController = {
     }
   },
 
+  // Получение репетитора по ID
+  getTutorByIdPublic: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+        include: {
+          educations: true,
+          subjectPrices: true, // Включаем связанные места образования
+        },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      res.json({ tutor });
+    } catch (error) {
+      console.error("Get Tutor By Id Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Получение текущего репетитора по токену
   currentTutor: async (req, res) => {
     try {
