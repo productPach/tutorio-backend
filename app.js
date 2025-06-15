@@ -40,9 +40,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // view engine setup
-app.set("view engine", "jade");
+// app.set("view engine", "jade");
 // Раздаем статические файлы из папки uploads
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api", require("./routes"));
 
@@ -66,8 +66,12 @@ app.use(function (err, req, res, next) {
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  // res.status(err.status || 500);
+  // res.render("error");
+  res.status(err.status || 500).json({
+    message: err.message,
+    error: req.app.get("env") === "development" ? err : {},
+  });
 });
 
 // Запускаем крон-задачи

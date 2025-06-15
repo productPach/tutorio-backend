@@ -1,10 +1,12 @@
 services:
   tutorio-express:
     build: .
+    container_name: tutorio-express
     ports:
       - "3000:3000"
     depends_on:
       - tutorio-mongodb
+      - tutorio-app
     environment:
       DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
     volumes:
@@ -13,8 +15,26 @@ services:
 
   tutorio-mongodb:
     image: prismagraphql/mongo-single-replica:5.0.3
+    container_name: tutorio-mongodb
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
+
+  tutorio-app:
+    build:
+      context: ../tutorio-frontend
+      args:
+        NEXT_PUBLIC_BACKEND_HOST: tutorio-express
+        NEXT_PUBLIC_BACKEND_PORT: 3000
+        NEXT_PUBLIC_CDN_URL: http://tutorio-express:3000
+        NEXT_IMAGE_HOST: tutorio-express
+    container_name: tutorio-app
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_HOST=tutorio-express
+      - NEXT_PUBLIC_BACKEND_PORT=3000
+      - NEXT_PUBLIC_CDN_URL=http://tutorio-express:3000
+      - NEXT_IMAGE_HOST=tutorio-express

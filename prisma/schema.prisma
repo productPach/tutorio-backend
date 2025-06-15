@@ -15,102 +15,103 @@ datasource db {
 }
 
 model User {
-  id                      String              @id @default(auto()) @map("_id") @db.ObjectId
-  phone                   String              @unique
-  password                String
-  createdAt               DateTime            @default(now())
-  updatedAt               DateTime            @updatedAt
-  student                 Student?
-  tutor                   Tutor?
-  employee                Employee?
-  welcomeState            UserWelcomeScreen[]
-  deletedRequests DeletedRequest[] @relation("UserToDeletedRequest")
+  id              String              @id @default(auto()) @map("_id") @db.ObjectId
+  phone           String              @unique
+  password        String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  student         Student?
+  tutor           Tutor?
+  employee        Employee?
+  welcomeState    UserWelcomeScreen[]
+  deletedRequests DeletedRequest[]    @relation("UserToDeletedRequest")
 }
 
 model Student {
-  id                          String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId                      String   @unique @db.ObjectId
-  user                        User     @relation(fields: [userId], references: [id])
-  chats                       Chat[]   @relation("StudentChats")
-  createdAt                   DateTime @default(now())
-  updatedAt                   DateTime @updatedAt
-  name                        String
-  phone                       String   @unique
-  email                       String?
-  isVerifedEmail              Boolean          @default(false)
-  telegram                    String?
-  skype                       String?
-  region                      String
-  avatarUrl                   String?
-  isNotifications             Boolean          @default(true) // "Получать уведомления"
-  isNotificationsResponse     Boolean          @default(true) // для "Откликов от репетиторов"
-  isNotificationsPromo        Boolean          @default(true)
-  isNotificationsSms          Boolean          @default(true)
-  isNotificationsEmail        Boolean          @default(true)
-  isNotificationsTelegram     Boolean          @default(true)
-  isNotificationsMobilePush   Boolean          @default(true)
-  isNotificationsWebPush      Boolean          @default(true)
-  isNotificationsVk           Boolean          @default(true)
-  status                      String
-  orders                      Order[]
-  lastOnline                  DateTime? // Дата последнего захода (если есть активность)
+  id                        String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId                    String    @unique @db.ObjectId
+  user                      User      @relation(fields: [userId], references: [id])
+  chats                     Chat[]    @relation("StudentChats")
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+  name                      String
+  phone                     String    @unique
+  email                     String?
+  isVerifedEmail            Boolean   @default(false)
+  telegram                  String?
+  skype                     String?
+  region                    String
+  avatarUrl                 String?
+  isNotifications           Boolean   @default(true) // "Получать уведомления"
+  isNotificationsResponse   Boolean   @default(true) // для "Откликов от репетиторов"
+  isNotificationsPromo      Boolean   @default(true)
+  isNotificationsSms        Boolean   @default(true)
+  isNotificationsEmail      Boolean   @default(true)
+  isNotificationsTelegram   Boolean   @default(true)
+  isNotificationsMobilePush Boolean   @default(true)
+  isNotificationsWebPush    Boolean   @default(true)
+  isNotificationsVk         Boolean   @default(true)
+  status                    String
+  orders                    Order[]
+  lastOnline                DateTime? // Дата последнего захода (если есть активность)
 }
 
 model Tutor {
-  id                          String           @id @default(auto()) @map("_id") @db.ObjectId
-  userId                      String           @unique @db.ObjectId
-  user                        User             @relation(fields: [userId], references: [id])
-  createdAt                   DateTime         @default(now())
-  updatedAt                   DateTime         @updatedAt
-  name                        String?
-  phone                       String           @unique
-  email                       String?
-  isVerifedEmail              Boolean          @default(false)
-  telegram                    String?
-  skype                       String?
-  avatarUrl                   String?
-  subject                     String[]         @default([])
-  subjectComments             Json             @default("[]")
-  region                      String?
-  tutorPlace                  String[]         @default([])
-  tutorAdress                 String?
-  tutorTrip                   String[]         @default([])
-  tutorTripCityData           String?
-  tutorTripCity               String[]         @default([])
-  tutorTripArea               String[]         @default([])
-  profileInfo                 String?
-  experience                  String?
-  educations                  TutorEducation[]
-  documents                   TutorDocument[]
-  isGroup                     Boolean          @default(false)
-  status                      String
-  response                    Response[]
-  chats                       Chat[]   @relation("TutorsChats")
-  subjectPrices               TutorSubjectPrice[] @relation("TutorToSubjectPrices")
-  isPublicProfile             Boolean          @default(true) // для "Публичной анкеты"
-  isStudentResponses          Boolean          @default(true) // для "Получать отклики от учеников"
-  isNotifications             Boolean          @default(true) // "Получать уведомления"
-  isNotificationsOrders       Boolean          @default(true) // для "Новых заказов"
-  isNotificationsResponse     Boolean          @default(true) // для "Откликов от учеников"
-  isNotificationsPromo        Boolean          @default(true)
-  isNotificationsSms          Boolean          @default(true)
-  isNotificationsEmail        Boolean          @default(true)
-  isNotificationsTelegram     Boolean          @default(true)
-  isNotificationsMobilePush   Boolean          @default(true)
-  isNotificationsWebPush      Boolean          @default(true)
-  isNotificationsVk           Boolean          @default(true)
-  badges                      String[] @default([]) // Список шильдиков
-  lastOnline                  DateTime? // Дата последнего захода (если есть активность)
+  id                        String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId                    String              @unique @db.ObjectId
+  user                      User                @relation(fields: [userId], references: [id])
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+  name                      String?
+  phone                     String              @unique
+  email                     String?
+  isVerifedEmail            Boolean             @default(false)
+  telegram                  String?
+  skype                     String?
+  avatarUrl                 String?
+  subject                   String[]            @default([])
+  subjectComments           Json                @default("[]")
+  region                    String?
+  tutorPlace                String[]            @default([])
+  tutorAdress               String?
+  tutorTrip                 String[]            @default([])
+  tutorTripCityData         String?
+  tutorTripCity             String[]            @default([])
+  tutorTripArea             String[]            @default([])
+  profileInfo               String?
+  experience                String?
+  educations                TutorEducation[]
+  documents                 TutorDocument[]
+  isGroup                   Boolean             @default(false)
+  status                    String
+  response                  Response[]
+  chats                     Chat[]              @relation("TutorsChats")
+  subjectPrices             TutorSubjectPrice[] @relation("TutorToSubjectPrices")
+  isPublicProfile           Boolean             @default(true) // для "Публичной анкеты"
+  isStudentResponses        Boolean             @default(true) // для "Получать отклики от учеников"
+  isNotifications           Boolean             @default(true) // "Получать уведомления"
+  isNotificationsOrders     Boolean             @default(true) // для "Новых заказов"
+  isNotificationsResponse   Boolean             @default(true) // для "Откликов от учеников"
+  isNotificationsPromo      Boolean             @default(true)
+  isNotificationsSms        Boolean             @default(true)
+  isNotificationsEmail      Boolean             @default(true)
+  isNotificationsTelegram   Boolean             @default(true)
+  isNotificationsMobilePush Boolean             @default(true)
+  isNotificationsWebPush    Boolean             @default(true)
+  isNotificationsVk         Boolean             @default(true)
+  badges                    String[]            @default([]) // Список шильдиков
+  lastOnline                DateTime? // Дата последнего захода (если есть активность)
 }
 
 model TutorSubjectPrice {
-  id         String         @id @default(auto()) @map("_id") @db.ObjectId
-  tutorId    String         @db.ObjectId
-  tutor      Tutor          @relation("TutorToSubjectPrices", fields: [tutorId], references: [id], onDelete: Cascade)
-  subjectId  String         // id предмета
-  format     String         // "online" | "home" | "travel" | "group"
-  price      Int
-  duration   String         // "45" | "60" | "90" | "120" | "day"
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  tutorId   String @db.ObjectId
+  tutor     Tutor  @relation("TutorToSubjectPrices", fields: [tutorId], references: [id], onDelete: Cascade)
+  subjectId String // id предмета
+  format    String // "online" | "home" | "travel" | "group"
+  price     Int
+  duration  String // "45" | "60" | "90" | "120" | "day"
+
   @@unique([tutorId, subjectId, format]) // Уникальная комбинация
 }
 
@@ -154,7 +155,7 @@ model Order {
   id                     String     @id @default(auto()) @map("_id") @db.ObjectId
   studentId              String     @db.ObjectId
   student                Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  chats                  Chat[]   @relation("Chats")
+  chats                  Chat[]     @relation("Chats")
   response               Response[]
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
@@ -232,11 +233,11 @@ model City {
 }
 
 model District {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  title     String
-  metros    Metro[]
-  cityId    String   @db.ObjectId
-  city      City     @relation(fields: [cityId], references: [id])
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  title  String
+  metros Metro[]
+  cityId String  @db.ObjectId
+  city   City    @relation(fields: [cityId], references: [id])
 }
 
 model Metro {
@@ -250,60 +251,61 @@ model Metro {
 }
 
 model RegionalCity {
-  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
   title  String
-  cityId String  @db.ObjectId
-  city   City    @relation(fields: [cityId], references: [id])
+  cityId String @db.ObjectId
+  city   City   @relation(fields: [cityId], references: [id])
 }
 
 model Topic {
-  id              String  @id @default(auto()) @map("_id") @db.ObjectId
-  title           String
-  description     String
-  order           Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  visibleToRoles  String[]
-  themes          Theme[]
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String
+  order          Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  visibleToRoles String[]
+  themes         Theme[]
 }
 
 model Theme {
-  id              String  @id @default(auto()) @map("_id") @db.ObjectId
-  topicId         String  @db.ObjectId // Ссылка на `Topic`
-  title           String
-  content         String
-  order           Int
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  topic           Topic   @relation(fields: [topicId], references: [id], onDelete: Cascade)
-  visibleToRoles  String[]
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  topicId        String   @db.ObjectId // Ссылка на `Topic`
+  title          String
+  content        String
+  order          Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  topic          Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  visibleToRoles String[]
 }
 
 model DeletedRequest {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String?   @db.ObjectId
-  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull, name: "UserToDeletedRequest")
-  role       String   // "tutor" или "student"
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String?  @db.ObjectId
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull, name: "UserToDeletedRequest")
+  role        String // "tutor" или "student"
   requestedAt DateTime @default(now())
-  expiresAt  DateTime  // Дата окончательного удаления
-  @@unique([userId, role]) // Гарантирует, что у одного юзера не будет двух запросов на одну роль
+  expiresAt   DateTime // Дата окончательного удаления
   answer      String?
+
+  @@unique([userId, role]) // Гарантирует, что у одного юзера не будет двух запросов на одну роль
 }
 
 model Chat {
-  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
-  studentId          String    @db.ObjectId
-  student            Student   @relation("StudentChats", fields: [studentId], references: [id])
-  tutorId            String    @db.ObjectId
-  tutor              Tutor     @relation("TutorsChats", fields: [tutorId], references: [id])
-  orderId            String    @db.ObjectId
-  order              Order     @relation("Chats", fields: [orderId], references: [id])
-  messages           Message[] @relation("ChatMessages")
-  tutorHasAccess     Boolean   @default(false)
-  themeOrder         String?
-  initiatorRole      String?
-  status             String?
-  createdAt          DateTime  @default(now())
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  studentId      String    @db.ObjectId
+  student        Student   @relation("StudentChats", fields: [studentId], references: [id])
+  tutorId        String    @db.ObjectId
+  tutor          Tutor     @relation("TutorsChats", fields: [tutorId], references: [id])
+  orderId        String    @db.ObjectId
+  order          Order     @relation("Chats", fields: [orderId], references: [id])
+  messages       Message[] @relation("ChatMessages")
+  tutorHasAccess Boolean   @default(false)
+  themeOrder     String?
+  initiatorRole  String?
+  status         String?
+  createdAt      DateTime  @default(now())
 }
 
 model Message {
