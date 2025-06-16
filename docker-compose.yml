@@ -38,3 +38,13 @@ services:
       - NEXT_PUBLIC_BACKEND_PORT=3000
       - NEXT_PUBLIC_CDN_URL=http://tutorio-express:3000
       - NEXT_IMAGE_HOST=tutorio-express
+  
+  nginx:
+    image: nginx:latest
+    container_name: tutorio-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - tutorio-app
