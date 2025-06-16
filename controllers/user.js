@@ -70,7 +70,7 @@ const UserController = {
         process.env.SECRET_KEY
       );
 
-      res.cookie("token", token, {
+      res.cookie("user", token, {
         httpOnly: false,
         secure: false,
         sameSite: "Lax",
