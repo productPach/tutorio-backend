@@ -70,7 +70,13 @@ const UserController = {
         process.env.SECRET_KEY
       );
 
-      res.json({ token });
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "Lax",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+      res.json({ success: true });
     } catch (error) {
       console.error("Ошибка авторизации", error);
       res.status(500).json({ error: "Internal server error" });
