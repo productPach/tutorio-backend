@@ -14,7 +14,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3001", "http://158.160.74.139:3001"], // Разрешаем эти домены
+    origin: ["http://localhost:3001", "http://89.169.176.162:3001"], // Разрешаем эти домены
     credentials: true, // Разрешаем передавать авторизационные заголовки и куки
     methods: ["GET", "POST"], // Разрешаем эти HTTP-методы
     allowedHeaders: ["Content-Type", "Authorization"], // Разрешаем эти заголовки
@@ -28,7 +28,7 @@ require("./sockets/socketHandler")(io);
 //app.use(cors({ origin: "http://localhost:3001" })); // Настраиваем разрешение запросов с определенного источника
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://158.160.74.139:3001"], // Разрешаем эти домены
+    origin: ["http://localhost:3001", "http://89.169.176.162:3001"], // Разрешаем эти домены
     credentials: true, // Разрешаем передавать авторизационные заголовки и куки
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"], // Добавляем метод PATCH
     allowedHeaders: ["Content-Type", "Authorization"], // Разрешаем эти заголовки
