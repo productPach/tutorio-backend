@@ -14,7 +14,14 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3001", "http://84.201.140.78"], // Разрешаем эти домены
+    origin: [
+      "http://localhost:3001",
+      "http://51.250.20.10",
+      "http://dev-tutorio.ru",
+      "http://www.dev-tutorio.ru",
+      "https://dev-tutorio.ru",
+      "https://www.dev-tutorio.ru",
+    ], // Разрешаем эти домены
     credentials: true, // Разрешаем передавать авторизационные заголовки и куки
     methods: ["GET", "POST"], // Разрешаем эти HTTP-методы
     allowedHeaders: ["Content-Type", "Authorization"], // Разрешаем эти заголовки
@@ -28,7 +35,14 @@ require("./sockets/socketHandler")(io);
 //app.use(cors({ origin: "http://localhost:3001" })); // Настраиваем разрешение запросов с определенного источника
 app.use(
   cors({
-    origin: ["http://localhost:3001", "http://84.201.140.78"], // Разрешаем эти домены
+    origin: [
+      "http://localhost:3001",
+      "http://51.250.20.10",
+      "http://dev-tutorio.ru",
+      "http://www.dev-tutorio.ru",
+      "https://dev-tutorio.ru",
+      "https://www.dev-tutorio.ru",
+    ], // Разрешаем эти домены
     credentials: true, // Разрешаем передавать авторизационные заголовки и куки
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"], // Добавляем метод PATCH
     allowedHeaders: ["Content-Type", "Authorization"], // Разрешаем эти заголовки
