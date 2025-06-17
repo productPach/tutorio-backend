@@ -49,6 +49,10 @@ app.use(
   })
 );
 
+// Подключаем миддлваер авторизации Basic Auth для релизного стенда
+const basicAuth = require("./middleware/basicAuth");
+app.use(basicAuth);
+
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
