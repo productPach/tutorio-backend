@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   tutorio-express:
     build: .
@@ -41,7 +39,7 @@ services:
       - NEXT_PUBLIC_CDN_URL=http://tutorio-express:3000
       - NEXT_IMAGE_HOST=tutorio-express
 
-  nginx:
+  tutorio-nginx:
     image: nginx:latest
     container_name: tutorio-nginx
     ports:
