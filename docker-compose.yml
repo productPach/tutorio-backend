@@ -46,6 +46,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
+      - ./uploads:/app/uploads
+      - ./uploads/diplomas:/app/uploads/diplomas
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./nginx/robots.txt:/usr/share/nginx/html/robots.txt:ro
       - ./nginx/ssl:/etc/letsencrypt
