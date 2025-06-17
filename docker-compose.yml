@@ -52,6 +52,7 @@ services:
       - ./nginx/robots.txt:/usr/share/nginx/html/robots.txt:ro
       - ./nginx/ssl:/etc/letsencrypt
       - ./nginx/ssl-data:/var/www/certbot
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro # ТОЛЬКО ДЛЯ РЕЛИЗНОЙ ДЕВ ВЕРСИИ, ДЛЯ ПРОДА УБРАТЬ!
     depends_on:
       - tutorio-app
       - tutorio-express
