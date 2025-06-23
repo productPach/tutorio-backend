@@ -79,5 +79,3 @@ services:
       - ./nginx/ssl-data:/var/www/certbot
     entrypoint: >
       sh -c "certbot renew --webroot --webroot-path=/var/www/certbot"
-
-volumes:
