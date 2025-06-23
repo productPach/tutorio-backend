@@ -14,15 +14,16 @@ services:
       - ./uploads/diplomas:/app/uploads/diplomas
 
   tutorio-mongodb:
-    image: prismagraphql/mongo-single-replica:5.0.3
+    image: mongo:5.0.3
     container_name: tutorio-mongodb
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
+    command: ["--replSet", "rs0"]
     volumes:
-    - ./mongo-data:/data/db
+      - ./mongo-data:/data/db
 
   tutorio-app:
     build:
@@ -54,7 +55,7 @@ services:
       - ./nginx/robots.txt:/usr/share/nginx/html/robots.txt:ro
       - ./nginx/ssl:/etc/letsencrypt
       - ./nginx/ssl-data:/var/www/certbot
-      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro # ТОЛЬКО ДЛЯ РЕЛИЗНОЙ ДЕВ ВЕРСИИ, ДЛЯ ПРОДА УБРАТЬ!
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
     depends_on:
       - tutorio-app
       - tutorio-express
@@ -78,3 +79,5 @@ services:
       - ./nginx/ssl-data:/var/www/certbot
     entrypoint: >
       sh -c "certbot renew --webroot --webroot-path=/var/www/certbot"
+
+volumes:
