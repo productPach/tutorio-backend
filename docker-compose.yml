@@ -21,6 +21,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
+    volumes:
+    - ./mongo-data:/data/db
 
   tutorio-app:
     build:
