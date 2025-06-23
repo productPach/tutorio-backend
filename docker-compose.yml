@@ -21,9 +21,10 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
-    command: ["--replSet", "rs0"]
+    command: ["--replSet", "rs0", "--auth", "--keyFile", "/etc/mongo-keyfile"]
     volumes:
       - ./mongo-data:/data/db
+      - ./mongo-keyfile:/etc/mongo-keyfile:ro
 
   tutorio-app:
     build:
