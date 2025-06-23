@@ -14,17 +14,15 @@ services:
       - ./uploads/diplomas:/app/uploads/diplomas
 
   tutorio-mongodb:
-    image: mongo:5.0.3
+    image: prismagraphql/mongo-single-replica:5.0.3
     container_name: tutorio-mongodb
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
-    command: ["--replSet", "rs0", "--auth", "--keyFile", "/etc/mongo-keyfile"]
-    volumes:
-      - ./mongo-data:/data/db
-      - ./mongo-keyfile:/etc/mongo-keyfile:ro
+    # volumes:
+    # - ./mongo-data:/data/db
 
   tutorio-app:
     build:
@@ -56,7 +54,7 @@ services:
       - ./nginx/robots.txt:/usr/share/nginx/html/robots.txt:ro
       - ./nginx/ssl:/etc/letsencrypt
       - ./nginx/ssl-data:/var/www/certbot
-      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro # ТОЛЬКО ДЛЯ РЕЛИЗНОЙ ДЕВ ВЕРСИИ, ДЛЯ ПРОДА УБРАТЬ!
     depends_on:
       - tutorio-app
       - tutorio-express
