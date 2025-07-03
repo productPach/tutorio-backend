@@ -7,8 +7,6 @@ services:
     depends_on:
       - tutorio-mongodb
       - tutorio-app
-    command: >
-      sh -c "/wait-for-it.sh tutorio-mongodb:27017 --timeout=30 --strict -- npm start"
     environment:
       DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
     volumes:
