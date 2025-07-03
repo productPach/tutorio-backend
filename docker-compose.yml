@@ -1,3 +1,7 @@
+networks:
+  tutorio-net:
+    driver: bridge
+
 services:
   tutorio-express:
     build: .
@@ -5,19 +9,30 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - tutorio-mongodb
-      - tutorio-app
+      tutorio-mongodb:
+        condition: service_healthy
+      mongo-init-replica:
+        condition: service_completed_successfully
     command: >
-      sh -c "/wait-for-it.sh tutorio-mongodb:27017 --timeout=30 --strict -- npm start"
+      sh -c "while ! mongosh --host tutorio-mongodb:27017 -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --eval 'db.runCommand(\"ping\").ok' --quiet; do sleep 1; done; npm start"
     environment:
-      DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
+      DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true&replicaSet=rs0"
     volumes:
       - ./uploads:/app/uploads
       - ./uploads/diplomas:/app/uploads/diplomas
+    networks:
+      - tutorio-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   tutorio-mongodb:
-    image: prismagraphql/mongo-single-replica:5.0.3
+    image: mongo:5.0
     container_name: tutorio-mongodb
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "27017:27017"
     environment:
@@ -25,6 +40,45 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
     volumes:
       - ./mongo-data:/data/db
+    networks:
+      - tutorio-net
+    healthcheck:
+      test: |
+        mongosh --eval "db.runCommand('ping').ok" \
+        -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD \
+        --quiet
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  mongo-init-replica:
+    image: mongo:5.0
+    container_name: mongo-init-replica
+    depends_on:
+      tutorio-mongodb:
+        condition: service_healthy
+    command: >
+      sh -c "
+        sleep 10;
+        mongosh --host tutorio-mongodb:27017 -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --eval '
+          try {
+            rs.status();
+            print(\"Replica set already initiated\");
+          } catch (e) {
+            rs.initiate({
+              _id: \"rs0\",
+              members: [{ _id: 0, host: \"tutorio-mongodb:27017\" }]
+            });
+            print(\"Replica set initiated\");
+          }
+        '
+      "
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
+      MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
+    networks:
+      - tutorio-net
 
   tutorio-app:
     build:
@@ -42,6 +96,8 @@ services:
       - NEXT_PUBLIC_BACKEND_PORT=3000
       - NEXT_PUBLIC_CDN_URL=http://tutorio-express:3000
       - NEXT_IMAGE_HOST=tutorio-express
+    networks:
+      - tutorio-net
 
   tutorio-nginx:
     image: nginx:latest
@@ -56,10 +112,20 @@ services:
       - ./nginx/robots.txt:/usr/share/nginx/html/robots.txt:ro
       - ./nginx/ssl:/etc/letsencrypt
       - ./nginx/ssl-data:/var/www/certbot
-      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro # ТОЛЬКО ДЛЯ РЕЛИЗНОЙ ДЕВ ВЕРСИИ, ДЛЯ ПРОДА УБРАТЬ!
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
     depends_on:
-      - tutorio-app
-      - tutorio-express
+      tutorio-app:
+        condition: service_started
+      tutorio-express:
+        condition: service_healthy
+    networks:
+      - tutorio-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   certbot:
     image: certbot/certbot
@@ -67,16 +133,8 @@ services:
     volumes:
       - ./nginx/ssl:/etc/letsencrypt
       - ./nginx/ssl-data:/var/www/certbot
-    entrypoint: >
-      sh -c "certbot certonly --webroot --webroot-path=/var/www/certbot
-      --email fedotovps@bk.ru --agree-tos --no-eff-email
-      -d dev-tutorio.ru -d www.dev-tutorio.ru"
-
-  certbot-renew:
-    image: certbot/certbot
-    container_name: tutorio-certbot-renew
-    volumes:
-      - ./nginx/ssl:/etc/letsencrypt
-      - ./nginx/ssl-data:/var/www/certbot
-    entrypoint: >
-      sh -c "certbot renew --webroot --webroot-path=/var/www/certbot"
+    command: >
+      sh -c "certbot certonly --standalone -d dev-tutorio.ru -d www.dev-tutorio.ru
+      --non-interactive --agree-tos --email fedotovps@bk.ru --keep-until-expiring"
+    networks:
+      - tutorio-net

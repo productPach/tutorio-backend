@@ -91,4 +91,8 @@ app.use(function (err, req, res, next) {
 // Запускаем крон-задачи
 startCrons();
 
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
+
 module.exports = { app, server };
