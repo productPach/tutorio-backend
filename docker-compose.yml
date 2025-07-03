@@ -36,9 +36,9 @@ services:
       - "--replSet"
       - "rs0"
       - "--bind_ip_all"
-      # - "--auth"
-      # - "--keyFile"
-      # - "/data/keyfile"
+      - "--auth"
+      - "--keyFile"
+      - "/data/keyfile"
     ports:
       - "27017:27017"
     environment:
