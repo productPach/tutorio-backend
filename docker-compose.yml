@@ -5,21 +5,24 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - tutorio-mongodb
+      - tutorio-mongodb:
+          condition: service_healthy # Ждем, пока MongoDB будет готова
       - tutorio-app
     command: >
       sh -c "/wait-for-it.sh tutorio-mongodb:27017 --timeout=30 --strict -- npm start"
     environment:
-      DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
+      DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true&replicaSet=rs0"
     volumes:
       - ./uploads:/app/uploads
       - ./uploads/diplomas:/app/uploads/diplomas
 
   tutorio-mongodb:
-    image: prismagraphql/mongo-single-replica:5.0.3
-    # image: mongo:5.0
+    # image: prismagraphql/mongo-single-replica:5.0.3
+    image: mongo:5.0
     container_name: tutorio-mongodb
     restart: always # Добавляем политику перезапуска
+    # Добавляем команду для запуска с Replica Set с именем 'rs0'
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "27017:27017"
     environment:
@@ -27,6 +30,36 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
     volumes:
       - ./mongo-data:/data/db
+     # Добавляем проверку здоровья контейнера, чтобы другие сервисы могли ее дождаться
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # НОВЫЙ СЕРВИС для инициализации Replica Set
+  mongo-init-replica:
+    image: mongo:5.0
+    container_name: mongo-init-replica
+    depends_on:
+      tutorio-mongodb:
+        condition: service_healthy # Запустится только после того, как MongoDB будет готова
+    restart: "on-failure"
+    command: >
+      mongosh --host tutorio-mongodb:27017 --eval
+      '
+        try {
+          rs.status();
+          print("Replica set already initiated.");
+        } catch (e) {
+          rs.initiate({
+            _id: "rs0",
+            members: [{ _id: 0, host: "tutorio-mongodb:27017" }]
+          });
+          print("Replica set initiated.");
+        }
+      '
 
   tutorio-app:
     build:
