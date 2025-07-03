@@ -189,6 +189,26 @@ router.delete(
   authenticateToken,
   EmployeeController.deleteEmployee
 );
+router.patch(
+  "/employees/orders/:id",
+  authenticateToken,
+  EmployeeController.updateOrderByAdmin
+);
+router.delete(
+  "/employees/orders/:id",
+  authenticateToken,
+  EmployeeController.deleteOrderByAdmin
+);
+router.patch(
+  "/employees/tutors/:id",
+  authenticateToken,
+  EmployeeController.updateTutorByAdmin
+);
+router.delete(
+  "/employees/tutors/:id",
+  authenticateToken,
+  EmployeeController.deleteTutorByAdmin
+);
 
 // Роуты для заказа
 router.post("/orders", authenticateToken, OrderController.createOrder);

@@ -93,14 +93,14 @@ const OrderController = {
   getAllOrders: async (req, res) => {
     try {
       const allOrders = await prisma.order.findMany({
-        include: {
-          student: {
-            include: { user: true },
-          },
-          chats: {
-            include: { tutor: true },
-          },
-        },
+        // include: {
+        //   student: {
+        //     include: { user: true },
+        //   },
+        //   chats: {
+        //     include: { tutor: true },
+        //   },
+        // },
         orderBy: {
           createdAt: "desc",
         },
