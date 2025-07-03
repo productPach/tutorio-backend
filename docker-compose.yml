@@ -46,7 +46,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
     volumes:
       - ./mongo-data:/data/db
-      - ./mongo-keyfile:/data/keyfile
+      - ./mongo-keyfile/key:/data/keyfile:ro
     networks:
       - tutorio-net
     healthcheck:
