@@ -16,8 +16,10 @@ services:
       - ./uploads/diplomas:/app/uploads/diplomas
 
   tutorio-mongodb:
-    image: prismagraphql/mongo-single-replica:5.0.3
+    # image: prismagraphql/mongo-single-replica:5.0.3
+    image: mongo:5.0
     container_name: tutorio-mongodb
+    restart: always # Добавляем политику перезапуска
     ports:
       - "27017:27017"
     environment:
