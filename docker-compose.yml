@@ -15,6 +15,8 @@ services:
         condition: service_completed_successfully
     command: >
       sh -c "while ! mongosh --host tutorio-mongodb:27017 -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --eval 'db.runCommand(\"ping\").ok' --quiet; do sleep 1; done; npm start"
+      - tutorio-mongodb
+      - tutorio-app
     environment:
       DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true&replicaSet=rs0"
     volumes:
