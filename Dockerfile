@@ -7,6 +7,8 @@ WORKDIR /app
 # Устанавливаем OpenSSL
 RUN apk update && apk add --no-cache openssl
 
+RUN apk add --no-cache bash
+
 # Скопировать package.json и package-lock.json внутрь контейнера
 COPY package*.json ./
 
