@@ -12,11 +12,11 @@ services:
       tutorio-mongodb:
         condition: service_healthy
       mongo-init-replica:
-        condition: service_completed_successfully
+        condition: service_healthy
     command: >
       sh -c "while ! mongosh --host tutorio-mongodb:27017 -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --eval 'db.runCommand(\"ping\").ok' --quiet; do sleep 1; done; npm start"
     environment:
-      DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true&replicaSet=rs0"
+      DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&replicaSet=rs0"
     volumes:
       - ./uploads:/app/uploads
       - ./uploads/diplomas:/app/uploads/diplomas
@@ -32,7 +32,13 @@ services:
   tutorio-mongodb:
     image: mongo:5.0
     container_name: tutorio-mongodb
-    command: ["--replSet", "rs0", "--bind_ip_all"]
+    command: 
+      - "--replSet"
+      - "rs0"
+      - "--bind_ip_all"
+      - "--auth"
+      - "--keyFile"
+      - "/data/keyfile"
     ports:
       - "27017:27017"
     environment:
@@ -40,13 +46,11 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
     volumes:
       - ./mongo-data:/data/db
+      - ./mongo-keyfile:/data/keyfile
     networks:
       - tutorio-net
     healthcheck:
-      test: |
-        mongosh --eval "db.runCommand('ping').ok" \
-        -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD \
-        --quiet
+      test: ["sh", "-c", "mongosh --eval \"db.runCommand('ping').ok\" -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --quiet"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -60,8 +64,8 @@ services:
         condition: service_healthy
     command: >
       sh -c "
-        sleep 10;
-        mongosh --host tutorio-mongodb:27017 -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --eval '
+        sleep 20;
+        mongosh 'mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/admin?replicaSet=rs0' --eval '
           try {
             rs.status();
             print(\"Replica set already initiated\");
@@ -79,6 +83,12 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
     networks:
       - tutorio-net
+    healthcheck:
+      test: ["sh", "-c", "[ $$(mongosh 'mongodb://tutorioAdmin:$$MONGO_INITDB_ROOT_PASSWORD@tutorio-mongodb:27017/admin?replicaSet=rs0' --quiet --eval 'rs.status().ok') -eq 1 ]"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   tutorio-app:
     build:
@@ -133,8 +143,10 @@ services:
     volumes:
       - ./nginx/ssl:/etc/letsencrypt
       - ./nginx/ssl-data:/var/www/certbot
-    command: >
-      sh -c "certbot certonly --standalone -d dev-tutorio.ru -d www.dev-tutorio.ru
-      --non-interactive --agree-tos --email fedotovps@bk.ru --keep-until-expiring"
+    command: [
+      "sh", 
+      "-c", 
+      "certbot certonly --standalone -d dev-tutorio.ru -d www.dev-tutorio.ru --non-interactive --agree-tos --email fedotovps@bk.ru --keep-until-expiring"
+    ]
     networks:
       - tutorio-net
