@@ -5,8 +5,8 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - tutorio-mongodb:
-          condition: service_healthy # Ждем, пока MongoDB будет готова
+      - tutorio-mongodb
+      - mongo-init-replica
       - tutorio-app
     command: >
       sh -c "/wait-for-it.sh tutorio-mongodb:27017 --timeout=30 --strict -- npm start"
@@ -43,8 +43,7 @@ services:
     image: mongo:5.0
     container_name: mongo-init-replica
     depends_on:
-      tutorio-mongodb:
-        condition: service_healthy # Запустится только после того, как MongoDB будет готова
+      - tutorio-mongodb
     restart: "on-failure"
     command: >
       mongosh --host tutorio-mongodb:27017 --eval
