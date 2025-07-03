@@ -89,7 +89,7 @@ const OrderController = {
     }
   },
 
-  // Получение всех заказов
+  // Получение всех заказов (SECURE)
   getAllOrders: async (req, res) => {
     try {
       const allOrders = await prisma.order.findMany({
@@ -117,7 +117,7 @@ const OrderController = {
     }
   },
 
-  // Получение всех заказов (публично, без авторизации)
+  // Получение всех заказов (публично, без авторизации) (SECURE)
   getAllOrdersPublic: async (req, res) => {
     try {
       const allOrders = await prisma.order.findMany({
