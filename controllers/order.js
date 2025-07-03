@@ -144,7 +144,7 @@ const OrderController = {
     }
   },
 
-  // Получение заказа по studentId
+  // Получение заказа по studentId (SECURE)
   getOrdersByStudentId: async (req, res) => {
     const { studentId } = req.params; // Используем studentId из параметров маршрута
     try {
@@ -153,7 +153,17 @@ const OrderController = {
         include: {
           student: true, // Включаем информацию о студенте
           chats: {
-            include: { tutor: true },
+            // include: { tutor: true },
+            include: {
+              tutor: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                  lastOnline: true,
+                },
+              },
+            },
           },
         },
       });
@@ -171,19 +181,27 @@ const OrderController = {
     }
   },
 
-  // Получение заказа по ID
+  // Получение заказа по ID (SECURE)
   getOrderById: async (req, res) => {
     const { id } = req.params;
     try {
       const order = await prisma.order.findUnique({
         where: { id },
         include: {
-          student: true,
+          // student: true,
+          // chats: {
+          //   include: {
+          //     tutor: true,
+          //     student: true,
+          //     messages: true,
+          //   },
+          // },
+
           chats: {
-            include: {
-              tutor: true,
-              student: true,
-              messages: true,
+            select: {
+              id: true,
+              tutorId: true,
+              tutorHasAccess: true,
             },
           },
         },
@@ -200,20 +218,12 @@ const OrderController = {
     }
   },
 
-  // Публичный метод получения заказа по ID, без авторизации
+  // Публичный метод получения заказа по ID, без авторизации (SECURE)
   getOrderByIdPublic: async (req, res) => {
     const { id } = req.params;
     try {
       const order = await prisma.order.findUnique({
         where: { id },
-        include: {
-          student: true,
-          chats: {
-            include: {
-              tutor: true,
-            },
-          },
-        },
       });
 
       if (!order) {
