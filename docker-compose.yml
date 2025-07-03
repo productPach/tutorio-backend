@@ -50,7 +50,7 @@ services:
     networks:
       - tutorio-net
     healthcheck:
-      test: ["sh", "-c", "mongosh --eval \"db.runCommand('ping').ok\" -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --quiet"]
+      test: ["CMD-SHELL", "mongosh --eval \"db.runCommand('ping').ok\" -u $$MONGO_INITDB_ROOT_USERNAME -p $$MONGO_INITDB_ROOT_PASSWORD --quiet"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -84,7 +84,7 @@ services:
     networks:
       - tutorio-net
     healthcheck:
-      test: ["sh", "-c", "[ $$(mongosh 'mongodb://tutorioAdmin:$$MONGO_INITDB_ROOT_PASSWORD@tutorio-mongodb:27017/admin?replicaSet=rs0' --quiet --eval 'rs.status().ok') -eq 1 ]"]
+      test: ["CMD-SHELL", "mongosh 'mongodb://tutorioAdmin:$$MONGO_INITDB_ROOT_PASSWORD@tutorio-mongodb:27017/admin?replicaSet=rs0' --quiet --eval 'rs.status().ok' | grep -q 1"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -131,7 +131,7 @@ services:
     networks:
       - tutorio-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost"]
+      test: ["CMD-SHELL", "curl -f http://localhost || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
