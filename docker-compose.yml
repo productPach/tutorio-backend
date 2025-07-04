@@ -32,19 +32,11 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
-    command:
-      [
-        "--replSet",
-        "rs0",
-        "--bind_ip_all",
-        "--auth",
-        "--keyFile",
-        "/data/keyfile",
-      ]
+    command: ["sleep", "infinity"]
     volumes:
       - ./mongo-data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
-      - ./mongo-keyfile:/data/keyfile:ro
+      - ./mongo-keyfile:/data/keyfile
 
   tutorio-app:
     build:
