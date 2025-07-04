@@ -93,7 +93,7 @@ const EmployeeController = {
   /***************************************** */
 
   // Получение всех заказов админом
-  getAllOrders: async (req, res) => {
+  getAllOrdersByAdmin: async (req, res) => {
     const userId = req.user.userID;
     try {
       // 🔍 Проверка: является ли пользователь сотрудником

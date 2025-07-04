@@ -192,7 +192,7 @@ router.delete(
 router.get(
   "/employees/orders",
   authenticateToken,
-  EmployeeController.getAllOrders
+  EmployeeController.getAllOrdersByAdmin
 );
 router.patch(
   "/employees/orders/:id",
