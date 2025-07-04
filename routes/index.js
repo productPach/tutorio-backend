@@ -174,21 +174,21 @@ router.get(
   EmployeeController.currentEmployee
 );
 router.get("/employees", authenticateToken, EmployeeController.getAllEmployees);
-router.get(
-  "/employees/:id",
-  authenticateToken,
-  EmployeeController.getEmployeeById
-);
-router.put(
-  "/employees/:id",
-  authenticateToken,
-  EmployeeController.updateEmployee
-);
-router.delete(
-  "/employees/:id",
-  authenticateToken,
-  EmployeeController.deleteEmployee
-);
+// router.get(
+//   "/employees/:id",
+//   authenticateToken,
+//   EmployeeController.getEmployeeById
+// );
+// router.put(
+//   "/employees/:id",
+//   authenticateToken,
+//   EmployeeController.updateEmployee
+// );
+// router.delete(
+//   "/employees/:id",
+//   authenticateToken,
+//   EmployeeController.deleteEmployee
+// );
 router.get(
   "/employees/orders",
   authenticateToken,

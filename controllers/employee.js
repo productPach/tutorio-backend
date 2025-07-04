@@ -64,21 +64,34 @@ const EmployeeController = {
     }
   },
   // Получение сотрудника по ID
-  getEmployeeById: async (req, res) => {
-    res.send("getEmployeeById");
-  },
+  // getEmployeeById: async (req, res) => {
+  //   res.send("getEmployeeById");
+  // },
   // Получение текущего сотрудника по токену
   currentEmployee: async (req, res) => {
-    res.send("currentEmployee");
+    try {
+      const employee = await prisma.employee.findUnique({
+        where: { userId: req.user.userID },
+      });
+
+      if (!employee) {
+        return res.status(400).json({ error: "Не удалось найти сотрудника" });
+      }
+
+      res.json(employee);
+    } catch (error) {
+      console.error("Current Student Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
   },
   // Изменение сотрудника
-  updateEmployee: async (req, res) => {
-    res.send("updateEmployee");
-  },
-  // Удаление сотрудника
-  deleteEmployee: async (req, res) => {
-    res.send("deleteEmployee");
-  },
+  // updateEmployee: async (req, res) => {
+  //   res.send("updateEmployee");
+  // },
+  // // Удаление сотрудника
+  // deleteEmployee: async (req, res) => {
+  //   res.send("deleteEmployee");
+  // },
 
   /***************************************** */
   /***************************************** */
