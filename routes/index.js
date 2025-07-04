@@ -189,6 +189,11 @@ router.delete(
   authenticateToken,
   EmployeeController.deleteEmployee
 );
+router.get(
+  "/employees/orders",
+  authenticateToken,
+  EmployeeController.getAllOrders
+);
 router.patch(
   "/employees/orders/:id",
   authenticateToken,
