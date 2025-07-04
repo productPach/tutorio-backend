@@ -13,17 +13,6 @@ services:
       - ./uploads:/app/uploads
       - ./uploads/diplomas:/app/uploads/diplomas
 
-  # tutorio-mongodb:
-  #   image: prismagraphql/mongo-single-replica:5.0.3
-  #   container_name: tutorio-mongodb
-  #   ports:
-  #     - "27017:27017"
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
-  #     MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
-  #   volumes:
-  #     - ./mongo-data:/data/db
-
   tutorio-mongodb:
     image: mongo:5.0.3
     container_name: tutorio-mongodb
@@ -32,10 +21,19 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: tutorioAdmin
       MONGO_INITDB_ROOT_PASSWORD: sm8_NhGsqKCuqxUo6Mrv
-    command: ["--auth", "--bind_ip_all"]
+    command:
+      [
+        "--replSet",
+        "rs0",
+        "--bind_ip_all",
+        "--auth",
+        "--keyFile",
+        "/data/keyfile",
+      ]
     volumes:
       - ./mongo-data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
+      - ./mongo-keyfile:/keyfile:ro
 
   tutorio-app:
     build:
