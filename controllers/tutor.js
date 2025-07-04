@@ -100,7 +100,7 @@ const TutorController = {
     }
   },
 
-  // Получение всех репетиторов
+  // Получение всех репетиторов !!!!ЗАКРЫТЬ КОНТАКТЫ!!!!
   getAllTutors: async (req, res) => {
     try {
       const allTutors = await prisma.tutor.findMany({
@@ -126,7 +126,7 @@ const TutorController = {
     }
   },
 
-  // Получение репетитора по ID
+  // Получение репетитора по ID !!!!ЗАКРЫТЬ КОНТАКТЫ!!!!
   getTutorById: async (req, res) => {
     const { id } = req.params;
 
@@ -150,7 +150,7 @@ const TutorController = {
     }
   },
 
-  // Получение репетитора по ID
+  // Получение репетитора по ID  !!!!ЗАКРЫТЬ КОНТАКТЫ!!!!
   getTutorByIdPublic: async (req, res) => {
     const { id } = req.params;
 

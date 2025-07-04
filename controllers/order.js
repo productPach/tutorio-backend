@@ -89,7 +89,7 @@ const OrderController = {
     }
   },
 
-  // Получение всех заказов (SECURE)
+  // Получение всех заказов (SECURE) !!! ЗАКРЫТЬ ПОСЛЕ СОЗДАНИЯ ПЕРСОНАЛЬНОГО МЕтОДА
   getAllOrders: async (req, res) => {
     try {
       const allOrders = await prisma.order.findMany({
@@ -116,6 +116,8 @@ const OrderController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+
+  // СДЕЛАТЬ МЕТОД, КОТОРЫЙ ОТДАЕТ ТОЛЬКО ТЕ ЗАКАЗЫ, ПРЕДМЕТ КОТОРОГО СОВПАДАЕТ С ПРЕДМЕТАМИ РЕПЕТИТОРА
 
   // Получение всех заказов (публично, без авторизации) (SECURE)
   getAllOrdersPublic: async (req, res) => {
