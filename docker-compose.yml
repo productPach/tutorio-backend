@@ -44,7 +44,7 @@ services:
     volumes:
       - ./mongo-data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
-      - ./mongo-keyfile:/data/keyfile:ro
+      - ./mongo-keyfile:/data/keyfile
 
   tutorio-app:
     build:
