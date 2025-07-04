@@ -16,6 +16,7 @@ services:
   tutorio-mongodb:
     image: mongo:5.0.3
     container_name: tutorio-mongodb
+    hostname: tutorio-mongodb
     ports:
       - "27017:27017"
     environment:
