@@ -119,7 +119,7 @@ const OrderController = {
 
   // СДЕЛАТЬ МЕТОД, КОТОРЫЙ ОТДАЕТ ТОЛЬКО ТЕ ЗАКАЗЫ, ПРЕДМЕТ КОТОРОГО СОВПАДАЕТ С ПРЕДМЕТАМИ РЕПЕТИТОРА
 
-  // Получение всех заказов (публично, без авторизации) (SECURE)
+  // Получение всех заказов (публично, без авторизации!) (SECURE)
   getAllOrdersPublic: async (req, res) => {
     try {
       const allOrders = await prisma.order.findMany({
