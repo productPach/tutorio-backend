@@ -90,34 +90,67 @@ const OrderController = {
   },
 
   // Получение всех заказов (SECURE) !!! ЗАКРЫТЬ ПОСЛЕ СОЗДАНИЯ ПЕРСОНАЛЬНОГО МЕтОДА
+  // getAllOrders: async (req, res) => {
+  //   try {
+  //     const allOrders = await prisma.order.findMany({
+  //       // include: {
+  //       //   student: {
+  //       //     include: { user: true },
+  //       //   },
+  //       //   chats: {
+  //       //     include: { tutor: true },
+  //       //   },
+  //       // },
+  //       orderBy: {
+  //         createdAt: "desc",
+  //       },
+  //     });
+
+  //     if (!allOrders) {
+  //       return res.status(404).json({ error: "Не найдено ни одного заказа" });
+  //     }
+
+  //     res.json(allOrders);
+  //   } catch (error) {
+  //     console.error("Get All Orders Error", error);
+  //     res.status(500).json({ error: "Internal server error" });
+  //   }
+  // },
+
+  // СДЕЛАТЬ МЕТОД, КОТОРЫЙ ОТДАЕТ ТОЛЬКО ТЕ ЗАКАЗЫ, ПРЕДМЕТ КОТОРОГО СОВПАДАЕТ С ПРЕДМЕТАМИ РЕПЕТИТОРА
   getAllOrders: async (req, res) => {
     try {
-      const allOrders = await prisma.order.findMany({
-        // include: {
-        //   student: {
-        //     include: { user: true },
-        //   },
-        //   chats: {
-        //     include: { tutor: true },
-        //   },
-        // },
+      // 1. Получаем userID из JWT (например, из middleware)
+      const userId = req.user.userID;
+
+      // 2. Ищем соответствующего тутора по userId
+      const tutor = await prisma.tutor.findUnique({
+        where: { userId }, // userId — из токена
+        select: { id: true, subject: true }, // только нужные поля
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // 3. Фильтруем заказы, у которых предмет входит в массив предметов репетитора
+      const matchingOrders = await prisma.order.findMany({
+        where: {
+          subject: {
+            in: tutor.subject,
+          },
+        },
         orderBy: {
           createdAt: "desc",
         },
       });
 
-      if (!allOrders) {
-        return res.status(404).json({ error: "Не найдено ни одного заказа" });
-      }
-
-      res.json(allOrders);
+      res.json(matchingOrders);
     } catch (error) {
       console.error("Get All Orders Error", error);
       res.status(500).json({ error: "Internal server error" });
     }
   },
-
-  // СДЕЛАТЬ МЕТОД, КОТОРЫЙ ОТДАЕТ ТОЛЬКО ТЕ ЗАКАЗЫ, ПРЕДМЕТ КОТОРОГО СОВПАДАЕТ С ПРЕДМЕТАМИ РЕПЕТИТОРА
 
   // Получение всех заказов (публично, без авторизации!) (SECURE)
   getAllOrdersPublic: async (req, res) => {
