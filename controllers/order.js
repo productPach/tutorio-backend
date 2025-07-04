@@ -136,6 +136,7 @@ const OrderController = {
       // 3. Фильтруем заказы, у которых предмет входит в массив предметов репетитора
       const matchingOrders = await prisma.order.findMany({
         where: {
+          status: "Active",
           subject: {
             in: tutor.subject,
           },
