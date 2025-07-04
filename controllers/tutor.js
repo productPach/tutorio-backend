@@ -100,16 +100,56 @@ const TutorController = {
     }
   },
 
-  // Получение всех репетиторов !!!!ЗАКРЫТЬ КОНТАКТЫ!!!!
+  // Получение всех репетиторов (SECURE)
   getAllTutors: async (req, res) => {
     try {
       const allTutors = await prisma.tutor.findMany({
         orderBy: {
           createdAt: "desc",
         },
-        include: {
+        // include: {
+        //   educations: true,
+        //   subjectPrices: true, // Включаем связанные места образования
+        // },
+        select: {
+          id: true,
+          userId: true,
+          // user: true,
+          createdAt: true,
+          updatedAt: true,
+          name: true,
+          avatarUrl: true,
+          subject: true,
+          subjectComments: true,
+          region: true,
+          tutorPlace: true,
+          tutorAdress: true,
+          tutorTrip: true,
+          tutorTripCityData: true,
+          tutorTripCity: true,
+          tutorTripArea: true,
+          profileInfo: true,
+          experience: true,
           educations: true,
-          subjectPrices: true, // Включаем связанные места образования
+          documents: true,
+          isGroup: true,
+          status: true,
+          subjectPrices: true,
+          isPublicProfile: true,
+          isStudentResponses: true,
+          isNotifications: true,
+          isNotificationsOrders: true,
+          isNotificationsResponse: true,
+          isNotificationsPromo: true,
+          isNotificationsSms: true,
+          isNotificationsEmail: true,
+          isNotificationsTelegram: true,
+          isNotificationsMobilePush: true,
+          isNotificationsWebPush: true,
+          isNotificationsVk: true,
+          badges: true,
+          lastOnline: true,
+          // Исключаем: phone, email, telegram, skype, response, chats
         },
       });
 
@@ -126,16 +166,56 @@ const TutorController = {
     }
   },
 
-  // Получение репетитора по ID !!!!ЗАКРЫТЬ КОНТАКТЫ!!!!
+  // Получение репетитора по ID (SECURE)
   getTutorById: async (req, res) => {
     const { id } = req.params;
 
     try {
       const tutor = await prisma.tutor.findUnique({
         where: { id },
-        include: {
+        // include: {
+        //   educations: true,
+        //   subjectPrices: true, // Включаем связанные места образования
+        // },
+        select: {
+          id: true,
+          userId: true,
+          // user: true,
+          createdAt: true,
+          updatedAt: true,
+          name: true,
+          avatarUrl: true,
+          subject: true,
+          subjectComments: true,
+          region: true,
+          tutorPlace: true,
+          tutorAdress: true,
+          tutorTrip: true,
+          tutorTripCityData: true,
+          tutorTripCity: true,
+          tutorTripArea: true,
+          profileInfo: true,
+          experience: true,
           educations: true,
-          subjectPrices: true, // Включаем связанные места образования
+          documents: true,
+          isGroup: true,
+          status: true,
+          subjectPrices: true,
+          isPublicProfile: true,
+          isStudentResponses: true,
+          isNotifications: true,
+          isNotificationsOrders: true,
+          isNotificationsResponse: true,
+          isNotificationsPromo: true,
+          isNotificationsSms: true,
+          isNotificationsEmail: true,
+          isNotificationsTelegram: true,
+          isNotificationsMobilePush: true,
+          isNotificationsWebPush: true,
+          isNotificationsVk: true,
+          badges: true,
+          lastOnline: true,
+          // Исключаем: phone, email, telegram, skype, response, chats
         },
       });
 
@@ -150,16 +230,56 @@ const TutorController = {
     }
   },
 
-  // Получение репетитора по ID  !!!!ЗАКРЫТЬ КОНТАКТЫ!!!!
+  // Получение репетитора по ID (SECURE)
   getTutorByIdPublic: async (req, res) => {
     const { id } = req.params;
 
     try {
       const tutor = await prisma.tutor.findUnique({
         where: { id },
-        include: {
+        // include: {
+        //   educations: true,
+        //   subjectPrices: true, // Включаем связанные места образования
+        // },
+        select: {
+          id: true,
+          userId: true,
+          // user: true,
+          createdAt: true,
+          updatedAt: true,
+          name: true,
+          avatarUrl: true,
+          subject: true,
+          subjectComments: true,
+          region: true,
+          tutorPlace: true,
+          tutorAdress: true,
+          tutorTrip: true,
+          tutorTripCityData: true,
+          tutorTripCity: true,
+          tutorTripArea: true,
+          profileInfo: true,
+          experience: true,
           educations: true,
-          subjectPrices: true, // Включаем связанные места образования
+          documents: true,
+          isGroup: true,
+          status: true,
+          subjectPrices: true,
+          isPublicProfile: true,
+          isStudentResponses: true,
+          isNotifications: true,
+          isNotificationsOrders: true,
+          isNotificationsResponse: true,
+          isNotificationsPromo: true,
+          isNotificationsSms: true,
+          isNotificationsEmail: true,
+          isNotificationsTelegram: true,
+          isNotificationsMobilePush: true,
+          isNotificationsWebPush: true,
+          isNotificationsVk: true,
+          badges: true,
+          lastOnline: true,
+          // Исключаем: phone, email, telegram, skype, response, chats
         },
       });
 

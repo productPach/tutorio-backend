@@ -265,7 +265,7 @@ const ChatController = {
     }
   },
 
-  // Получение всех чатов по заказу с непрочитанными сообщениями (для текущего пользователя)
+  // Получение всех чатов по заказу с непрочитанными сообщениями (для текущего пользователя) (SECURE)
   getChatsByOrderId: async (req, res) => {
     const { orderId } = req.params;
     const userId = req.user?.userID;
@@ -328,7 +328,7 @@ const ChatController = {
     }
   },
 
-  // GET /api/chats/:chatId
+  // GET /api/chats/:chatId (SECURE)
   getChatById: async (req, res) => {
     const { chatId } = req.params;
 
@@ -380,7 +380,7 @@ const ChatController = {
     }
   },
 
-  // Получение всех чатов для пользователя (тутора или студента) с непрочитанными сообщениями
+  // Получение всех чатов для пользователя (тутора или студента) с непрочитанными сообщениями (SECURE)
   getChatsByUserIdAndRole: async (req, res) => {
     const { userId, role } = req.params;
     const currentUserId = req.user?.userID;
@@ -442,11 +442,11 @@ const ChatController = {
               avatarUrl: true,
               lastOnline: true,
               userId: true,
-              user: {
-                select: {
-                  phone: true,
-                },
-              },
+              // user: {
+              //   select: {
+              //     phone: true,
+              //   },
+              // },
             },
           },
           order: {
