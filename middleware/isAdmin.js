@@ -1,4 +1,4 @@
-const prisma = require("../prismaClient"); // поправь путь под себя
+const prisma = require("../prisma/prisma-client"); // поправь путь под себя
 
 const isAdmin = async (req, res, next) => {
   try {
