@@ -44,7 +44,8 @@ const OrderController = {
       !tutorGender ||
       !studentPlace ||
       !region ||
-      !tutorType
+      !tutorType ||
+      !status
     ) {
       return res
         .status(400)

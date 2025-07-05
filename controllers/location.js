@@ -1,6 +1,4 @@
 const { prisma } = require("../prisma/prisma-client");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 
 const LocationController = {
   // Добавление города и области
@@ -16,6 +14,17 @@ const LocationController = {
     }
 
     try {
+      // 🔒 Проверка: является ли пользователь сотрудником (админом)
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
       // Проверка на существование города с таким же названием
       const existingCity = await prisma.city.findUnique({
         where: { title },
@@ -137,6 +146,17 @@ const LocationController = {
     }
 
     try {
+      // 🔒 Проверка: является ли пользователь сотрудником (админом)
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
       // Проверяем существование города
       const existingCity = await prisma.city.findUnique({ where: { id } });
 
@@ -176,6 +196,17 @@ const LocationController = {
     }
 
     try {
+      // 🔒 Проверка: является ли пользователь сотрудником (админом)
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
       // Проверяем, существует ли город
       const existingCity = await prisma.city.findUnique({
         where: { id: cityId },
@@ -239,6 +270,17 @@ const LocationController = {
     }
 
     try {
+      // 🔒 Проверка: является ли пользователь сотрудником (админом)
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
       // Проверяем существование района
       const existingDistrict = await prisma.district.findUnique({
         where: { id },
@@ -285,6 +327,17 @@ const LocationController = {
     }
 
     try {
+      // 🔒 Проверка: является ли пользователь сотрудником (админом)
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
       // Проверяем существование района
       const existingDistrict = await prisma.district.findUnique({
         where: { id: districtId },
@@ -334,6 +387,17 @@ const LocationController = {
     }
 
     try {
+      // 🔒 Проверка: является ли пользователь сотрудником (админом)
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
       // Проверяем существование метро
       const existingMetro = await prisma.metro.findUnique({ where: { id } });
 
@@ -380,6 +444,17 @@ const LocationController = {
     }
 
     try {
+      // 🔒 Проверка: является ли пользователь сотрудником (админом)
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
       // Проверяем существование города
       const existingCity = await prisma.city.findUnique({
         where: { id: cityId },
@@ -425,6 +500,17 @@ const LocationController = {
     }
 
     try {
+      // 🔒 Проверка: является ли пользователь сотрудником (админом)
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({
+        where: { userId },
+      });
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
       // Проверяем существование регионального города
       const existingRegionalCity = await prisma.regionalCity.findUnique({
         where: { id },

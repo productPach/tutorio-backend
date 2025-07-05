@@ -319,3 +319,15 @@ model Message {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model Subject {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String   @unique
+  for_request String
+  for_chpu    String
+  id_cat      String
+  general     Boolean
+  nextPage    String
+  id_p        String
+  goal_id     String
+}

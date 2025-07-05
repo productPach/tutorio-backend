@@ -8,6 +8,7 @@ const LocationController = require("./location");
 const WikiController = require("./wiki");
 const MailController = require("./mail");
 const ChatController = require("./chat");
+const SubjectController = require("./subject");
 module.exports = {
   UserController,
   StudentController,
@@ -19,4 +20,5 @@ module.exports = {
   WikiController,
   MailController,
   ChatController,
+  SubjectController,
 };

@@ -12,8 +12,10 @@ const {
   WikiController,
   MailController,
   ChatController,
+  SubjectController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
+const isAdmin = require("../middleware/isAdmin");
 const uploadDestination = "uploads";
 
 // Показываем где хранить файлы
@@ -255,16 +257,53 @@ router.get(
 );
 
 // Роуты для городов, областей, локаций города и областей
-router.post("/cities", LocationController.createCity);
-router.post("/districts/:cityId", LocationController.createDistrict);
-router.post("/metros/:districtId", LocationController.createMetro);
-router.post("/regional-cities/:cityId", LocationController.createRegionalCity);
+router.post("/cities", authenticateToken, LocationController.createCity);
+router.post(
+  "/districts/:cityId",
+  authenticateToken,
+  LocationController.createDistrict
+);
+router.post(
+  "/metros/:districtId",
+  authenticateToken,
+  LocationController.createMetro
+);
+router.post(
+  "/regional-cities/:cityId",
+  authenticateToken,
+  LocationController.createRegionalCity
+);
 router.get("/cities", LocationController.getAllCity);
 router.get("/city/:id", LocationController.getCityById);
-router.put("/city/:id", LocationController.updateCityById);
-router.put("/district/:id", LocationController.updateDistrictById);
-router.put("/metro/:id", LocationController.updateMetroById);
-router.put("/regional-city/:id", LocationController.updateRegionalCityById);
+router.put("/city/:id", authenticateToken, LocationController.updateCityById);
+router.put(
+  "/district/:id",
+  authenticateToken,
+  LocationController.updateDistrictById
+);
+router.put("/metro/:id", authenticateToken, LocationController.updateMetroById);
+router.put(
+  "/regional-city/:id",
+  authenticateToken,
+  LocationController.updateRegionalCityById
+);
+
+// Роуты для предметов
+router.post("/subjects", authenticateToken, SubjectController.createSubject);
+router.get("/subjects", SubjectController.getAllSubjects);
+router.get("/subjects/:id", SubjectController.getSubjectById);
+router.patch(
+  "/subjects/:id",
+  authenticateToken,
+  isAdmin,
+  SubjectController.updateSubject
+);
+router.delete(
+  "/subjects/:id",
+  authenticateToken,
+  isAdmin,
+  SubjectController.deleteSubject
+);
 
 // Роуты для топиков (Topic)
 router.post("/topics", authenticateToken, WikiController.createTopic);
