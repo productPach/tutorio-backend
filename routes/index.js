@@ -289,7 +289,12 @@ router.put(
 );
 
 // Роуты для предметов
-router.post("/subjects", authenticateToken, SubjectController.createSubject);
+router.post(
+  "/subjects",
+  authenticateToken,
+  isAdmin,
+  SubjectController.createSubject
+);
 router.get("/subjects", SubjectController.getAllSubjects);
 router.get("/subjects/:id", SubjectController.getSubjectById);
 router.patch(
