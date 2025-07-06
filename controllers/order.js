@@ -37,16 +37,7 @@ const OrderController = {
 
     const studentId = student ? student.id : null;
 
-    if (
-      !studentId ||
-      !subject ||
-      !studentLevel ||
-      !tutorGender ||
-      !studentPlace ||
-      !region ||
-      !tutorType ||
-      !status
-    ) {
+    if (!studentId || !subject || !region || !status) {
       return res
         .status(400)
         .json({ error: "Не заполнены все обязательные поля" });
@@ -67,15 +58,15 @@ const OrderController = {
           studyMethod: studyMethod || undefined,
           studyProgramm: studyProgramm || undefined,
           deadline: deadline || undefined,
-          studentLevel,
-          tutorGender,
+          studentLevel: studentLevel || undefined,
+          tutorGender: tutorGender || undefined,
           studentSchedule: studentSchedule || undefined,
-          studentPlace,
+          studentPlace: studentPlace || undefined,
           region,
           studentAdress: studentAdress || undefined,
           studentHomeLoc: studentHomeLoc || undefined,
           studentTrip: studentTrip || undefined,
-          tutorType,
+          tutorType: tutorType || undefined,
           autoContactsOnResponse: autoContactsOnResponse || false,
           studentWishes: studentWishes || undefined,
           responseCost: responseCost || undefined,
@@ -297,6 +288,7 @@ const OrderController = {
       tutorType,
       autoContactsOnResponse,
       studentWishes,
+      region,
       responseCost,
       status,
     } = req.body;
@@ -340,6 +332,7 @@ const OrderController = {
           tutorType: tutorType || undefined,
           autoContactsOnResponse: autoContactsOnResponse || false,
           studentWishes: studentWishes || undefined,
+          region: region || undefined,
           responseCost: responseCost || undefined,
           status: status || undefined,
         },

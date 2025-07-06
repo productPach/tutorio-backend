@@ -172,15 +172,15 @@ model Order {
   studyMethod            String?
   studyProgramm          String?
   deadline               String?
-  studentLevel           String
-  tutorGender            String
+  studentLevel           String?
+  tutorGender            String?
   studentSchedule        String?
   studentPlace           String[]
   region                 String
   studentAdress          String?
   studentTrip            String[]   @default([])
   studentHomeLoc         String[]   @default([])
-  tutorType              String
+  tutorType              String?
   autoContactsOnResponse Boolean?
   studentWishes          String?
   responseCost           String?

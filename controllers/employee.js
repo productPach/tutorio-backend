@@ -170,6 +170,7 @@ const EmployeeController = {
       tutorType,
       autoContactsOnResponse,
       studentWishes,
+      region,
       responseCost,
       status,
     } = req.body;
@@ -224,6 +225,7 @@ const EmployeeController = {
           tutorType: tutorType || undefined,
           autoContactsOnResponse: autoContactsOnResponse ?? false,
           studentWishes: studentWishes || undefined,
+          region: region || undefined,
           responseCost: responseCost || undefined,
           status: status || undefined,
         },
