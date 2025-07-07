@@ -196,6 +196,12 @@ router.get(
   authenticateToken,
   EmployeeController.getAllOrdersByAdmin
 );
+router.get(
+  "/employees/orders/:id",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getOrderByIdByAdmin
+);
 router.patch(
   "/employees/orders/:id",
   authenticateToken,
@@ -205,6 +211,18 @@ router.delete(
   "/employees/orders/:id",
   authenticateToken,
   EmployeeController.deleteOrderByAdmin
+);
+router.get(
+  "/employees/tutors",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getAllTutorsByAdmin
+);
+router.get(
+  "/employees/tutors/:id",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getTutorByIdByAdmin
 );
 router.patch(
   "/employees/tutors/:id",

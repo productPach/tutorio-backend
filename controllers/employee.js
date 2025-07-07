@@ -147,6 +147,35 @@ const EmployeeController = {
     }
   },
 
+  // Получение заказа по ID админом
+  getOrderByIdByAdmin: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const order = await prisma.order.findUnique({
+        where: { id },
+        include: {
+          student: true,
+          chats: {
+            include: {
+              tutor: true,
+              student: true,
+              // messages: true,
+            },
+          },
+        },
+      });
+
+      if (!order) {
+        return res.status(404).json({ error: "Заказ не найден" });
+      }
+
+      res.json(order);
+    } catch (error) {
+      console.error("Get Order By Id Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Обновление заказа админом
   updateOrderByAdmin: async (req, res) => {
     const { id } = req.params;
@@ -280,6 +309,58 @@ const EmployeeController = {
     } catch (error) {
       console.error("Delete Order by Admin Error", error);
       res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Получение всех репетиторов
+  getAllTutorsByAdmin: async (req, res) => {
+    try {
+      const allTutors = await prisma.tutor.findMany({
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          user: true,
+          educations: true,
+          subjectPrices: true, // Включаем связанные места образования
+        },
+      });
+
+      if (!allTutors) {
+        return res
+          .status(404)
+          .json({ error: "Не найдено ни одного репетитора" });
+      }
+
+      res.json(allTutors);
+    } catch (error) {
+      console.error("Get All Tutors Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Получение репетитора по ID
+  getTutorByIdByAdmin: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+        include: {
+          user: true,
+          educations: true,
+          subjectPrices: true, // Включаем связанные места образования
+        },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      res.json({ tutor });
+    } catch (error) {
+      console.error("Get Tutor By Id Error", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   },
 
