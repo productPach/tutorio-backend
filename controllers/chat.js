@@ -24,6 +24,22 @@ const ChatController = {
     }
 
     try {
+      // ✅ Проверка статуса заказа перед созданием чата
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: { status: true },
+      });
+
+      if (!order) {
+        return res.status(404).json({ error: "Заказ не найден" });
+      }
+
+      if (order.status === "Closed" || order.status === "Hidden") {
+        return res.status(403).json({
+          error: "Невозможно откликнуться на закрытый или скрытый заказ",
+        }); // ✅ Валидация статуса заказа, чтобы репетиторы не откликались на уже закрытые заказы
+      }
+
       const existingChat = await prisma.chat.findFirst({
         where: { studentId, tutorId, orderId },
       });
