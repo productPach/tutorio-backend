@@ -1,4 +1,6 @@
 const { prisma } = require("../prisma/prisma-client");
+const path = require("path");
+const fs = require("fs");
 
 const EmployeeController = {
   // Создание сотрудника
