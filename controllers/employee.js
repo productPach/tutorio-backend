@@ -426,7 +426,6 @@ const EmployeeController = {
       isNotificationsMobilePush,
       isNotificationsWebPush,
       isNotificationsVk,
-      lastOnline,
     } = req.body;
 
     let avatarUrl;
@@ -486,7 +485,6 @@ const EmployeeController = {
       }
 
       const currentTime = new Date();
-      const lastOnlineTime = lastOnline ? new Date(lastOnline) : currentTime;
 
       const updatedTutor = await prisma.tutor.update({
         where: { id },
@@ -561,7 +559,6 @@ const EmployeeController = {
               ? isNotificationsWebPush
               : tutor.isNotificationsWebPush,
           status: status || undefined,
-          lastOnline: lastOnlineTime,
           ...(subject !== undefined || subjectComments !== undefined
             ? {
                 subjectComments: JSON.parse(
