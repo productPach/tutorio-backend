@@ -596,6 +596,10 @@ const TutorController = {
         return res.status(404).json({ message: "Репетитор не найден" });
       }
 
+      if (tutor.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
       // Проверить, есть ли у репетитора аватар
       if (!tutor.avatarUrl) {
         return res
@@ -733,14 +737,6 @@ const TutorController = {
         .json({ error: "Не заполнены все обязательные поля" });
     }
 
-    let diplomaUrls = [];
-
-    if (req.files && req.files.length > 0) {
-      diplomaUrls = req.files.map(
-        (file) => `/uploads/diplomas/${file.filename}`
-      );
-    }
-
     try {
       const tutor = await prisma.tutor.findUnique({
         where: { id },
@@ -748,6 +744,18 @@ const TutorController = {
 
       if (!tutor) {
         return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      if (tutor.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
+      let diplomaUrls = [];
+
+      if (req.files && req.files.length > 0) {
+        diplomaUrls = req.files.map(
+          (file) => `/uploads/diplomas/${file.filename}`
+        );
       }
 
       const education = await prisma.tutorEducation.create({
@@ -792,14 +800,6 @@ const TutorController = {
         .json({ error: "Не заполнены все обязательные поля" });
     }
 
-    let diplomaUrls = [];
-
-    if (req.files && req.files.length > 0) {
-      diplomaUrls = req.files.map(
-        (file) => `/uploads/diplomas/${file.filename}`
-      );
-    }
-
     try {
       // Проверяем, существует ли репетитор
       const tutor = await prisma.tutor.findUnique({
@@ -808,6 +808,18 @@ const TutorController = {
 
       if (!tutor) {
         return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      if (tutor.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
+      let diplomaUrls = [];
+
+      if (req.files && req.files.length > 0) {
+        diplomaUrls = req.files.map(
+          (file) => `/uploads/diplomas/${file.filename}`
+        );
       }
 
       // Проверяем, существует ли образование
@@ -986,6 +998,9 @@ const TutorController = {
     const { tutorId, subjectId, format, price, duration } = req.body;
 
     try {
+      if (tutorId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
       await prisma.tutorSubjectPrice.create({
         data: {
           tutorId,
@@ -1021,6 +1036,10 @@ const TutorController = {
       const existingPrice = await prisma.tutorSubjectPrice.findUnique({
         where: { id },
       });
+
+      if (existingPrice.tutorId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
 
       if (!existingPrice) {
         return res.status(404).json({ error: "Цена не найдена" });
