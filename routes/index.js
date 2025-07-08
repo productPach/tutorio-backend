@@ -284,7 +284,7 @@ router.delete(
 );
 // Роут для обновления фотографии репетитора
 router.put(
-  "/employees/:id/avatar",
+  "/employees/tutors/:id/avatar",
   authenticateToken,
   isAdmin,
   uploads.single("avatar"),
@@ -295,7 +295,7 @@ router.put(
   EmployeeController.updateTutorAvatarByAdmin
 );
 router.delete(
-  "/employees/:id/avatar",
+  "/employees/tutors/:id/avatar",
   authenticateToken,
   isAdmin,
   EmployeeController.deleteTutorAvatarByAdmin
