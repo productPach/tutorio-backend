@@ -81,7 +81,7 @@ model Tutor {
   tutorTripArea             String[]            @default([])
   profileInfo               String?
   experience                String?
-  educations                TutorEducation[]
+  educations                TutorEducation[] 
   documents                 TutorDocument[]
   isGroup                   Boolean             @default(false)
   status                    String
@@ -297,10 +297,10 @@ model DeletedRequest {
 
 model Chat {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  studentId      String    @db.ObjectId
-  student        Student   @relation("StudentChats", fields: [studentId], references: [id])
-  tutorId        String    @db.ObjectId
-  tutor          Tutor     @relation("TutorsChats", fields: [tutorId], references: [id])
+  studentId      String?    @db.ObjectId
+  student        Student?  @relation("StudentChats", fields: [studentId], references: [id], onDelete: SetNull)
+  tutorId        String?    @db.ObjectId
+  tutor          Tutor?     @relation("TutorsChats", fields: [tutorId], references: [id], onDelete: SetNull)
   orderId        String    @db.ObjectId
   order          Order     @relation("Chats", fields: [orderId], references: [id])
   messages       Message[] @relation("ChatMessages")

@@ -632,6 +632,57 @@ const EmployeeController = {
     }
   },
 
+  // Запрос на удаление репетитора от админа
+  deleteRequestTutorByAdmin: async (req, res) => {
+    const { id } = req.params;
+    const { answer } = req.body; // Получаем причину удаления
+
+    try {
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // Проверяем, существует ли уже запрос на удаление для репетитора
+      const existingRequest = await prisma.deletedRequest.findUnique({
+        where: {
+          userId_role: {
+            userId: tutor.userId,
+            role: "tutor",
+          },
+        },
+      });
+
+      if (existingRequest) {
+        return res
+          .status(409)
+          .json({ message: "Запрос на удаление уже существует" });
+      }
+
+      // Устанавливаем дату удаления через 30 дней
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      const deleteRequest = await prisma.deletedRequest.create({
+        data: {
+          userId: tutor.userId,
+          role: "tutor", // Теперь указываем роль
+          answer, // Сохраняем причину удаления
+          requestedAt: new Date(),
+          expiresAt,
+        },
+      });
+
+      res.status(201).json(deleteRequest);
+    } catch (error) {
+      console.error("Delete Request Tutor Error", error);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
   updateTutorAvatarByAdmin: async (req, res) => {
     const { id } = req.params;
 
@@ -1033,6 +1084,57 @@ const EmployeeController = {
     } catch (error) {
       console.error("Update Subject Price Error:", error);
       res.status(500).json({ error: "Ошибка при обновлении цены" });
+    }
+  },
+
+  // Запрос на удаление ученика от админа
+  deleteRequestStudentByAdmin: async (req, res) => {
+    const { id } = req.params;
+    const { answer } = req.body; // Получаем причину удаления
+
+    try {
+      const student = await prisma.student.findUnique({
+        where: { id },
+      });
+
+      if (!student) {
+        return res.status(404).json({ error: "Ученик не найден" });
+      }
+
+      // Проверяем, существует ли уже запрос на удаление для репетитора
+      const existingRequest = await prisma.deletedRequest.findUnique({
+        where: {
+          userId_role: {
+            userId: student.userId,
+            role: "student",
+          },
+        },
+      });
+
+      if (existingRequest) {
+        return res
+          .status(409)
+          .json({ message: "Запрос на удаление уже существует" });
+      }
+
+      // Устанавливаем дату удаления через 30 дней
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      const deleteRequest = await prisma.deletedRequest.create({
+        data: {
+          userId: student.userId,
+          role: "student", // Теперь указываем роль
+          answer, // Сохраняем причину удаления
+          requestedAt: new Date(),
+          expiresAt,
+        },
+      });
+
+      res.status(201).json(deleteRequest);
+    } catch (error) {
+      console.error("Delete Request Student Error", error);
+      res.status(500).json({ error: "Ошибка сервера" });
     }
   },
 };

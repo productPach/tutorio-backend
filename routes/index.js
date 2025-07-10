@@ -338,6 +338,18 @@ router.patch(
   isAdmin,
   EmployeeController.updateSubjectPriceByAdmin
 );
+router.post(
+  "/employees/delete-request-tutor/:id",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.deleteRequestTutorByAdmin
+);
+router.post(
+  "/employees/delete-request-student/:id",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.deleteRequestStudentByAdmin
+);
 
 /***************************************** */
 /***************************************** */
