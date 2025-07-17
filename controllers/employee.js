@@ -361,7 +361,11 @@ const EmployeeController = {
       const tutor = await prisma.tutor.findUnique({
         where: { id },
         include: {
-          user: true,
+          user: {
+            include: {
+              deletedRequests: true, // Включаем связанные запросы на удаление
+            },
+          },
           educations: true,
           subjectPrices: true, // Включаем связанные места образования
         },
