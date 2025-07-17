@@ -998,7 +998,16 @@ const TutorController = {
     const { tutorId, subjectId, format, price, duration } = req.body;
 
     try {
-      if (tutorId !== req.user.userID) {
+      // Получаем репетитора с актуальными ценами
+      const tutor = await prisma.tutor.findUnique({
+        where: { id: tutorId },
+        include: {
+          educations: true, // Включаем связанные места образования
+          subjectPrices: true, // Включаем связанные цены
+        }, // Загружаем цены
+      });
+
+      if (tutor.userId !== req.user.userID) {
         return res.status(403).json({ error: "Нет доступа" });
       }
       await prisma.tutorSubjectPrice.create({
@@ -1009,15 +1018,6 @@ const TutorController = {
           price: Number(price),
           duration,
         },
-      });
-
-      // Получаем репетитора с актуальными ценами
-      const tutor = await prisma.tutor.findUnique({
-        where: { id: tutorId },
-        include: {
-          educations: true, // Включаем связанные места образования
-          subjectPrices: true, // Включаем связанные цены
-        }, // Загружаем цены
       });
 
       res.status(201).json(tutor);
