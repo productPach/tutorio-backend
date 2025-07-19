@@ -21,6 +21,7 @@ const io = new Server(server, {
       "http://www.dev-tutorio.ru",
       "https://dev-tutorio.ru",
       "https://www.dev-tutorio.ru",
+      "https://dashboard.dev-tutorio.ru",
     ], // Разрешаем эти домены
     credentials: true, // Разрешаем передавать авторизационные заголовки и куки
     methods: ["GET", "POST"], // Разрешаем эти HTTP-методы
@@ -42,6 +43,7 @@ app.use(
       "http://www.dev-tutorio.ru",
       "https://dev-tutorio.ru",
       "https://www.dev-tutorio.ru",
+      "https://dashboard.dev-tutorio.ru",
     ], // Разрешаем эти домены
     credentials: true, // Разрешаем передавать авторизационные заголовки и куки
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"], // Добавляем метод PATCH
