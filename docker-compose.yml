@@ -53,6 +53,19 @@ services:
       - NEXT_PUBLIC_CDN_URL=http://tutorio-express:3000
       - NEXT_IMAGE_HOST=tutorio-express
 
+  tutorio-dashboard:
+    build:
+      context: ../tutorio-dashboard
+      args:
+        NEXT_PUBLIC_BACKEND_HOST: tutorio-express
+        NEXT_PUBLIC_BACKEND_PORT: 3000
+    container_name: tutorio-dashboard
+    environment:
+      - NEXT_PUBLIC_BACKEND_HOST=tutorio-express
+      - NEXT_PUBLIC_BACKEND_PORT=3000
+    depends_on:
+      - tutorio-express
+
   tutorio-nginx:
     image: nginx:latest
     container_name: tutorio-nginx
@@ -80,7 +93,7 @@ services:
     entrypoint: >
       sh -c "certbot certonly --webroot --webroot-path=/var/www/certbot
       --email fedotovps@bk.ru --agree-tos --no-eff-email
-      -d dev-tutorio.ru -d www.dev-tutorio.ru"
+      -d dev-tutorio.ru -d www.dev-tutorio.ru -d dashboard.dev-tutorio.ru"
 
   certbot-renew:
     image: certbot/certbot
