@@ -1141,6 +1141,47 @@ const EmployeeController = {
       res.status(500).json({ error: "Ошибка сервера" });
     }
   },
+
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /*****************ЧАТЫ******************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+
+  // Изменение чатов
+  updateChats: async (req, res) => {
+    const { orderId, status } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ error: "Не передан orderId" });
+    }
+
+    try {
+      const updatedChats = await prisma.chat.updateMany({
+        where: { orderId },
+        data: {
+          ...(status !== undefined ? { status } : {}),
+        },
+      });
+
+      res.json({
+        message: "Статусы чатов успешно обновлены",
+        updatedCount: updatedChats.count,
+      });
+    } catch (error) {
+      console.error("Ошибка при обновлении чатов:", error.message);
+      res.status(500).json({
+        error: "Ошибка при обновлении чатов",
+        details: error.message,
+      });
+    }
+  },
 };
 
 module.exports = EmployeeController;

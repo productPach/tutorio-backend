@@ -350,6 +350,12 @@ router.post(
   isAdmin,
   EmployeeController.deleteRequestStudentByAdmin
 );
+router.patch(
+  "/employees/chats",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.updateChats
+);
 
 /***************************************** */
 /***************************************** */
