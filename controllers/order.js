@@ -211,7 +211,9 @@ const OrderController = {
       }
 
       const enrichedOrders = orders.map((order) => {
-        const selectedTutorIds = order.contracts.map((c) => c.tutorId);
+        const selectedTutorIds = Array.isArray(order.contracts)
+          ? order.contracts.map((c) => c.tutorId)
+          : [];
         return {
           ...order,
           selectedTutorIds,
@@ -263,7 +265,9 @@ const OrderController = {
         return res.status(404).json({ error: "Заказ не найден" });
       }
 
-      const selectedTutorIds = order.contracts.map((c) => c.tutorId);
+      const selectedTutorIds = Array.isArray(order.contracts)
+        ? order.contracts.map((c) => c.tutorId)
+        : [];
 
       res.json(...order, selectedTutorIds);
     } catch (error) {

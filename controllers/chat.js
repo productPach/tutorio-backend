@@ -337,7 +337,9 @@ const ChatController = {
 
         const lastMessage = chat.messages[chat.messages.length - 1] || null;
 
-        const isSelectedTutor = chat.tutor.contracts.length > 0;
+        const isSelectedTutor =
+          Array.isArray(chat.tutor.contracts) &&
+          chat.tutor.contracts.length > 0;
 
         return {
           ...chat,
