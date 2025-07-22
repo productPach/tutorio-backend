@@ -354,7 +354,7 @@ router.post(
 router.post(
   "/employees/init-tutor-fields",
   authenticateToken,
-  EmployeeController.deleteRequestStudentByAdmin
+  EmployeeController.initTutorFieldsOnce
 );
 
 router.patch(
