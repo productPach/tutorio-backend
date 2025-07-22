@@ -484,7 +484,6 @@ const ChatController = {
               contracts: {
                 where: {
                   tutorId: participantId,
-                  canceledAt: null,
                 },
                 select: {
                   id: true,

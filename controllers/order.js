@@ -194,9 +194,9 @@ const OrderController = {
             },
           },
           contracts: {
-            where: {
-              canceledAt: null,
-            },
+            // where: {
+            //   canceledAt: null,
+            // },
             select: {
               tutorId: true,
             },
@@ -251,9 +251,9 @@ const OrderController = {
             },
           },
           contracts: {
-            where: {
-              canceledAt: null,
-            },
+            // where: {
+            //   canceledAt: null,
+            // },
             select: {
               tutorId: true,
             },
