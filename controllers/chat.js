@@ -303,7 +303,7 @@ const ChatController = {
               contracts: {
                 where: {
                   orderId: orderId,
-                  canceledAt: null,
+                  // canceledAt: null,
                 },
                 select: { id: true },
               },
