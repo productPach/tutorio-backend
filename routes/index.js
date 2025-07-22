@@ -351,6 +351,12 @@ router.post(
   isAdmin,
   EmployeeController.deleteRequestStudentByAdmin
 );
+router.post(
+  "/employees/init-tutor-fields",
+  authenticateToken,
+  EmployeeController.deleteRequestStudentByAdmin
+);
+
 router.patch(
   "/employees/chats",
   authenticateToken,

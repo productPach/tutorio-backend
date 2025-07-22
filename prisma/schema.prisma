@@ -53,6 +53,7 @@ model Student {
   isNotificationsVk         Boolean   @default(true)
   status                    String
   orders                    Order[]
+  reviews                   Review[]  @relation("StudentReviews")
   lastOnline                DateTime? // Дата последнего захода (если есть активность)
 }
 
@@ -87,7 +88,7 @@ model Tutor {
   status                    String
   response                  Response[]
   chats                     Chat[]              @relation("TutorsChats")
-  contracts                 Contract[] @relation("TutorContracts")
+  contracts                 Contract[]           @relation("TutorContracts")
   subjectPrices             TutorSubjectPrice[] @relation("TutorToSubjectPrices")
   isPublicProfile           Boolean             @default(true) // для "Публичной анкеты"
   isStudentResponses        Boolean             @default(true) // для "Получать отклики от учеников"
@@ -102,6 +103,25 @@ model Tutor {
   isNotificationsWebPush    Boolean             @default(true)
   isNotificationsVk         Boolean             @default(true)
   badges                    String[]            @default([]) // Список шильдиков
+  reviews                   Review[]            @relation("TutorReviews")
+  publicRating              Float               @default(4.5)  // видимый пользователям рейтинг, рассчитывается и обновляется периодически
+  internalRating            Float               @default(4.5)  // внутренний рейтинг, учитывает все факторы
+  employeesRating           Float               @default(0)    // внутренний рейтинг для админов
+  contractCount             Int                 @default(0)   // кол-во договоренностей
+  contractRejectCount       Int                 @default(0)   // кол-во отмены по договоренностям
+  averagePay                Float               @default(0)   // средний платеж
+  refundsPayCount           Int                 @default(0)   // кол-во возвратов по откликам
+  reviewsCount              Int                 @default(0)   // количество отзывов
+  averageReviewScore        Float               @default(0)   // средний балл отзывов
+  responseTimeSeconds       Int                 @default(0)   // среднее время отклика (в секундах)
+  responseCount             Int                 @default(0)   // количество откликов
+  sessionCount              Int                 @default(0)   // кол-во сессий
+  hasQualityAvatar          Boolean             @default(false)
+  hasSubjectPrices          Boolean             @default(false)
+  hasPriceComments          Boolean             @default(false)
+  hasProfileInfo            Boolean             @default(false)
+  hasEducation              Boolean             @default(false)
+  hasEducationPhotos        Boolean             @default(false)
   lastOnline                DateTime? // Дата последнего захода (если есть активность)
 }
 
@@ -187,6 +207,7 @@ model Order {
   studentWishes          String?
   responseCost           String?
   contracts              Contract[] @relation("OrderContracts")
+  reviews                Review[]   @relation("OrderReviews")
   status                 String
 }
 
@@ -200,6 +221,7 @@ model Contract {
   tutor      Tutor    @relation("TutorContracts", fields: [tutorId], references: [id], onDelete: Cascade)
 
   selectedBy String   // "student" | "tutor"
+  comments   Comment[] @relation("ContractComments")
   selectedAt DateTime @default(now())
   canceledAt DateTime?
 }
@@ -347,4 +369,38 @@ model Subject {
   nextPage    String
   id_p        String
   goal_id     String
+}
+
+model Comment {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+
+  contractId  String?   @db.ObjectId
+  contract    Contract? @relation("ContractComments", fields: [contractId], references: [id], onDelete: Cascade)
+  reviewId    String?   @db.ObjectId
+  review      Review?   @relation("ReviewComments", fields: [reviewId], references: [id], onDelete: Cascade)
+
+  senderId    String    @db.ObjectId
+  text        String
+  createdAt   DateTime  @default(now())
+}
+
+model Review {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+
+  orderId     String    @db.ObjectId
+  order       Order    @relation("OrderReviews", fields: [orderId], references: [id], onDelete: Cascade)
+
+  tutorId     String?   @db.ObjectId
+  tutor       Tutor?    @relation("TutorReviews", fields: [tutorId], references: [id], onDelete: Cascade)
+
+  studentId   String?   @db.ObjectId
+  student     Student?  @relation("StudentReviews", fields: [studentId], references: [id], onDelete: Cascade)
+
+  authorRole  String    // "student" | "tutor"
+  message     String
+  status      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  comments    Comment[] @relation("ReviewComments")
 }

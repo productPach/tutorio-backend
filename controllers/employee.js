@@ -1142,6 +1142,49 @@ const EmployeeController = {
     }
   },
 
+  initTutorFieldsOnce: async (req, res) => {
+    try {
+      const tutors = await prisma.tutor.findMany({
+        select: { id: true },
+      });
+
+      let updatedCount = 0;
+
+      for (const tutor of tutors) {
+        await prisma.tutor.update({
+          where: { id: tutor.id },
+          data: {
+            publicRating: 4.5,
+            internalRating: 4.5,
+            employeesRating: 0,
+            contractCount: 0,
+            contractRejectCount: 0,
+            averagePay: 0,
+            refundsPayCount: 0,
+            reviewsCount: 0,
+            averageReviewScore: 0,
+            responseTimeSeconds: 0,
+            responseCount: 0,
+            sessionCount: 0,
+            hasQualityAvatar: false,
+            hasSubjectPrices: false,
+            hasPriceComments: false,
+            hasProfileInfo: false,
+            hasEducation: false,
+            hasEducationPhotos: false,
+          },
+        });
+
+        updatedCount++;
+      }
+
+      res.json({ message: `✅ Обновлено ${updatedCount} репетиторов` });
+    } catch (error) {
+      console.error("❌ Ошибка инициализации полей репетитора:", error);
+      res.status(500).json({ error: "Ошибка при инициализации данных" });
+    }
+  },
+
   /***************************************** */
   /***************************************** */
   /***************************************** */
