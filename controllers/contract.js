@@ -55,6 +55,7 @@ const ContractController = {
           orderId,
           tutorId,
           selectedBy,
+          canceledAt: null,
         },
       });
 

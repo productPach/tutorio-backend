@@ -303,7 +303,7 @@ const ChatController = {
               contracts: {
                 where: {
                   orderId: orderId,
-                  // canceledAt: null,
+                  canceledAt: null,
                 },
                 select: { id: true },
               },
@@ -484,6 +484,7 @@ const ChatController = {
               contracts: {
                 where: {
                   tutorId: participantId,
+                  canceledAt: null,
                 },
                 select: {
                   id: true,
