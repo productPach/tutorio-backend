@@ -262,6 +262,7 @@ const OrderController = {
                   name: true,
                   avatarUrl: true,
                   publicRating: true,
+                  reviewsCount: true,
                 },
               },
             },
