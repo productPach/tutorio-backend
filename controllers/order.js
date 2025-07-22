@@ -279,6 +279,8 @@ const OrderController = {
             id: c.tutorId,
             name: c.tutor?.name ?? "",
             avatarUrl: c.tutor?.avatarUrl ?? "",
+            publicRating: c.publicRating,
+            reviewsCount: c.reviewsCount,
           }))
         : [];
 
