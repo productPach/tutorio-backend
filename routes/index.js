@@ -13,6 +13,7 @@ const {
   MailController,
   ChatController,
   SubjectController,
+  ContractController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const isAdmin = require("../middleware/isAdmin");
@@ -587,6 +588,27 @@ router.get(
   "/user/:userId/role/:role/chats",
   authenticateToken,
   ChatController.getChatsByUserIdAndRole
+);
+
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************КОНТРАКТЫ***************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+
+// Создание контракта
+router.post("/contract", authenticateToken, ContractController.createContract);
+// Отмена контракта
+router.post(
+  "/contract/:id/cancel",
+  authenticateToken,
+  ContractController.cancelContract
 );
 
 module.exports = router;

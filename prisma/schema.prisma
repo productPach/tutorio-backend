@@ -87,6 +87,7 @@ model Tutor {
   status                    String
   response                  Response[]
   chats                     Chat[]              @relation("TutorsChats")
+  contracts                 Contract[] @relation("TutorContracts")
   subjectPrices             TutorSubjectPrice[] @relation("TutorToSubjectPrices")
   isPublicProfile           Boolean             @default(true) // для "Публичной анкеты"
   isStudentResponses        Boolean             @default(true) // для "Получать отклики от учеников"
@@ -185,7 +186,22 @@ model Order {
   autoContactsOnResponse Boolean?
   studentWishes          String?
   responseCost           String?
+  contracts              Contract[] @relation("OrderContracts")
   status                 String
+}
+
+model Contract {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  orderId    String   @db.ObjectId
+  order      Order    @relation("OrderContracts", fields: [orderId], references: [id], onDelete: Cascade)
+
+  tutorId    String   @db.ObjectId
+  tutor      Tutor    @relation("TutorContracts", fields: [tutorId], references: [id], onDelete: Cascade)
+
+  selectedBy String   // "student" | "tutor"
+  selectedAt DateTime @default(now())
+  canceledAt DateTime?
 }
 
 model Response {
