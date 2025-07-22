@@ -269,7 +269,10 @@ const OrderController = {
         ? order.contracts.map((c) => c.tutorId)
         : [];
 
-      res.json(...order, selectedTutorIds);
+      res.json({
+        ...order,
+        selectedTutorIds,
+      });
     } catch (error) {
       console.error("Get Order By Id Error", error);
       res.status(500).json({ error: "Internal server error" });
