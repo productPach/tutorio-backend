@@ -256,6 +256,14 @@ const OrderController = {
             },
             select: {
               tutorId: true,
+              tutor: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                  publicRating: true,
+                },
+              },
             },
           },
         },
@@ -265,13 +273,17 @@ const OrderController = {
         return res.status(404).json({ error: "Заказ не найден" });
       }
 
-      const selectedTutorIds = Array.isArray(order.contracts)
-        ? order.contracts.map((c) => c.tutorId)
+      const selectedTutors = Array.isArray(order.contracts)
+        ? order.contracts.map((c) => ({
+            id: c.tutorId,
+            name: c.tutor?.name ?? "",
+            avatarUrl: c.tutor?.avatarUrl ?? "",
+          }))
         : [];
 
       res.json({
         ...order,
-        selectedTutorIds,
+        selectedTutors,
       });
     } catch (error) {
       console.error("Get Order By Id Error", error);
