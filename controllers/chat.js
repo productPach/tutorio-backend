@@ -300,6 +300,13 @@ const ChatController = {
               name: true,
               avatarUrl: true,
               lastOnline: true,
+              contracts: {
+                where: {
+                  orderId: orderId,
+                  canceledAt: null,
+                },
+                select: { id: true },
+              },
             },
           },
           student: {
@@ -330,10 +337,13 @@ const ChatController = {
 
         const lastMessage = chat.messages[chat.messages.length - 1] || null;
 
+        const isSelectedTutor = chat.tutor.contracts.length > 0;
+
         return {
           ...chat,
           unreadCount,
           lastMessage,
+          isSelectedTutor,
         };
       });
 
@@ -469,6 +479,15 @@ const ChatController = {
             select: {
               id: true,
               createdAt: true,
+              contracts: {
+                where: {
+                  tutorId: participantId,
+                  canceledAt: null,
+                },
+                select: {
+                  id: true,
+                },
+              },
             },
           },
           messages: {

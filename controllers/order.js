@@ -193,6 +193,14 @@ const OrderController = {
               },
             },
           },
+          contracts: {
+            where: {
+              canceledAt: null,
+            },
+            select: {
+              tutorId: true,
+            },
+          },
         },
       });
 
@@ -202,7 +210,15 @@ const OrderController = {
           .json({ error: "Заказы для указанного студента не найдены" });
       }
 
-      res.json(orders); // Возвращаем массив заказов
+      const enrichedOrders = orders.map((order) => {
+        const selectedTutorIds = order.contracts.map((c) => c.tutorId);
+        return {
+          ...order,
+          selectedTutorIds,
+        };
+      });
+
+      res.json(enrichedOrders); // Возвращаем массив заказов
     } catch (error) {
       console.error("Get Orders By StudentId Error", error);
       res.status(500).json({ error: "Internal server error" });
@@ -232,6 +248,14 @@ const OrderController = {
               tutorHasAccess: true,
             },
           },
+          contracts: {
+            where: {
+              canceledAt: null,
+            },
+            select: {
+              tutorId: true,
+            },
+          },
         },
       });
 
@@ -239,7 +263,9 @@ const OrderController = {
         return res.status(404).json({ error: "Заказ не найден" });
       }
 
-      res.json(order);
+      const selectedTutorIds = order.contracts.map((c) => c.tutorId);
+
+      res.json(...order, selectedTutorIds);
     } catch (error) {
       console.error("Get Order By Id Error", error);
       res.status(500).json({ error: "Internal server error" });
