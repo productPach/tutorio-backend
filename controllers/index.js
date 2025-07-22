@@ -9,6 +9,7 @@ const WikiController = require("./wiki");
 const MailController = require("./mail");
 const ChatController = require("./chat");
 const SubjectController = require("./subject");
+const ContractController = require("./contract");
 module.exports = {
   UserController,
   StudentController,
@@ -21,4 +22,5 @@ module.exports = {
   MailController,
   ChatController,
   SubjectController,
+  ContractController,
 };
