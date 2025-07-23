@@ -10,6 +10,8 @@ const MailController = require("./mail");
 const ChatController = require("./chat");
 const SubjectController = require("./subject");
 const ContractController = require("./contract");
+const ReviewController = require("./review");
+
 module.exports = {
   UserController,
   StudentController,
@@ -23,4 +25,5 @@ module.exports = {
   ChatController,
   SubjectController,
   ContractController,
+  ReviewController,
 };

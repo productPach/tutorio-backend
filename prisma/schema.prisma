@@ -380,6 +380,7 @@ model Comment {
   review      Review?   @relation("ReviewComments", fields: [reviewId], references: [id], onDelete: Cascade)
 
   senderId    String    @db.ObjectId
+  senderRole  String    // "student" | "tutor" | "admin"
   text        String
   createdAt   DateTime  @default(now())
 }

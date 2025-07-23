@@ -14,6 +14,7 @@ const {
   ChatController,
   SubjectController,
   ContractController,
+  ReviewController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const isAdmin = require("../middleware/isAdmin");
@@ -364,6 +365,38 @@ router.patch(
   EmployeeController.updateChats
 );
 
+// Создание отзыва
+router.post(
+  "/employees/review",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.createReviewByAdmin
+);
+
+// Создание комментария
+router.post(
+  "/employees/comment",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.createCommentByAdmin
+);
+
+// Обновление отзыва
+router.patch(
+  "/employees/review/:id",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.updateReviewByAdmin
+);
+
+// Обновление комментария
+router.patch(
+  "/employees/comment/:id",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.updateCommentByAdmin
+);
+
 /***************************************** */
 /***************************************** */
 /***************************************** */
@@ -615,6 +648,40 @@ router.post(
   "/contract/:id/cancel",
   authenticateToken,
   ContractController.cancelContract
+);
+
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/*****************ОТЗЫВЫ****************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+
+// Создание отзыва
+router.post("/review", authenticateToken, ReviewController.createReviewByUser);
+
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/*****************КОММЕНТАРИИ************* */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+
+// Создание комментария
+router.post(
+  "/comment",
+  authenticateToken,
+  ReviewController.createCommentByUser
 );
 
 module.exports = router;

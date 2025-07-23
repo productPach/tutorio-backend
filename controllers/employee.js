@@ -1270,6 +1270,119 @@ const EmployeeController = {
       });
     }
   },
+
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /*****************ОТЗЫВЫ******************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+  /***************************************** */
+
+  // Создание отзыва от админа
+  createReviewByAdmin: async (req, res) => {
+    const { orderId, message, authorRole, tutorId, studentId } = req.body;
+
+    if (!orderId || !message || !authorRole) {
+      return res.status(400).json({ error: "Поля обязательны" });
+    }
+
+    try {
+      const order = await prisma.order.findUnique({ where: { id: orderId } });
+      if (!order) return res.status(404).json({ error: "Заказ не найден" });
+
+      const review = await prisma.review.create({
+        data: {
+          orderId,
+          message,
+          authorRole,
+          tutorId: authorRole === "tutor" ? tutorId : undefined,
+          studentId: authorRole === "student" ? studentId : undefined,
+          status: "Pending",
+        },
+      });
+
+      res.json(review);
+    } catch (e) {
+      console.error("createReviewByAdmin error:", e);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Создание комментария от админа
+  createCommentByAdmin: async (req, res) => {
+    const { reviewId, text, senderId } = req.body;
+
+    if (!reviewId || !text || !senderId) {
+      return res.status(400).json({ error: "Поля обязательны" });
+    }
+
+    try {
+      const review = await prisma.review.findUnique({
+        where: { id: reviewId },
+      });
+      if (!review) return res.status(404).json({ error: "Отзыв не найден" });
+
+      const comment = await prisma.comment.create({
+        data: {
+          reviewId,
+          text,
+          senderId,
+          senderRole: "admin",
+        },
+      });
+
+      res.json(comment);
+    } catch (e) {
+      console.error("createCommentByAdmin error:", e);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Обновление отзыва от админа
+  updateReviewByAdmin: async (req, res) => {
+    const { id } = req.params;
+    const { message, status } = req.body;
+
+    try {
+      const updated = await prisma.review.update({
+        where: { id },
+        data: {
+          ...(message && { message }),
+          ...(status && { status }),
+        },
+      });
+
+      res.json(updated);
+    } catch (e) {
+      console.error("updateReviewByAdmin error:", e);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Обновление комментария от админа
+  updateCommentByAdmin: async (req, res) => {
+    const { id } = req.params;
+    const { text } = req.body;
+
+    if (!text) return res.status(400).json({ error: "Текст обязателен" });
+
+    try {
+      const updated = await prisma.comment.update({
+        where: { id },
+        data: { text },
+      });
+
+      res.json(updated);
+    } catch (e) {
+      console.error("updateCommentByAdmin error:", e);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
 };
 
 module.exports = EmployeeController;
