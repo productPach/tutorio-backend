@@ -132,6 +132,14 @@ const EmployeeController = {
           chats: {
             include: { tutor: true },
           },
+          contracts: {
+            where: {
+              canceledAt: null,
+            },
+            select: {
+              tutorId: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -164,6 +172,23 @@ const EmployeeController = {
               // messages: true,
             },
           },
+          contracts: {
+            where: {
+              canceledAt: null,
+            },
+            select: {
+              tutorId: true,
+              tutor: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                  publicRating: true,
+                  reviewsCount: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -171,7 +196,20 @@ const EmployeeController = {
         return res.status(404).json({ error: "Заказ не найден" });
       }
 
-      res.json(order);
+      const selectedTutors = Array.isArray(order.contracts)
+        ? order.contracts.map((c) => ({
+            id: c.tutorId,
+            name: c.tutor?.name ?? "",
+            avatarUrl: c.tutor?.avatarUrl ?? "",
+            publicRating: c.tutor?.publicRating,
+            reviewsCount: c.tutor?.reviewsCount,
+          }))
+        : [];
+
+      res.json({
+        ...order,
+        selectedTutors,
+      });
     } catch (error) {
       console.error("Get Order By Id Error", error);
       res.status(500).json({ error: "Internal server error" });
@@ -267,10 +305,40 @@ const EmployeeController = {
               messages: true,
             },
           },
+          contracts: {
+            where: {
+              canceledAt: null,
+            },
+            select: {
+              tutorId: true,
+              tutor: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                  publicRating: true,
+                  reviewsCount: true,
+                },
+              },
+            },
+          },
         },
       });
 
-      res.json(updatedOrder);
+      const selectedTutors = Array.isArray(updatedOrder.contracts)
+        ? updatedOrder.contracts.map((c) => ({
+            id: c.tutorId,
+            name: c.tutor?.name ?? "",
+            avatarUrl: c.tutor?.avatarUrl ?? "",
+            publicRating: c.tutor?.publicRating,
+            reviewsCount: c.tutor?.reviewsCount,
+          }))
+        : [];
+
+      res.json({
+        ...updatedOrder,
+        selectedTutors,
+      });
     } catch (error) {
       console.error("Update Order by Admin Error", error);
       res.status(500).json({ error: "Ошибка сервера" });

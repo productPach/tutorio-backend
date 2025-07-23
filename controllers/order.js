@@ -391,10 +391,40 @@ const OrderController = {
               messages: true,
             },
           },
+          contracts: {
+            where: {
+              canceledAt: null,
+            },
+            select: {
+              tutorId: true,
+              tutor: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                  publicRating: true,
+                  reviewsCount: true,
+                },
+              },
+            },
+          },
         },
       });
 
-      res.json(updateOrder);
+      const selectedTutors = Array.isArray(updateOrder.contracts)
+        ? updateOrder.contracts.map((c) => ({
+            id: c.tutorId,
+            name: c.tutor?.name ?? "",
+            avatarUrl: c.tutor?.avatarUrl ?? "",
+            publicRating: c.tutor?.publicRating,
+            reviewsCount: c.tutor?.reviewsCount,
+          }))
+        : [];
+
+      res.json({
+        ...updateOrder,
+        selectedTutors,
+      });
     } catch (error) {
       console.error("Update Order Error", error);
       res.status(500).json({ error: "Internal server error" });
