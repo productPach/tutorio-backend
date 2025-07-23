@@ -337,6 +337,8 @@ const EmployeeController = {
           user: true,
           educations: true,
           subjectPrices: true, // Включаем связанные места образования
+          contracts: true,
+          reviews: true,
         },
       });
 
@@ -368,6 +370,19 @@ const EmployeeController = {
           },
           educations: true,
           subjectPrices: true, // Включаем связанные места образования
+          contracts: {
+            include: {
+              order: true,
+            },
+          },
+          reviews: {
+            include: {
+              student: true,
+              tutor: true,
+              order: true,
+              comments: true,
+            },
+          },
         },
       });
 
@@ -431,6 +446,7 @@ const EmployeeController = {
       isNotificationsMobilePush,
       isNotificationsWebPush,
       isNotificationsVk,
+      hasQualityAvatar,
     } = req.body;
 
     let avatarUrl;
@@ -441,7 +457,7 @@ const EmployeeController = {
     try {
       const tutor = await prisma.tutor.findUnique({
         where: { id },
-        include: { subjectPrices: true },
+        include: { subjectPrices: true, educations: true },
       });
 
       if (!tutor) {
@@ -488,6 +504,23 @@ const EmployeeController = {
           }
         }
       }
+
+      // 📌 Автоматический пересчёт логических флагов
+      const autoHasSubjectPrices =
+        tutor.subjectPrices && tutor.subjectPrices.length > 0;
+      const autoHasPriceComments =
+        Array.isArray(updatedComments) &&
+        updatedComments.some((c) => c.comment && c.comment.trim().length > 0);
+      const profileText = profileInfo || tutor.profileInfo || "";
+      const autoHasProfileInfo = profileText.replace(/\s/g, "").length >= 300;
+      const autoHasEducation = tutor.educations && tutor.educations.length > 0;
+      const autoHasEducationPhotos =
+        tutor.educations &&
+        tutor.educations.some(
+          (edu) =>
+            Array.isArray(edu.educationDiplomUrl) &&
+            edu.educationDiplomUrl.length > 0
+        );
 
       const currentTime = new Date();
 
@@ -564,6 +597,18 @@ const EmployeeController = {
             isNotificationsWebPush !== undefined
               ? isNotificationsWebPush
               : tutor.isNotificationsWebPush,
+
+          hasQualityAvatar:
+            hasQualityAvatar !== undefined
+              ? hasQualityAvatar
+              : tutor.hasQualityAvatar,
+
+          hasSubjectPrices: autoHasSubjectPrices,
+          hasPriceComments: autoHasPriceComments,
+          hasProfileInfo: autoHasProfileInfo,
+          hasEducation: autoHasEducation,
+          hasEducationPhotos: autoHasEducationPhotos,
+
           status: status || undefined,
           ...(subject !== undefined || subjectComments !== undefined
             ? {

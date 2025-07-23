@@ -88,7 +88,7 @@ model Tutor {
   status                    String
   response                  Response[]
   chats                     Chat[]              @relation("TutorsChats")
-  contracts                 Contract[]           @relation("TutorContracts")
+  contracts                 Contract[]          @relation("TutorContracts")
   subjectPrices             TutorSubjectPrice[] @relation("TutorToSubjectPrices")
   isPublicProfile           Boolean             @default(true) // для "Публичной анкеты"
   isStudentResponses        Boolean             @default(true) // для "Получать отклики от учеников"

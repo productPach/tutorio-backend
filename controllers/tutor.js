@@ -150,6 +150,27 @@ const TutorController = {
           isNotificationsVk: true,
           badges: true,
           lastOnline: true,
+          reviews: {
+            include: {
+              comments: true,
+              student: {
+                select: {
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+              order: {
+                select: {
+                  id: true,
+                  goal: true,
+                  subject: true,
+                },
+              },
+            },
+          },
+          publicRating: true,
+          reviewsCount: true,
+          averageReviewScore: true,
           // Исключаем: phone, email, telegram, skype, response, chats
         },
       });
@@ -217,6 +238,27 @@ const TutorController = {
           isNotificationsVk: true,
           badges: true,
           lastOnline: true,
+          reviews: {
+            include: {
+              comments: true,
+              student: {
+                select: {
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+              order: {
+                select: {
+                  id: true,
+                  goal: true,
+                  subject: true,
+                },
+              },
+            },
+          },
+          publicRating: true,
+          reviewsCount: true,
+          averageReviewScore: true,
           // Исключаем: phone, email, telegram, skype, response, chats
         },
       });
@@ -282,6 +324,27 @@ const TutorController = {
           isNotificationsVk: true,
           badges: true,
           lastOnline: true,
+          reviews: {
+            include: {
+              comments: true,
+              student: {
+                select: {
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+              order: {
+                select: {
+                  id: true,
+                  goal: true,
+                  subject: true,
+                },
+              },
+            },
+          },
+          publicRating: true,
+          reviewsCount: true,
+          averageReviewScore: true,
           // Исключаем: phone, email, telegram, skype, response, chats
         },
       });
@@ -305,6 +368,24 @@ const TutorController = {
         include: {
           educations: true, // Включаем связанные места образования
           subjectPrices: true, // Включаем связанные цены
+          reviews: {
+            include: {
+              comments: true,
+              student: {
+                select: {
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+              order: {
+                select: {
+                  id: true,
+                  goal: true,
+                  subject: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -365,7 +446,10 @@ const TutorController = {
     try {
       const tutor = await prisma.tutor.findUnique({
         where: { id },
-        include: { subjectPrices: true }, // Загружаем цены
+        include: {
+          subjectPrices: true,
+          educations: true,
+        }, // Загружаем цены
       });
 
       if (!tutor) {
@@ -424,6 +508,23 @@ const TutorController = {
           }
         }
       }
+
+      // 📌 Автоматический пересчёт логических флагов
+      const autoHasSubjectPrices =
+        tutor.subjectPrices && tutor.subjectPrices.length > 0;
+      const autoHasPriceComments =
+        Array.isArray(updatedComments) &&
+        updatedComments.some((c) => c.comment && c.comment.trim().length > 0);
+      const profileText = profileInfo || tutor.profileInfo || "";
+      const autoHasProfileInfo = profileText.replace(/\s/g, "").length >= 300;
+      const autoHasEducation = tutor.educations && tutor.educations.length > 0;
+      const autoHasEducationPhotos =
+        tutor.educations &&
+        tutor.educations.some(
+          (edu) =>
+            Array.isArray(edu.educationDiplomUrl) &&
+            edu.educationDiplomUrl.length > 0
+        );
 
       // Обновляем время последнего онлайна, если параметр был передан
       const currentTime = new Date();
@@ -502,6 +603,13 @@ const TutorController = {
             isNotificationsWebPush !== undefined
               ? isNotificationsWebPush
               : tutor.isNotificationsWebPush,
+
+          hasSubjectPrices: autoHasSubjectPrices,
+          hasPriceComments: autoHasPriceComments,
+          hasProfileInfo: autoHasProfileInfo,
+          hasEducation: autoHasEducation,
+          hasEducationPhotos: autoHasEducationPhotos,
+
           status: status || undefined,
           lastOnline: lastOnlineTime, // Обновляем статус "онлайн"
           ...(subject !== undefined || subjectComments !== undefined
