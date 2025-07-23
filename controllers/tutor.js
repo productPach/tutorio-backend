@@ -880,11 +880,27 @@ const TutorController = {
         },
       });
 
-      const updatedTutor = await prisma.tutor.findUnique({
+      // Проверяем, есть ли у репетитора образование (после создания)
+      const educations = await prisma.tutorEducation.findMany({
+        where: { tutorId: id },
+      });
+
+      const hasEducation = educations.length > 0;
+      const hasEducationPhotos = educations.some(
+        (edu) =>
+          Array.isArray(edu.educationDiplomUrl) &&
+          edu.educationDiplomUrl.length > 0
+      );
+
+      const updatedTutor = await prisma.tutor.update({
         where: { id },
+        data: {
+          hasEducation,
+          hasEducationPhotos,
+        },
         include: {
-          educations: true, // Включаем связанные места образования
-          subjectPrices: true, // Включаем связанные цены
+          educations: true,
+          subjectPrices: true,
         },
       });
 
@@ -957,12 +973,27 @@ const TutorController = {
         },
       });
 
+      // Получаем актуальные места образования
+      const educations = await prisma.tutorEducation.findMany({
+        where: { tutorId: id },
+      });
+
+      // Пересчёт autoHasEducationPhotos
+      const autoHasEducationPhotos = educations.some(
+        (edu) =>
+          Array.isArray(edu.educationDiplomUrl) &&
+          edu.educationDiplomUrl.length > 0
+      );
+
       // Возвращаем обновленного репетитора с местами образования
-      const updatedTutor = await prisma.tutor.findUnique({
+      const updatedTutor = await prisma.tutor.update({
         where: { id },
+        data: {
+          hasEducationPhotos: autoHasEducationPhotos,
+        },
         include: {
-          educations: true, // Включаем связанные места образования
-          subjectPrices: true, // Включаем связанные цены
+          educations: true,
+          subjectPrices: true,
         },
       });
 
@@ -1026,12 +1057,25 @@ const TutorController = {
         where: { id: educationId },
       });
 
+      // Проверяем, есть ли у репетитора образование (после создания)
+      const educations = await prisma.tutorEducation.findMany({
+        where: { tutorId: id },
+      });
+
+      const hasEducation = educations.length > 0;
+      const hasEducationPhotos = educations.some(
+        (edu) =>
+          Array.isArray(edu.educationDiplomUrl) &&
+          edu.educationDiplomUrl.length > 0
+      );
+
       // Обновляем репетитора, чтобы вернуть его данные с актуализированным списком образований
-      const updatedTutor = await prisma.tutor.findUnique({
+      const updatedTutor = await prisma.tutor.update({
         where: { id },
+        data: { hasEducation, hasEducationPhotos },
         include: {
-          educations: true, // Включаем связанные места образования
-          subjectPrices: true, // Включаем связанные цены
+          educations: true,
+          subjectPrices: true,
         },
       });
 
