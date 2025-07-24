@@ -286,7 +286,7 @@ const ChatController = {
   // Получение всех чатов по заказу с непрочитанными сообщениями (для текущего пользователя) (SECURE)
   getChatsByOrderId: async (req, res) => {
     const { orderId } = req.params;
-    const { role } = req.body;
+    const { role } = req.query;
     const userId = req.user?.userID;
 
     if (!orderId || !userId) {
