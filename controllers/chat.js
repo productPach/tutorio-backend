@@ -286,6 +286,7 @@ const ChatController = {
   // Получение всех чатов по заказу с непрочитанными сообщениями (для текущего пользователя) (SECURE)
   getChatsByOrderId: async (req, res) => {
     const { orderId } = req.params;
+    const { role } = req.body;
     const userId = req.user?.userID;
 
     if (!orderId || !userId) {
@@ -339,7 +340,25 @@ const ChatController = {
           (msg) => !msg.isRead && msg.senderId !== userId
         ).length;
 
-        const lastMessage = chat.messages[chat.messages.length - 1] || null;
+        // фильтруем сообщения по доступности для текущего пользователя
+        const filteredMessages = chat.messages.filter((msg) => {
+          if (msg.type === "service") {
+            return (
+              msg.recipientRole === null ||
+              msg.recipientRole === undefined ||
+              msg.recipientRole === role // ← передай роль, например "student" или "tutor"
+            );
+          }
+          return true;
+        });
+
+        // сортируем по времени (на случай, если не отсортированы из базы)
+        const sortedMessages = [...filteredMessages].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+
+        const lastMessage = sortedMessages[sortedMessages.length - 1] || null;
 
         const isSelectedTutor =
           Array.isArray(chat.tutor.contracts) &&
@@ -506,6 +525,8 @@ const ChatController = {
               createdAt: true,
               senderId: true,
               isRead: true,
+              type: true,
+              recipientRole: true,
             },
           },
         },
@@ -513,10 +534,28 @@ const ChatController = {
 
       const enrichedChats = chats.map((chat) => {
         const unreadCount = chat.messages.filter(
-          (msg) => !msg.isRead && msg.senderId !== participantId
+          (msg) => !msg.isRead && msg.senderId !== userId
         ).length;
 
-        const lastMessage = chat.messages[chat.messages.length - 1] || null;
+        // фильтруем сообщения по доступности для текущего пользователя
+        const filteredMessages = chat.messages.filter((msg) => {
+          if (msg.type === "service") {
+            return (
+              msg.recipientRole === null ||
+              msg.recipientRole === undefined ||
+              msg.recipientRole === role // ← передай роль, например "student" или "tutor"
+            );
+          }
+          return true;
+        });
+
+        // сортируем по времени (на случай, если не отсортированы из базы)
+        const sortedMessages = [...filteredMessages].sort(
+          (a, b) =>
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+
+        const lastMessage = sortedMessages[sortedMessages.length - 1] || null;
 
         return {
           ...chat,
