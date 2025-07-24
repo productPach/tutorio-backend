@@ -350,13 +350,17 @@ model Chat {
 }
 
 model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  chatId    String   @db.ObjectId
-  chat      Chat     @relation("ChatMessages", fields: [chatId], references: [id], onDelete: Cascade)
-  senderId  String   @db.ObjectId
-  text      String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  chatId        String   @db.ObjectId
+  chat          Chat     @relation("ChatMessages", fields: [chatId], references: [id], onDelete: Cascade)
+  senderId      String   @db.ObjectId
+  text          String
+
+  type          String?    @default("user") // "user" или "service"
+  recipientRole String?   // null — для всех участников чата, или "student" | "tutor" | "admin" и т.п.
+
+  isRead        Boolean  @default(false)
+  createdAt     DateTime @default(now())
 }
 
 model Subject {
