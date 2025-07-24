@@ -169,7 +169,7 @@ const ChatController = {
 
   // Отправка сообщения в чат
   sendMessage: async (req, res) => {
-    const { chatId, senderId, text, orderId } = req.body;
+    const { chatId, senderId, text, orderId, type, recipientRole } = req.body;
 
     if (!chatId || !senderId || !text || !orderId) {
       return res
@@ -198,6 +198,8 @@ const ChatController = {
           chatId,
           senderId,
           text,
+          type,
+          recipientRole,
         },
       });
 
