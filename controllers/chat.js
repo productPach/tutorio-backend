@@ -332,6 +332,11 @@ const ChatController = {
               recipientRole: true,
             },
           },
+          order: {
+            select: {
+              contracts: true, // Получаем только contracts без данных заказа
+            },
+          },
         },
       });
 
@@ -430,6 +435,16 @@ const ChatController = {
       if (!chat) {
         return res.status(404).json({ error: "Чат не найден" });
       }
+
+      const selectedTutors = Array.isArray(order.contracts)
+        ? order.contracts.map((c) => ({
+            id: c.tutorId,
+            name: c.tutor?.name ?? "",
+            avatarUrl: c.tutor?.avatarUrl ?? "",
+            publicRating: c.tutor?.publicRating,
+            reviewsCount: c.tutor?.reviewsCount,
+          }))
+        : [];
 
       res.json(chat);
     } catch (error) {
