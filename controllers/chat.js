@@ -419,6 +419,11 @@ const ChatController = {
               recipientRole: true,
             },
           },
+          order: {
+            select: {
+              contracts: true, // Получаем только contracts без данных заказа
+            },
+          },
         },
       });
 
