@@ -121,6 +121,27 @@ const StudentController = {
     }
   },
 
+  // Получение телефона ученика по ID
+  getStudentPhoneById: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const student = await prisma.student.findUnique({
+        where: { id },
+        select: { phone: true }, // выбираем только номер телефона
+      });
+
+      if (!student) {
+        return res.status(404).json({ error: "Ученик не найден" });
+      }
+
+      res.json({ phone: student.phone });
+    } catch (error) {
+      console.error("Get Student Phone By Id Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Получение текущего студента по токену
   currentStudent: async (req, res) => {
     try {

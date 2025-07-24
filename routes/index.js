@@ -113,6 +113,12 @@ router.get(
   authenticateToken,
   StudentController.getStudentById
 );
+// Получение телефона ученика по ID
+router.get(
+  "/students/:id/phone",
+  authenticateToken,
+  StudentController.getStudentPhoneById
+);
 router.patch(
   "/students/:id",
   authenticateToken,
