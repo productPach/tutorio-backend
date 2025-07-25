@@ -333,8 +333,8 @@ const ChatController = {
             },
           },
           order: {
-            status: true,
             select: {
+              status: true,
               contracts: true, // Получаем только contracts без данных заказа
             },
           },
@@ -426,8 +426,8 @@ const ChatController = {
             },
           },
           order: {
-            status: true,
             select: {
+              status: true,
               contracts: true, // Получаем только contracts без данных заказа
             },
           },
