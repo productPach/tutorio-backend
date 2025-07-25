@@ -333,6 +333,7 @@ const ChatController = {
             },
           },
           order: {
+            status: true,
             select: {
               contracts: true, // Получаем только contracts без данных заказа
             },
@@ -425,6 +426,7 @@ const ChatController = {
             },
           },
           order: {
+            status: true,
             select: {
               contracts: true, // Получаем только contracts без данных заказа
             },
@@ -525,6 +527,7 @@ const ChatController = {
           order: {
             select: {
               id: true,
+              status: true,
               createdAt: true,
               contracts: {
                 where: {
