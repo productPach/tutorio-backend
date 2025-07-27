@@ -360,6 +360,27 @@ const TutorController = {
     }
   },
 
+  // Получение телефона репетитора по ID
+  getTutorPhoneById: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const tutor = await prisma.tutor.findUnique({
+        where: { id },
+        select: { phone: true }, // выбираем только номер телефона
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      res.json({ phone: tutor.phone });
+    } catch (error) {
+      console.error("Get Tutor Phone By Id Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Получение текущего репетитора по токену
   currentTutor: async (req, res) => {
     try {

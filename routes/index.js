@@ -166,6 +166,12 @@ router.get("/currentTutor", authenticateToken, TutorController.currentTutor);
 router.get("/tutors", TutorController.getAllTutors);
 router.get("/tutors/:id", authenticateToken, TutorController.getTutorById);
 router.get("/public/tutors/:id", TutorController.getTutorByIdPublic);
+// Получение телефона репетитора по ID
+router.get(
+  "/tutors/:id/phone",
+  authenticateToken,
+  TutorController.getTutorPhoneById
+);
 router.patch("/tutors/:id", authenticateToken, TutorController.updateTutor);
 router.post(
   "/tutors/delete-request/:id",
