@@ -1495,6 +1495,34 @@ const EmployeeController = {
       res.status(500).json({ error: "Ошибка сервера" });
     }
   },
+
+  // Получение всех отзывов (включая комментарии)
+  getAllReviews: async (req, res) => {
+    try {
+      const reviews = await prisma.review.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+          comments: {
+            orderBy: { createdAt: "asc" },
+          },
+          tutor: {
+            select: { id: true, name: true },
+          },
+          student: {
+            select: { id: true, name: true },
+          },
+          order: {
+            select: { id: true, subject: true, goal: true },
+          },
+        },
+      });
+
+      res.json(reviews);
+    } catch (e) {
+      console.error("getAllReviews error:", e);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
 };
 
 module.exports = EmployeeController;

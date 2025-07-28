@@ -46,7 +46,7 @@ const ReviewController = {
     }
   },
 
-  //Создание комментария к отзыву от репетитора или ученика
+  // Создание комментария к отзыву от репетитора или ученика
   createCommentByUser: async (req, res) => {
     const { reviewId, text } = req.body;
     const userId = req.user.userID;
@@ -66,11 +66,9 @@ const ReviewController = {
       const student = await prisma.student.findUnique({ where: { userId } });
 
       if (!tutor && !student) {
-        return res
-          .status(403)
-          .json({
-            error: "Пользователь не является ни репетитором, ни учеником",
-          });
+        return res.status(403).json({
+          error: "Пользователь не является ни репетитором, ни учеником",
+        });
       }
 
       // Проверяем доступ к отзыву
@@ -111,6 +109,37 @@ const ReviewController = {
       res.json(comment);
     } catch (e) {
       console.error("createCommentByUser error:", e);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Получение всех отзывов конкретного репетитора (включая комментарии)
+  getReviewsByTutorId: async (req, res) => {
+    const { tutorId } = req.params;
+
+    if (!tutorId)
+      return res.status(400).json({ error: "Не передан ID репетитора" });
+
+    try {
+      const reviews = await prisma.review.findMany({
+        where: { tutorId },
+        orderBy: { createdAt: "desc" },
+        include: {
+          comments: {
+            orderBy: { createdAt: "asc" },
+          },
+          student: {
+            select: { id: true, name: true },
+          },
+          order: {
+            select: { id: true, subject: true, goal: true },
+          },
+        },
+      });
+
+      res.json(reviews);
+    } catch (e) {
+      console.error("getReviewsByTutorId error:", e);
       res.status(500).json({ error: "Ошибка сервера" });
     }
   },

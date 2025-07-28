@@ -409,6 +409,14 @@ router.patch(
   EmployeeController.updateCommentByAdmin
 );
 
+// Получение всех отзывов
+router.get(
+  "/employees/review",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getAllReviews
+);
+
 /***************************************** */
 /***************************************** */
 /***************************************** */
@@ -676,6 +684,13 @@ router.post(
 
 // Создание отзыва
 router.post("/review", authenticateToken, ReviewController.createReviewByUser);
+
+// Получение отзывов по репетитору
+router.get(
+  "/review/tutor/:tutorId",
+  authenticateToken,
+  ReviewController.getReviewsByTutorId
+);
 
 /***************************************** */
 /***************************************** */
