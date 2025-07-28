@@ -3,11 +3,15 @@ const { prisma } = require("../prisma/prisma-client");
 const ReviewController = {
   // Создание отзыва от репетитора или ученика
   createReviewByUser: async (req, res) => {
-    const { orderId, message, authorRole } = req.body; // "tutor" | "student"
+    const { orderId, message, authorRole, rating } = req.body; // "tutor" | "student"
     const userId = req.user.userID;
 
-    if (!orderId || !message || !authorRole) {
+    if (!orderId || !message || !authorRole || typeof rating !== "number") {
       return res.status(400).json({ error: "Заполните все поля" });
+    }
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Рейтинг должен быть от 1 до 5" });
     }
 
     try {
@@ -33,6 +37,7 @@ const ReviewController = {
           orderId,
           message,
           authorRole,
+          rating,
           studentId: authorRole === "student" ? student.id : undefined,
           tutorId: authorRole === "tutor" ? tutor.id : undefined,
           status: "Pending", // или auto-approve, как нужно

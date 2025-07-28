@@ -1397,10 +1397,15 @@ const EmployeeController = {
 
   // Создание отзыва от админа
   createReviewByAdmin: async (req, res) => {
-    const { orderId, message, authorRole, tutorId, studentId } = req.body;
+    const { orderId, message, authorRole, tutorId, studentId, rating } =
+      req.body;
 
-    if (!orderId || !message || !authorRole) {
+    if (!orderId || !message || !authorRole || typeof rating !== "number") {
       return res.status(400).json({ error: "Поля обязательны" });
+    }
+
+    if (rating < 1 || rating > 5) {
+      return res.status(400).json({ error: "Рейтинг должен быть от 1 до 5" });
     }
 
     try {
@@ -1412,6 +1417,7 @@ const EmployeeController = {
           orderId,
           message,
           authorRole,
+          rating,
           tutorId: authorRole === "tutor" ? tutorId : undefined,
           studentId: authorRole === "student" ? studentId : undefined,
           status: "Pending",
@@ -1467,7 +1473,34 @@ const EmployeeController = {
           ...(message && { message }),
           ...(status && { status }),
         },
+        select: {
+          id: true,
+          tutorId: true,
+        },
       });
+
+      // Если отзыв активирован и связан с репетитором — пересчитываем рейтинг
+      if (status === "Active" && updated.tutorId) {
+        const activeReviews = await prisma.review.findMany({
+          where: {
+            tutorId: updated.tutorId,
+            status: "Active",
+            rating: { not: null },
+          },
+          select: { rating: true },
+        });
+
+        const averageRating =
+          activeReviews.reduce((acc, r) => acc + r.rating, 0) /
+          activeReviews.length;
+
+        await prisma.tutor.update({
+          where: { id: updated.tutorId },
+          data: {
+            publicRating: Number(averageRating.toFixed(1)),
+          },
+        });
+      }
 
       res.json(updated);
     } catch (e) {
