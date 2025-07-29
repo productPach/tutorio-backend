@@ -1464,28 +1464,59 @@ const EmployeeController = {
   // Обновление отзыва от админа
   updateReviewByAdmin: async (req, res) => {
     const { id } = req.params;
-    const { message, status } = req.body;
+    const { message, status, rating } = req.body;
+
+    if (
+      rating !== undefined &&
+      (typeof rating !== "number" || rating < 1 || rating > 5)
+    ) {
+      return res.status(400).json({ error: "Рейтинг должен быть от 1 до 5" });
+    }
 
     try {
+      // Получаем автора и айдишники, чтобы понять, кому обновлять рейтинг
+      const existingReview = await prisma.review.findUnique({
+        where: { id },
+        select: {
+          authorRole: true,
+          tutorId: true,
+          studentId: true,
+        },
+      });
+
+      if (!existingReview) {
+        return res.status(404).json({ error: "Отзыв не найден" });
+      }
+
       const updated = await prisma.review.update({
         where: { id },
         data: {
-          ...(message && { message }),
-          ...(status && { status }),
+          ...(message !== undefined && { message }),
+          ...(status !== undefined && { status }),
+          ...(rating !== undefined && { rating }),
         },
         select: {
           id: true,
           tutorId: true,
+          studentId: true,
+          status: true,
         },
       });
 
-      // Если отзыв активирован и связан с репетитором — пересчитываем рейтинг
-      if (status === "Active" && updated.tutorId) {
+      const isActive = updated.status === "Active";
+
+      // Если автор — студент, пересчитываем рейтинг репетитора
+      if (
+        isActive &&
+        existingReview.authorRole === "student" &&
+        updated.tutorId
+      ) {
         const activeReviews = await prisma.review.findMany({
           where: {
             tutorId: updated.tutorId,
             status: "Active",
             rating: { not: null },
+            authorRole: "student",
           },
           select: { rating: true },
         });
@@ -1496,6 +1527,34 @@ const EmployeeController = {
 
         await prisma.tutor.update({
           where: { id: updated.tutorId },
+          data: {
+            publicRating: Number(averageRating.toFixed(1)),
+          },
+        });
+      }
+
+      // Если автор — репетитор, пересчитываем рейтинг ученика
+      if (
+        isActive &&
+        existingReview.authorRole === "tutor" &&
+        updated.studentId
+      ) {
+        const activeReviews = await prisma.review.findMany({
+          where: {
+            studentId: updated.studentId,
+            status: "Active",
+            rating: { not: null },
+            authorRole: "tutor",
+          },
+          select: { rating: true },
+        });
+
+        const averageRating =
+          activeReviews.reduce((acc, r) => acc + r.rating, 0) /
+          activeReviews.length;
+
+        await prisma.student.update({
+          where: { id: updated.studentId },
           data: {
             publicRating: Number(averageRating.toFixed(1)),
           },

@@ -685,6 +685,13 @@ router.post(
 // Создание отзыва
 router.post("/review", authenticateToken, ReviewController.createReviewByUser);
 
+// Обновление отзыва (можно менять только текст и рейтинг)
+router.patch(
+  "/review/:id",
+  authenticateToken,
+  ReviewController.updateReviewByUser
+);
+
 // Получение отзывов по репетитору
 router.get(
   "/review/tutor/:tutorId",

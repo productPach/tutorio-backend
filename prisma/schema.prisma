@@ -51,6 +51,7 @@ model Student {
   isNotificationsMobilePush Boolean   @default(true)
   isNotificationsWebPush    Boolean   @default(true)
   isNotificationsVk         Boolean   @default(true)
+  publicRating              Float     @default(4.5)  // видимый пользователям рейтинг, рассчитывается и обновляется периодически
   status                    String
   orders                    Order[]
   reviews                   Review[]  @relation("StudentReviews")
@@ -395,14 +396,14 @@ model Review {
   orderId     String    @db.ObjectId
   order       Order    @relation("OrderReviews", fields: [orderId], references: [id], onDelete: Cascade)
 
-  tutorId     String?   @db.ObjectId
-  tutor       Tutor?    @relation("TutorReviews", fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorId     String   @db.ObjectId
+  tutor       Tutor    @relation("TutorReviews", fields: [tutorId], references: [id], onDelete: Cascade)
 
-  studentId   String?   @db.ObjectId
-  student     Student?  @relation("StudentReviews", fields: [studentId], references: [id], onDelete: Cascade)
+  studentId   String   @db.ObjectId
+  student     Student  @relation("StudentReviews", fields: [studentId], references: [id], onDelete: Cascade)
 
   authorRole  String    // "student" | "tutor"
-  message     String
+  message     String?
   rating      Int 
   status      String
   createdAt   DateTime  @default(now())
