@@ -267,6 +267,17 @@ const OrderController = {
               },
             },
           },
+          reviews: {
+            where: {
+              authorRole: "student",
+              orderId: id,
+            },
+            select: {
+              tutorId: true,
+              message: true,
+              rating: true,
+            },
+          },
         },
       });
 
@@ -275,13 +286,21 @@ const OrderController = {
       }
 
       const selectedTutors = Array.isArray(order.contracts)
-        ? order.contracts.map((c) => ({
-            id: c.tutorId,
-            name: c.tutor?.name ?? "",
-            avatarUrl: c.tutor?.avatarUrl ?? "",
-            publicRating: c.tutor?.publicRating,
-            reviewsCount: c.tutor?.reviewsCount,
-          }))
+        ? order.contracts.map((c) => {
+            const review = order.reviews.find((r) => r.tutorId === c.tutorId);
+            return {
+              id: c.tutorId,
+              name: c.tutor?.name ?? "",
+              avatarUrl: c.tutor?.avatarUrl ?? "",
+              publicRating: c.tutor?.publicRating,
+              reviewsCount: c.tutor?.reviewsCount,
+              reviewStatus: review
+                ? review.message
+                  ? "withMessage"
+                  : "ratingOnly"
+                : "noReview",
+            };
+          })
         : [];
 
       res.json({
