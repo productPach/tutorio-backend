@@ -431,13 +431,34 @@ const OrderController = {
       });
 
       const selectedTutors = Array.isArray(updateOrder.contracts)
-        ? updateOrder.contracts.map((c) => ({
-            id: c.tutorId,
-            name: c.tutor?.name ?? "",
-            avatarUrl: c.tutor?.avatarUrl ?? "",
-            publicRating: c.tutor?.publicRating,
-            reviewsCount: c.tutor?.reviewsCount,
-          }))
+        ? await Promise.all(
+            updateOrder.contracts.map(async (c) => {
+              const review = await prisma.review.findFirst({
+                where: {
+                  orderId: updateOrder.id,
+                  tutorId: c.tutorId,
+                  authorRole: "student",
+                },
+                select: {
+                  id: true,
+                  message: true,
+                },
+              });
+
+              return {
+                id: c.tutorId,
+                name: c.tutor?.name ?? "",
+                avatarUrl: c.tutor?.avatarUrl ?? "",
+                publicRating: c.tutor?.publicRating,
+                reviewsCount: c.tutor?.reviewsCount,
+                reviewStatus: review
+                  ? review.message
+                    ? "withMessage"
+                    : "withoutMessage"
+                  : "noReview",
+              };
+            })
+          )
         : [];
 
       res.json({
