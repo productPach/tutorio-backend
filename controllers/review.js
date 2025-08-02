@@ -25,6 +25,8 @@ const ReviewController = {
       const order = await prisma.order.findUnique({ where: { id: orderId } });
       if (!order) return res.status(404).json({ error: "Заказ не найден" });
 
+      let name;
+
       if (authorRole === "student") {
         const student = await prisma.student.findUnique({
           where: { id: studentId },
@@ -38,6 +40,8 @@ const ReviewController = {
         ) {
           return res.status(403).json({ error: "Нет доступа для студента" });
         }
+
+        name = student.name;
       }
 
       if (authorRole === "tutor") {
@@ -50,8 +54,22 @@ const ReviewController = {
           return res.status(403).json({ error: "Нет доступа для репетитора" });
         }
 
+        name = tutor.name;
+
         // 💡 При необходимости: проверка, что репетитор участвовал в этом заказе
         // (например, был отклик или контракт)
+      }
+
+      const existingReview = await prisma.review.findFirst({
+        where: {
+          orderId,
+          authorRole,
+          ...(authorRole === "student" ? { studentId } : { tutorId }),
+        },
+      });
+
+      if (existingReview) {
+        return res.status(409).json({ error: "Отзыв уже оставлен" });
       }
 
       const review = await prisma.review.create({
@@ -59,6 +77,7 @@ const ReviewController = {
           orderId,
           tutorId,
           studentId,
+          name,
           message: message || undefined,
           rating,
           authorRole,

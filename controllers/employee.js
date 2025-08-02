@@ -1397,10 +1397,16 @@ const EmployeeController = {
 
   // Создание отзыва от админа
   createReviewByAdmin: async (req, res) => {
-    const { orderId, message, authorRole, tutorId, studentId, rating } =
+    const { name, orderId, message, authorRole, tutorId, studentId, rating } =
       req.body;
 
-    if (!orderId || !message || !authorRole || typeof rating !== "number") {
+    if (
+      !name ||
+      !orderId ||
+      !message ||
+      !authorRole ||
+      typeof rating !== "number"
+    ) {
       return res.status(400).json({ error: "Поля обязательны" });
     }
 
@@ -1416,6 +1422,7 @@ const EmployeeController = {
         data: {
           orderId,
           message,
+          name,
           authorRole,
           rating,
           tutorId: authorRole === "tutor" ? tutorId : undefined,
@@ -1464,7 +1471,7 @@ const EmployeeController = {
   // Обновление отзыва от админа
   updateReviewByAdmin: async (req, res) => {
     const { id } = req.params;
-    const { message, status, rating } = req.body;
+    const { name, message, status, rating } = req.body;
 
     if (
       rating !== undefined &&
@@ -1491,6 +1498,7 @@ const EmployeeController = {
       const updated = await prisma.review.update({
         where: { id },
         data: {
+          ...(name !== undefined && { name }),
           ...(message !== undefined && { message }),
           ...(status !== undefined && { status }),
           ...(rating !== undefined && { rating }),
@@ -1571,14 +1579,15 @@ const EmployeeController = {
   // Обновление комментария от админа
   updateCommentByAdmin: async (req, res) => {
     const { id } = req.params;
-    const { text } = req.body;
+    const { name, text } = req.body;
 
-    if (!text) return res.status(400).json({ error: "Текст обязателен" });
+    if (!name || !text)
+      return res.status(400).json({ error: "Поля обязательны" });
 
     try {
       const updated = await prisma.comment.update({
         where: { id },
-        data: { text },
+        data: { name, text },
       });
 
       res.json(updated);

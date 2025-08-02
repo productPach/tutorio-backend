@@ -394,14 +394,15 @@ model Review {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
 
   orderId     String    @db.ObjectId
-  order       Order    @relation("OrderReviews", fields: [orderId], references: [id], onDelete: Cascade)
+  order       Order    @relation("OrderReviews", fields: [orderId], references: [id])
 
   tutorId     String   @db.ObjectId
   tutor       Tutor    @relation("TutorReviews", fields: [tutorId], references: [id], onDelete: Cascade)
 
   studentId   String   @db.ObjectId
-  student     Student  @relation("StudentReviews", fields: [studentId], references: [id], onDelete: Cascade)
+  student     Student  @relation("StudentReviews", fields: [studentId], references: [id])
 
+  name        String?
   authorRole  String    // "student" | "tutor"
   message     String?
   rating      Int 
