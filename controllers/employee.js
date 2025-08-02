@@ -1431,6 +1431,31 @@ const EmployeeController = {
         },
       });
 
+      if (authorRole === "student" && tutorId) {
+        // Получаем все активные отзывы от студентов для этого репетитора
+        const activeReviews = await prisma.review.findMany({
+          where: {
+            tutorId,
+            authorRole: "student",
+            status: "Active",
+            rating: { not: null },
+          },
+          select: { rating: true },
+        });
+
+        const publicRating =
+          activeReviews.reduce((sum, r) => sum + r.rating, 0) /
+          (activeReviews.length || 1); // защита от деления на 0
+
+        await prisma.tutor.update({
+          where: { id: tutorId },
+          data: {
+            publicRating: Number(publicRating.toFixed(1)),
+            reviewsCount: activeReviews.length,
+          },
+        });
+      }
+
       res.json(review);
     } catch (e) {
       console.error("createReviewByAdmin error:", e);
@@ -1529,14 +1554,15 @@ const EmployeeController = {
           select: { rating: true },
         });
 
-        const averageRating =
+        const publicRating =
           activeReviews.reduce((acc, r) => acc + r.rating, 0) /
           activeReviews.length;
 
         await prisma.tutor.update({
           where: { id: updated.tutorId },
           data: {
-            publicRating: Number(averageRating.toFixed(1)),
+            publicRating: Number(publicRating.toFixed(1)),
+            reviewsCount: activeReviews.length,
           },
         });
       }
