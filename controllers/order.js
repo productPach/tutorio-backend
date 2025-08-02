@@ -273,6 +273,7 @@ const OrderController = {
               orderId: id,
             },
             select: {
+              id: true,
               tutorId: true,
               message: true,
               rating: true,
@@ -294,6 +295,7 @@ const OrderController = {
               avatarUrl: c.tutor?.avatarUrl ?? "",
               publicRating: c.tutor?.publicRating,
               reviewsCount: c.tutor?.reviewsCount,
+              reviewId: review?.id,
               reviewStatus: review
                 ? review.message
                   ? "withMessage"
@@ -451,10 +453,11 @@ const OrderController = {
                 avatarUrl: c.tutor?.avatarUrl ?? "",
                 publicRating: c.tutor?.publicRating,
                 reviewsCount: c.tutor?.reviewsCount,
+                reviewId: review?.id,
                 reviewStatus: review
                   ? review.message
                     ? "withMessage"
-                    : "withoutMessage"
+                    : "ratingOnly"
                   : "noReview",
               };
             })
