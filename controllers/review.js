@@ -64,7 +64,9 @@ const ReviewController = {
         where: {
           orderId,
           authorRole,
-          ...(authorRole === "student" ? { studentId } : { tutorId }),
+          studentId,
+          tutorId,
+          // ...(authorRole === "student" ? { studentId } : { tutorId }),
         },
       });
 
