@@ -1213,14 +1213,25 @@ const TutorController = {
         where: { id },
       });
 
-      if (existingPrice.tutorId !== req.user.userID) {
-        return res.status(403).json({ error: "Нет доступа" });
-      }
-
       if (!existingPrice) {
         return res.status(404).json({ error: "Цена не найдена" });
       }
 
+      // Получаем репетитора для проверки прав
+      const tutorCheck = await prisma.tutor.findUnique({
+        where: { id: existingPrice.tutorId },
+      });
+
+      if (!tutorCheck) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // Проверяем доступ по userId
+      if (tutorCheck.userId !== req.user.userID) {
+        return res.status(403).json({ error: "Нет доступа" });
+      }
+
+      // Обновляем цену
       await prisma.tutorSubjectPrice.update({
         where: { id },
         data: {
@@ -1229,12 +1240,12 @@ const TutorController = {
         },
       });
 
-      // Получаем обновленного репетитора с ценами
+      // Получаем репетитора уже с обновлёнными ценами
       const tutor = await prisma.tutor.findUnique({
         where: { id: existingPrice.tutorId },
         include: {
-          educations: true, // Включаем связанные места образования
-          subjectPrices: true, // Включаем связанные цены
+          educations: true,
+          subjectPrices: true,
         },
       });
 
