@@ -277,6 +277,7 @@ model City {
 model District {
   id     String  @id @default(auto()) @map("_id") @db.ObjectId
   title  String
+  type   String?   // "okrug", "raion", "microdistrict" и т.п.
   metros Metro[]
   cityId String  @db.ObjectId
   city   City    @relation(fields: [cityId], references: [id])

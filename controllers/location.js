@@ -46,6 +46,7 @@ const LocationController = {
             create:
               districts?.map((district) => ({
                 title: district.title,
+                type: district.type,
                 metros: {
                   create:
                     district.metros?.map((metro) => ({
@@ -187,7 +188,7 @@ const LocationController = {
   // Добавление района в город по ID
   createDistrict: async (req, res) => {
     const { cityId } = req.params;
-    const { title, metros } = req.body;
+    const { title, type, metros } = req.body;
 
     if (!title) {
       return res.status(400).json({
@@ -225,6 +226,7 @@ const LocationController = {
           districts: {
             create: {
               title,
+              type,
               metros: {
                 create:
                   metros?.map((metro) => ({
@@ -255,7 +257,7 @@ const LocationController = {
   // Обновление района по ID (только название)
   updateDistrictById: async (req, res) => {
     const { id } = req.params;
-    const { title } = req.body;
+    const { title, type } = req.body;
 
     if (!id) {
       return res
@@ -263,10 +265,10 @@ const LocationController = {
         .json({ error: "ID района является обязательным полем" });
     }
 
-    if (!title) {
+    if (!title || !type) {
       return res
         .status(400)
-        .json({ error: "Поле title является обязательным" });
+        .json({ error: "Поля title и type являются обязательными" });
     }
 
     try {
@@ -295,6 +297,7 @@ const LocationController = {
         where: { id },
         data: {
           title,
+          type,
         },
       });
 
