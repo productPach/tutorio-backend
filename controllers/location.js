@@ -387,30 +387,25 @@ const LocationController = {
 
   // Добавление районов города по строке через запятую и одному типу для всех
   addDistrictsToCity: async (req, res) => {
-    const { id } = req.params; // id города
+    const { cityId } = req.params; // id города
     const { districts, type } = req.body; // districts: "А, Б, В", type: "Area" или "District" и т.д.
 
-    if (!id) {
+    if (!cityId) {
       return res
         .status(400)
         .json({ error: "ID города является обязательным полем" });
     }
 
     if (!districts || typeof districts !== "string") {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Поле districts должно быть строкой с названиями через запятую",
-        });
+      return res.status(400).json({
+        error: "Поле districts должно быть строкой с названиями через запятую",
+      });
     }
 
     if (!type || typeof type !== "string") {
-      return res
-        .status(400)
-        .json({
-          error: "Поле type является обязательным и должно быть строкой",
-        });
+      return res.status(400).json({
+        error: "Поле type является обязательным и должно быть строкой",
+      });
     }
 
     try {
@@ -424,7 +419,7 @@ const LocationController = {
       }
 
       // Проверяем, существует ли город
-      const city = await prisma.city.findUnique({ where: { id } });
+      const city = await prisma.city.findUnique({ where: { cityId } });
       if (!city) {
         return res.status(404).json({ error: "Город не найден" });
       }
@@ -443,7 +438,7 @@ const LocationController = {
 
       // Получим все существующие районы города (чтобы сравнить нечувствительно к регистру)
       const existingDistricts = await prisma.district.findMany({
-        where: { cityId: id },
+        where: { cityId: cityId },
         select: { id: true, title: true, type: true },
       });
 
@@ -462,7 +457,7 @@ const LocationController = {
           data: {
             title,
             type: type.trim(),
-            cityId: id,
+            cityId: cityId,
           },
         });
         created.push(createdDistrict);
