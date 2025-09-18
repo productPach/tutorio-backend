@@ -130,9 +130,63 @@ const LocationController = {
   },
 
   // Обновление города по ID (только title, area и shortTitle)
+  // updateCityById: async (req, res) => {
+  //   const { id } = req.params;
+  //   const { title, area, shortTitle } = req.body;
+
+  //   if (!id) {
+  //     return res
+  //       .status(400)
+  //       .json({ error: "ID города является обязательным полем" });
+  //   }
+
+  //   if (!title || !area || !shortTitle) {
+  //     return res.status(400).json({
+  //       error: "Поля title, area и shortTitle являются обязательными",
+  //     });
+  //   }
+
+  //   try {
+  //     // 🔒 Проверка: является ли пользователь сотрудником (админом)
+  //     const userId = req.user.userID;
+  //     const isAdmin = await prisma.employee.findUnique({
+  //       where: { userId },
+  //     });
+
+  //     if (!isAdmin) {
+  //       return res
+  //         .status(403)
+  //         .json({ error: "Доступ запрещён: только для сотрудников" });
+  //     }
+  //     // Проверяем существование города
+  //     const existingCity = await prisma.city.findUnique({ where: { id } });
+
+  //     if (!existingCity) {
+  //       return res.status(404).json({ error: "Город не найден" });
+  //     }
+
+  //     // Обновляем только необходимые поля
+  //     const updatedCity = await prisma.city.update({
+  //       where: { id },
+  //       data: {
+  //         title,
+  //         area,
+  //         shortTitle,
+  //       },
+  //     });
+
+  //     res.status(200).json({
+  //       message: "Город успешно обновлен",
+  //       city: updatedCity,
+  //     });
+  //   } catch (error) {
+  //     console.error("Ошибка при обновлении города:", error);
+  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
+  //   }
+  // },
   updateCityById: async (req, res) => {
     const { id } = req.params;
-    const { title, area, shortTitle } = req.body;
+    const { title, area, shortTitle, districts, regionalCities } = req.body;
 
     if (!id) {
       return res
@@ -147,37 +201,114 @@ const LocationController = {
     }
 
     try {
-      // 🔒 Проверка: является ли пользователь сотрудником (админом)
       const userId = req.user.userID;
-      const isAdmin = await prisma.employee.findUnique({
-        where: { userId },
-      });
+      const isAdmin = await prisma.employee.findUnique({ where: { userId } });
 
       if (!isAdmin) {
         return res
           .status(403)
           .json({ error: "Доступ запрещён: только для сотрудников" });
       }
-      // Проверяем существование города
-      const existingCity = await prisma.city.findUnique({ where: { id } });
+
+      const existingCity = await prisma.city.findUnique({
+        where: { id },
+        include: {
+          districts: { include: { metros: true } },
+          regionalCities: true,
+        },
+      });
 
       if (!existingCity) {
         return res.status(404).json({ error: "Город не найден" });
       }
 
-      // Обновляем только необходимые поля
+      // Обновляем сам город
       const updatedCity = await prisma.city.update({
         where: { id },
-        data: {
-          title,
-          area,
-          shortTitle,
+        data: { title, area, shortTitle },
+      });
+
+      // Обновление districts
+      if (districts?.length) {
+        for (const district of districts) {
+          if (district.id) {
+            // Обновляем существующий район
+            await prisma.district.update({
+              where: { id: district.id },
+              data: {
+                title: district.title,
+                type: district.type,
+                // Обновляем или создаем метро
+                metros: {
+                  upsert:
+                    district.metros?.map((metro) => ({
+                      where: { id: metro.id || 0 }, // если есть id, обновляем; иначе создаем
+                      update: {
+                        title: metro.title,
+                        color: metro.color || null,
+                        lineName: metro.lineName || null,
+                        lineNumber: metro.lineNumber || null,
+                      },
+                      create: {
+                        title: metro.title,
+                        color: metro.color || null,
+                        lineName: metro.lineName || null,
+                        lineNumber: metro.lineNumber || null,
+                      },
+                    })) || [],
+                },
+              },
+            });
+          } else {
+            // Создаем новый район
+            await prisma.district.create({
+              data: {
+                title: district.title,
+                type: district.type,
+                cityId: id,
+                metros: {
+                  create:
+                    district.metros?.map((metro) => ({
+                      title: metro.title,
+                      color: metro.color || null,
+                      lineName: metro.lineName || null,
+                      lineNumber: metro.lineNumber || null,
+                    })) || [],
+                },
+              },
+            });
+          }
+        }
+      }
+
+      // Обновление regionalCities
+      if (regionalCities?.length) {
+        for (const regCity of regionalCities) {
+          if (regCity.id) {
+            await prisma.regionalCity.update({
+              where: { id: regCity.id },
+              data: { title: regCity.title },
+            });
+          } else {
+            await prisma.regionalCity.create({
+              data: { title: regCity.title, cityId: id },
+            });
+          }
+        }
+      }
+
+      // Возвращаем полный объект города
+      const fullCity = await prisma.city.findUnique({
+        where: { id },
+        include: {
+          districts: { include: { metros: true } },
+          regionalCities: true,
         },
       });
 
       res.status(200).json({
         message: "Город успешно обновлен",
-        city: updatedCity,
+        city: fullCity,
       });
     } catch (error) {
       console.error("Ошибка при обновлении города:", error);
