@@ -385,6 +385,113 @@ const LocationController = {
     }
   },
 
+  // Добавление районов города по строке через запятую и одному типу для всех
+  addDistrictsToCity: async (req, res) => {
+    const { id } = req.params; // id города
+    const { districts, type } = req.body; // districts: "А, Б, В", type: "Area" или "District" и т.д.
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ error: "ID города является обязательным полем" });
+    }
+
+    if (!districts || typeof districts !== "string") {
+      return res
+        .status(400)
+        .json({
+          error:
+            "Поле districts должно быть строкой с названиями через запятую",
+        });
+    }
+
+    if (!type || typeof type !== "string") {
+      return res
+        .status(400)
+        .json({
+          error: "Поле type является обязательным и должно быть строкой",
+        });
+    }
+
+    try {
+      // Проверка прав: только сотрудники/админы
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({ where: { userId } });
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
+
+      // Проверяем, существует ли город
+      const city = await prisma.city.findUnique({ where: { id } });
+      if (!city) {
+        return res.status(404).json({ error: "Город не найден" });
+      }
+
+      // Парсим входную строку в массив
+      const districtsArray = districts
+        .split(",")
+        .map((d) => d.trim())
+        .filter(Boolean);
+
+      if (districtsArray.length === 0) {
+        return res
+          .status(400)
+          .json({ error: "Нужно передать хотя бы один район" });
+      }
+
+      // Получим все существующие районы города (чтобы сравнить нечувствительно к регистру)
+      const existingDistricts = await prisma.district.findMany({
+        where: { cityId: id },
+        select: { id: true, title: true, type: true },
+      });
+
+      const existingTitlesLower = new Set(
+        existingDistricts.map((d) => d.title.toLowerCase())
+      );
+
+      // Выбираем, какие создавать (пропускаем те, что уже есть)
+      const toCreate = districtsArray.filter(
+        (title) => !existingTitlesLower.has(title.toLowerCase())
+      );
+
+      const created = [];
+      for (const title of toCreate) {
+        const createdDistrict = await prisma.district.create({
+          data: {
+            title,
+            type: type.trim(),
+            cityId: id,
+          },
+        });
+        created.push(createdDistrict);
+      }
+
+      // Формируем ответ: что создали и что уже было
+      const skipped = existingDistricts.filter((d) =>
+        districtsArray.some((t) => t.toLowerCase() === d.title.toLowerCase())
+      );
+
+      if (created.length === 0) {
+        return res.status(200).json({
+          message:
+            "Районы не добавлены — все указанные районы уже существуют в городе",
+          skipped,
+        });
+      }
+
+      return res.status(201).json({
+        message: "Районы успешно добавлены",
+        created,
+        skipped,
+      });
+    } catch (error) {
+      console.error("Ошибка при добавлении районов:", error);
+      return res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
   // Обновление района по ID (только название)
   updateDistrictById: async (req, res) => {
     const { id } = req.params;

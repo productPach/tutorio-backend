@@ -498,6 +498,11 @@ router.post(
   LocationController.createDistrict
 );
 router.post(
+  "/districts/:cityId/bulk",
+  authenticateToken,
+  LocationController.addDistrictsToCity
+);
+router.post(
   "/metros/:districtId",
   authenticateToken,
   LocationController.createMetro
