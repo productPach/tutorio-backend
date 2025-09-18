@@ -419,7 +419,7 @@ const LocationController = {
       }
 
       // Проверяем, существует ли город
-      const city = await prisma.city.findUnique({ where: { cityId } });
+      const city = await prisma.city.findUnique({ where: { id: cityId } });
       if (!city) {
         return res.status(404).json({ error: "Город не найден" });
       }
@@ -438,7 +438,7 @@ const LocationController = {
 
       // Получим все существующие районы города (чтобы сравнить нечувствительно к регистру)
       const existingDistricts = await prisma.district.findMany({
-        where: { cityId: cityId },
+        where: { cityId },
         select: { id: true, title: true, type: true },
       });
 
@@ -457,7 +457,7 @@ const LocationController = {
           data: {
             title,
             type: type.trim(),
-            cityId: cityId,
+            cityId,
           },
         });
         created.push(createdDistrict);
