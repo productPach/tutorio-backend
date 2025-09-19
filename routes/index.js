@@ -500,7 +500,7 @@ router.post(
 router.post(
   "/districts/:cityId/bulk",
   authenticateToken,
-  LocationController.addDistrictsToCity
+  LocationController.createDistrictsBulk
 );
 router.post(
   "/metros/:districtId",
@@ -511,6 +511,11 @@ router.post(
   "/regional-cities/:cityId",
   authenticateToken,
   LocationController.createRegionalCity
+);
+router.post(
+  "/regional-cities/:cityId/bulk",
+  authenticateToken,
+  LocationController.createRegionalCitiesBulk
 );
 router.get("/cities", LocationController.getAllCity);
 router.get("/city/:id", LocationController.getCityById);

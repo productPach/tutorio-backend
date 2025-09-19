@@ -386,7 +386,7 @@ const LocationController = {
   },
 
   // Добавление районов города по строке через запятую и одному типу для всех
-  addDistrictsToCity: async (req, res) => {
+  createDistrictsBulk: async (req, res) => {
     const { cityId } = req.params; // id города
     const { districts, type } = req.body; // districts: "А, Б, В", type: "Area" или "District" и т.д.
 
@@ -665,7 +665,7 @@ const LocationController = {
   // Добавление регионального города в город по ID города
   createRegionalCity: async (req, res) => {
     const { cityId } = req.params;
-    const { title } = req.body;
+    const { title, type } = req.body;
 
     if (!cityId) {
       return res
@@ -673,10 +673,10 @@ const LocationController = {
         .json({ error: "ID города является обязательным полем" });
     }
 
-    if (!title) {
+    if (!title || !type) {
       return res
         .status(400)
-        .json({ error: "Поле title является обязательным" });
+        .json({ error: "Поле title и type являются обязательными" });
     }
 
     try {
@@ -704,6 +704,7 @@ const LocationController = {
       const newRegionalCity = await prisma.regionalCity.create({
         data: {
           title,
+          type,
           cityId, // Привязываем региональный город к основному городу
         },
       });
@@ -718,10 +719,53 @@ const LocationController = {
     }
   },
 
+  // Добавление нескольких городов
+  createRegionalCitiesBulk: async (req, res) => {
+    try {
+      const { cityId } = req.params;
+      const { titles, type } = req.body;
+
+      if (!cityId) {
+        return res.status(400).json({ error: "ID города — обязательное поле" });
+      }
+      if (!titles) {
+        return res.status(400).json({ error: "Поле titles — обязательное" });
+      }
+
+      // titles приходят строкой: "Павловск, Зеленогорск, Сестрорецк"
+      const titlesArray = titles
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0);
+
+      if (titlesArray.length === 0) {
+        return res.status(400).json({ error: "Список городов пуст" });
+      }
+
+      const regionalCities = titlesArray.map((title) => ({
+        title,
+        type: type || null,
+        cityId,
+      }));
+
+      const created = await prisma.regionalCity.createMany({
+        data: regionalCities,
+      });
+
+      return res.status(201).json({
+        message: "Региональные города успешно добавлены",
+        count: created.count,
+      });
+    } catch (error) {
+      console.error("Ошибка при добавлении региональных городов:", error);
+      return res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
   // Обновление регионального города по ID
   updateRegionalCityById: async (req, res) => {
     const { id } = req.params;
-    const { title } = req.body;
+    const { title, type } = req.body;
 
     if (!id) {
       return res
@@ -729,10 +773,10 @@ const LocationController = {
         .json({ error: "ID регионального города является обязательным полем" });
     }
 
-    if (!title) {
+    if (!title || !type) {
       return res
         .status(400)
-        .json({ error: "Поле title является обязательным" });
+        .json({ error: "Поле title и type являются обязательными" });
     }
 
     try {
@@ -761,6 +805,7 @@ const LocationController = {
         where: { id },
         data: {
           title,
+          type,
         },
       });
 

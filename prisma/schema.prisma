@@ -296,6 +296,7 @@ model Metro {
 model RegionalCity {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   title  String
+  type   String?   
   cityId String @db.ObjectId
   city   City   @relation(fields: [cityId], references: [id])
 }
