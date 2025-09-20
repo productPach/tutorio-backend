@@ -621,13 +621,6 @@ const LocationController = {
         .json({ error: "ID метро является обязательным полем" });
     }
 
-    if (!title || !color || !lineName || !lineNumber || cityPrefix) {
-      return res.status(400).json({
-        error:
-          "Поля title, color, lineName, lineNumber и cityPrefix являются обязательными",
-      });
-    }
-
     try {
       // 🔒 Проверка: является ли пользователь сотрудником (админом)
       const userId = req.user.userID;
@@ -647,16 +640,23 @@ const LocationController = {
         return res.status(404).json({ error: "Метро не найдено" });
       }
 
-      // Обновляем только данные метро
+      // Формируем объект обновления только с переданными полями
+      const updateData = {};
+      if (title !== undefined) updateData.title = title;
+      if (color !== undefined) updateData.color = color;
+      if (lineName !== undefined) updateData.lineName = lineName;
+      if (lineNumber !== undefined) updateData.lineNumber = lineNumber;
+      if (cityPrefix !== undefined) updateData.cityPrefix = cityPrefix;
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({
+          error: "Не переданы поля для обновления",
+        });
+      }
+
       const updatedMetro = await prisma.metro.update({
         where: { id },
-        data: {
-          title,
-          color,
-          lineName,
-          lineNumber,
-          cityPrefix,
-        },
+        data: updateData,
       });
 
       res.status(200).json({
