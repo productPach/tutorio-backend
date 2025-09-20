@@ -610,6 +610,76 @@ const LocationController = {
     }
   },
 
+  // Добавление списка метро в район по ID района
+  createMetrosToDistrictBulk: async (req, res) => {
+    const { districtId } = req.params;
+    const { metros } = req.body;
+
+    if (!districtId) {
+      return res
+        .status(400)
+        .json({ error: "ID района является обязательным полем" });
+    }
+
+    if (!Array.isArray(metros) || metros.length === 0) {
+      return res.status(400).json({
+        error: "Поле metros должно быть массивом объектов метро",
+      });
+    }
+
+    try {
+      // Проверка прав: только сотрудники/админы
+      const userId = req.user.userID;
+      const isAdmin = await prisma.employee.findUnique({ where: { userId } });
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ error: "Доступ запрещён: только для сотрудников" });
+      }
+
+      // Проверяем, существует ли район
+      const district = await prisma.district.findUnique({
+        where: { id: districtId },
+      });
+      if (!district) {
+        return res.status(404).json({ error: "Район не найден" });
+      }
+
+      // Создаем список новых станций метро
+      const createdMetros = [];
+      for (const metro of metros) {
+        if (!metro.title) continue; // название обязательно
+
+        const newMetro = await prisma.metro.create({
+          data: {
+            title: metro.title,
+            color: metro.color || null,
+            lineName: metro.lineName || null,
+            lineNumber: metro.lineNumber || null,
+            cityPrefix: metro.cityPrefix || null,
+            districtId,
+          },
+        });
+
+        createdMetros.push(newMetro);
+      }
+
+      if (createdMetros.length === 0) {
+        return res.status(400).json({
+          error: "Не удалось добавить метро — проверьте входные данные",
+        });
+      }
+
+      res.status(201).json({
+        message: "Станции метро успешно добавлены",
+        created: createdMetros,
+      });
+    } catch (error) {
+      console.error("Ошибка при добавлении метро:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
   // Обновление метро по ID
   updateMetroById: async (req, res) => {
     const { id } = req.params;
