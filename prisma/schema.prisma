@@ -270,6 +270,7 @@ model City {
   title          String         @unique
   area           String
   shortTitle     String
+  metros         Metro[]
   districts      District[]
   regionalCities RegionalCity[]
 }
@@ -278,7 +279,6 @@ model District {
   id     String  @id @default(auto()) @map("_id") @db.ObjectId
   title  String
   type   String?   // "District", "Area", "Microdistrict" и т.п.
-  metros Metro[]
   cityId String  @db.ObjectId
   city   City    @relation(fields: [cityId], references: [id])
 }
@@ -290,8 +290,8 @@ model Metro {
   lineName   String?
   lineNumber String?
   cityPrefix String?
-  districtId String   @db.ObjectId
-  district   District @relation(fields: [districtId], references: [id])
+  cityId     String   @db.ObjectId
+  city       City     @relation(fields: [cityId], references: [id])
 }
 
 model RegionalCity {

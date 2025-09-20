@@ -503,14 +503,14 @@ router.post(
   LocationController.createDistrictsBulk
 );
 router.post(
-  "/metros/:districtId",
+  "/metros/:cityId",
   authenticateToken,
   LocationController.createMetro
 );
 router.post(
-  "/metros/:districtId/bulk",
+  "/metros/:cityId/bulk",
   authenticateToken,
-  LocationController.createMetrosToDistrictBulk
+  LocationController.createMetrosToCityBulk
 );
 router.post(
   "/regional-cities/:cityId",
