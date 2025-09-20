@@ -54,6 +54,7 @@ const LocationController = {
                       color: metro.color || null,
                       lineName: metro.lineName || null,
                       lineNumber: metro.lineNumber || null,
+                      cityPrefix: metro.cityPrefix || null,
                     })) || [],
                 },
               })) || [],
@@ -248,12 +249,14 @@ const LocationController = {
                         color: metro.color || null,
                         lineName: metro.lineName || null,
                         lineNumber: metro.lineNumber || null,
+                        cityPrefix: metro.cityPrefix || null,
                       },
                       create: {
                         title: metro.title,
                         color: metro.color || null,
                         lineName: metro.lineName || null,
                         lineNumber: metro.lineNumber || null,
+                        cityPrefix: metro.cityPrefix || null,
                       },
                     })) || [],
                 },
@@ -273,6 +276,7 @@ const LocationController = {
                       color: metro.color || null,
                       lineName: metro.lineName || null,
                       lineNumber: metro.lineNumber || null,
+                      cityPrefix: metro.cityPrefix || null,
                     })) || [],
                 },
               },
@@ -365,6 +369,7 @@ const LocationController = {
                     color: metro.color || null,
                     lineName: metro.lineName || null,
                     lineNumber: metro.lineNumber || null,
+                    cityPrefix: metro.cityPrefix || null,
                   })) || [],
               },
             },
@@ -547,7 +552,7 @@ const LocationController = {
   // Добавление метро в район по ID района
   createMetro: async (req, res) => {
     const { districtId } = req.params;
-    const { title, color, lineName, lineNumber } = req.body;
+    const { title, color, lineName, lineNumber, cityPrefix } = req.body;
 
     if (!districtId) {
       return res
@@ -555,10 +560,10 @@ const LocationController = {
         .json({ error: "ID района является обязательным полем" });
     }
 
-    if (!title || !color || !lineName || !lineNumber) {
+    if (!title || !color || !lineName || !lineNumber || !cityPrefix) {
       return res.status(400).json({
         error:
-          "Поля title, color, lineName и lineNumber являются обязательными",
+          "Поля title, color, lineName, lineNumber и cityPrefix являются обязательными",
       });
     }
 
@@ -590,6 +595,7 @@ const LocationController = {
           color,
           lineName,
           lineNumber,
+          cityPrefix,
           districtId, // Привязываем метро к району
         },
       });
@@ -607,7 +613,7 @@ const LocationController = {
   // Обновление метро по ID
   updateMetroById: async (req, res) => {
     const { id } = req.params;
-    const { title, color, lineName, lineNumber } = req.body;
+    const { title, color, lineName, lineNumber, cityPrefix } = req.body;
 
     if (!id) {
       return res
@@ -615,10 +621,10 @@ const LocationController = {
         .json({ error: "ID метро является обязательным полем" });
     }
 
-    if (!title || !color || !lineName || !lineNumber) {
+    if (!title || !color || !lineName || !lineNumber || cityPrefix) {
       return res.status(400).json({
         error:
-          "Поля title, color, lineName и lineNumber являются обязательными",
+          "Поля title, color, lineName, lineNumber и cityPrefix являются обязательными",
       });
     }
 
@@ -649,6 +655,7 @@ const LocationController = {
           color,
           lineName,
           lineNumber,
+          cityPrefix,
         },
       });
 
