@@ -40,12 +40,16 @@ const UserController = {
 
   // Авторизация пользователя
   login: async (req, res) => {
-    const { phone, secretSMS } = req.body;
+    const { phone, secretSMS, role } = req.body;
 
     if (!phone) {
       return res
         .status(400)
         .json({ error: "Телефон является обязательным полем" });
+    }
+
+    if (!role || !["student", "tutor", "admin"].includes(role)) {
+      return res.status(400).json({ error: "Неверная роль" });
     }
 
     try {
@@ -66,8 +70,9 @@ const UserController = {
       }
 
       const token = jwt.sign(
-        { userID: user.id, phone: user.phone },
-        process.env.SECRET_KEY
+        { userID: user.id, phone: user.phone, activeRole: role },
+        process.env.SECRET_KEY,
+        { expiresIn: "30d" }
       );
 
       res.cookie("user", token, {
