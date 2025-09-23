@@ -153,8 +153,8 @@ const UserController = {
       // Устанавливаем куки
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        secure: false, // false для локалки | true для прода
+        sameSite: "Lax", // "Lax" для локалки | "None" для прода
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
@@ -241,8 +241,8 @@ const UserController = {
       // Устанавливаем новый refresh token в куки
       res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        secure: false, // false для локалки | true для прода
+        sameSite: "Lax", // "Lax" для локалки | "None" для прода
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
