@@ -39,8 +39,58 @@ const UserController = {
   },
 
   // Авторизация пользователя
+  // login: async (req, res) => {
+  //   const { phone, secretSMS, role } = req.body;
+
+  //   if (!phone) {
+  //     return res
+  //       .status(400)
+  //       .json({ error: "Телефон является обязательным полем" });
+  //   }
+
+  //   if (!role || !["student", "tutor", "admin"].includes(role)) {
+  //     return res.status(400).json({ error: "Неверная роль" });
+  //   }
+
+  //   try {
+  //     const user = await prisma.user.findUnique({ where: { phone } });
+
+  //     if (!user) {
+  //       return res
+  //         .status(400)
+  //         .json({ error: "Такого пользователя не существует" });
+  //     }
+
+  //     const valid = await bcrypt.compare(secretSMS, user.password);
+
+  //     if (!valid) {
+  //       return res
+  //         .status(400)
+  //         .json({ error: "Неверно введен проверочный код" });
+  //     }
+
+  //     const token = jwt.sign(
+  //       { userID: user.id, phone: user.phone, activeRole: role },
+  //       process.env.SECRET_KEY,
+  //       { expiresIn: "30d" }
+  //     );
+
+  //     res.cookie("user", token, {
+  //       httpOnly: false,
+  //       secure: true,
+  //       sameSite: "None",
+  //       maxAge: 30 * 24 * 60 * 60 * 1000,
+  //     });
+  //     res.json({ token });
+  //   } catch (error) {
+  //     console.error("Ошибка авторизации", error);
+  //     res.status(500).json({ error: "Internal server error" });
+  //   }
+  // },
+
+  // Авторизация пользователя с рефреш токеном от 22.09.2025
   login: async (req, res) => {
-    const { phone, secretSMS, role } = req.body;
+    const { phone, secretSMS, role, deviceInfo } = req.body; // Получаем от фронтенда
 
     if (!phone) {
       return res
@@ -62,29 +112,239 @@ const UserController = {
       }
 
       const valid = await bcrypt.compare(secretSMS, user.password);
-
       if (!valid) {
         return res
           .status(400)
           .json({ error: "Неверно введен проверочный код" });
       }
 
-      const token = jwt.sign(
-        { userID: user.id, phone: user.phone, activeRole: role },
-        process.env.SECRET_KEY,
+      // Access token (15 минут)
+      const accessToken = jwt.sign(
+        {
+          userID: user.id,
+          phone: user.phone,
+          activeRole: role,
+        },
+        process.env.ACCESS_SECRET,
+        { expiresIn: "15m" }
+      );
+
+      // Refresh token (30 дней)
+      const refreshToken = jwt.sign(
+        {
+          userID: user.id,
+          tokenType: "refresh",
+        },
+        process.env.REFRESH_SECRET,
         { expiresIn: "30d" }
       );
 
-      res.cookie("user", token, {
-        httpOnly: false,
+      // Сохраняем с переданным deviceInfo
+      await prisma.refreshToken.create({
+        data: {
+          token: refreshToken,
+          userId: user.id,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          deviceInfo: deviceInfo || "web", // Значение по умолчанию, если не передано
+          isActive: true,
+        },
+      });
+
+      // Устанавливаем куки
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
         secure: true,
         sameSite: "None",
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
-      res.json({ token });
+
+      res.json({
+        accessToken,
+        user: {
+          id: user.id,
+          phone: user.phone,
+          activeRole: role,
+        },
+      });
     } catch (error) {
       console.error("Ошибка авторизации", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Выдача нового аксесс и рефреш токенов
+  refreshTokens: async (req, res) => {
+    const { refreshToken: oldRefreshToken } = req.cookies;
+
+    if (!oldRefreshToken) {
+      return res.status(401).json({ error: "Refresh token required" });
+    }
+
+    try {
+      // Проверяем подпись старого токена
+      const decoded = jwt.verify(oldRefreshToken, process.env.REFRESH_SECRET);
+
+      // Ищем токен в базе
+      const tokenRecord = await prisma.refreshToken.findFirst({
+        where: {
+          token: oldRefreshToken,
+          expiresAt: { gt: new Date() },
+          isActive: true,
+        },
+        include: { user: true },
+      });
+
+      if (!tokenRecord) {
+        return res
+          .status(403)
+          .json({ error: "Invalid or expired refresh token" });
+      }
+
+      // Генерируем новый access token
+      const newAccessToken = jwt.sign(
+        {
+          userID: tokenRecord.user.id,
+          phone: tokenRecord.user.phone,
+          activeRole: tokenRecord.user.activeRole || "student",
+        },
+        process.env.ACCESS_SECRET,
+        { expiresIn: "15m" }
+      );
+
+      // Ротация refresh token (опционально, но рекомендуется для безопасности)
+      const newRefreshToken = jwt.sign(
+        {
+          userID: tokenRecord.user.id,
+          tokenType: "refresh",
+        },
+        process.env.REFRESH_SECRET,
+        { expiresIn: "30d" }
+      );
+
+      // Обновляем запись в базе (деактивируем старый, создаем новый)
+      await prisma.$transaction([
+        prisma.refreshToken.update({
+          where: { id: tokenRecord.id },
+          data: { isActive: false }, // Деактивируем старый токен
+        }),
+        prisma.refreshToken.create({
+          data: {
+            token: newRefreshToken,
+            userId: tokenRecord.user.id,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            deviceInfo: tokenRecord.deviceInfo,
+            isActive: true,
+          },
+        }),
+      ]);
+
+      // Устанавливаем новый refresh token в куки
+      res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+
+      res.json({
+        accessToken: newAccessToken,
+      });
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        // Деактивируем протухший токен
+        await prisma.refreshToken.updateMany({
+          where: { token: oldRefreshToken },
+          data: { isActive: false },
+        });
+        return res.status(401).json({ error: "Refresh token expired" });
+      }
+      return res.status(403).json({ error: "Invalid refresh token" });
+    }
+  },
+
+  // Разлогин
+  logout: async (req, res) => {
+    const { refreshToken } = req.cookies;
+    const { logoutAllDevices = false } = req.body;
+
+    try {
+      // req.user гарантированно существует благодаря мидлвару
+      const userId = req.user.userID;
+
+      if (logoutAllDevices) {
+        // Выход со всех устройств
+        await prisma.refreshToken.updateMany({
+          where: {
+            userId: userId,
+            isActive: true,
+          },
+          data: { isActive: false },
+        });
+      } else if (refreshToken) {
+        // Выход только с текущего устройства + проверка принадлежности
+        await prisma.refreshToken.updateMany({
+          where: {
+            token: refreshToken,
+            userId: userId, // Важно: проверяем что токен принадлежит пользователю
+            isActive: true,
+          },
+          data: { isActive: false },
+        });
+      }
+
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+      });
+
+      res.json({ message: "Logged out successfully" });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Получить список активных сессий пользователя
+  getUserActiveSessions: async (req, res) => {
+    try {
+      const sessions = await prisma.refreshToken.findMany({
+        where: {
+          userId: req.user.userID,
+          expiresAt: { gt: new Date() },
+          isActive: true,
+        },
+        select: {
+          id: true,
+          deviceInfo: true,
+          createdAt: true,
+          expiresAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      res.json({ sessions });
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Завершить сессию на конкретном устройстве
+  revokeSession: async (req, res) => {
+    const { tokenId } = req.body;
+
+    try {
+      await prisma.refreshToken.update({
+        where: {
+          id: tokenId,
+          userId: req.user.userID, // проверяем что токен принадлежит пользователю
+        },
+        data: { isActive: false },
+      });
+
+      res.json({ message: "Session revoked successfully" });
+    } catch (error) {
+      res.status(400).json({ error: "Invalid session ID" });
     }
   },
 

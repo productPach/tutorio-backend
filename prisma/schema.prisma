@@ -14,6 +14,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model RefreshToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  token     String   @unique
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  deviceInfo String? // Для отслеживания устройств
+  isActive  Boolean  @default(true)
+
+  @@index([userId])
+  @@index([expiresAt]) // Для быстрой очистки протухших токенов
+}
+
 model User {
   id              String              @id @default(auto()) @map("_id") @db.ObjectId
   phone           String              @unique
@@ -23,6 +37,7 @@ model User {
   student         Student?
   tutor           Tutor?
   employee        Employee?
+  refreshTokens   RefreshToken[]      // один пользователь — много токенов
   welcomeState    UserWelcomeScreen[]
   deletedRequests DeletedRequest[]    @relation("UserToDeletedRequest")
 }
