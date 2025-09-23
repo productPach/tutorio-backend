@@ -69,6 +69,20 @@ const diplomaUploads = multer({ storage: diplomaStorage });
 // Роуты для пользователя
 router.post("/register-user", UserController.register);
 router.post("/login", UserController.login);
+router.post("/refresh", UserController.refreshTokens);
+router.post("/logout", UserController.logout);
+
+router.get(
+  "/sessions",
+  authenticateToken,
+  UserController.getUserActiveSessions
+);
+router.post(
+  "/sessions/revoke",
+  authenticateToken,
+  UserController.revokeSession
+);
+
 router.get("/current", authenticateToken, UserController.current);
 router.get("/users/:id", authenticateToken, UserController.getUserById);
 router.post("/users-phone", UserController.getUserByPhone);
