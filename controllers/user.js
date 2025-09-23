@@ -126,7 +126,7 @@ const UserController = {
           activeRole: role,
         },
         process.env.ACCESS_SECRET,
-        { expiresIn: "15m" }
+        { expiresIn: "5m" }
       );
 
       // Refresh token (30 дней)
@@ -155,9 +155,14 @@ const UserController = {
         // httpOnly: true,
         // secure: true, // false для локалки | true для прода
         // sameSite: "None", // "Lax" для локалки | "None" для прода
-        httpOnly: false,
-        secure: true,
-        sameSite: "None",
+
+        // httpOnly: false,
+        // secure: true,
+        // sameSite: "None",
+
+        httpOnly: true,
+        secure: false, // ← временно отключи для теста
+        sameSite: "Lax", // ← измени для localhost
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
@@ -247,9 +252,14 @@ const UserController = {
         // secure: true, // false для локалки | true для прода
         // sameSite: "None", // "Lax" для локалки | "None" для прода
 
-        httpOnly: false,
-        secure: true,
-        sameSite: "None",
+        // httpOnly: false,
+        // secure: true,
+        // sameSite: "None",
+
+        httpOnly: true,
+        secure: false, // ← временно отключи для теста
+        sameSite: "Lax", // ← измени для localhost
+
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
