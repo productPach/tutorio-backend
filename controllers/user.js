@@ -152,9 +152,12 @@ const UserController = {
 
       // Устанавливаем куки
       res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: false, // false для локалки | true для прода
-        sameSite: "Lax", // "Lax" для локалки | "None" для прода
+        // httpOnly: true,
+        // secure: true, // false для локалки | true для прода
+        // sameSite: "None", // "Lax" для локалки | "None" для прода
+        httpOnly: false,
+        secure: true,
+        sameSite: "None",
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
@@ -240,9 +243,13 @@ const UserController = {
 
       // Устанавливаем новый refresh token в куки
       res.cookie("refreshToken", newRefreshToken, {
-        httpOnly: true,
-        secure: false, // false для локалки | true для прода
-        sameSite: "Lax", // "Lax" для локалки | "None" для прода
+        // httpOnly: true,
+        // secure: true, // false для локалки | true для прода
+        // sameSite: "None", // "Lax" для локалки | "None" для прода
+
+        httpOnly: false,
+        secure: true,
+        sameSite: "None",
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
