@@ -162,7 +162,7 @@ const UserController = {
 
         httpOnly: true,
         secure: false, // ← временно отключи для теста
-        sameSite: "Lax", // ← измени для localhost
+        //sameSite: "Lax", // ← измени для localhost
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
 
@@ -258,7 +258,7 @@ const UserController = {
 
         httpOnly: true,
         secure: false, // ← временно отключи для теста
-        sameSite: "Lax", // ← измени для localhost
+        //sameSite: "Lax", // ← измени для localhost
 
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
