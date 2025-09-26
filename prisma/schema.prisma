@@ -15,14 +15,15 @@ datasource db {
 }
 
 model RefreshToken {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  token     String   @unique
-  userId    String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  token      String   @unique
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeRole String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
   deviceInfo String? // Для отслеживания устройств
-  isActive  Boolean  @default(true)
+  isActive   Boolean  @default(true)
 
   @@index([userId])
   @@index([expiresAt]) // Для быстрой очистки протухших токенов
@@ -37,7 +38,7 @@ model User {
   student         Student?
   tutor           Tutor?
   employee        Employee?
-  refreshTokens   RefreshToken[]      // один пользователь — много токенов
+  refreshTokens   RefreshToken[] // один пользователь — много токенов
   welcomeState    UserWelcomeScreen[]
   deletedRequests DeletedRequest[]    @relation("UserToDeletedRequest")
 }
@@ -66,7 +67,7 @@ model Student {
   isNotificationsMobilePush Boolean   @default(true)
   isNotificationsWebPush    Boolean   @default(true)
   isNotificationsVk         Boolean   @default(true)
-  publicRating              Float     @default(4.5)  // видимый пользователям рейтинг, рассчитывается и обновляется периодически
+  publicRating              Float     @default(4.5) // видимый пользователям рейтинг, рассчитывается и обновляется периодически
   status                    String
   orders                    Order[]
   reviews                   Review[]  @relation("StudentReviews")
@@ -98,7 +99,7 @@ model Tutor {
   tutorTripArea             String[]            @default([])
   profileInfo               String?
   experience                String?
-  educations                TutorEducation[] 
+  educations                TutorEducation[]
   documents                 TutorDocument[]
   isGroup                   Boolean             @default(false)
   status                    String
@@ -120,18 +121,18 @@ model Tutor {
   isNotificationsVk         Boolean             @default(true)
   badges                    String[]            @default([]) // Список шильдиков
   reviews                   Review[]            @relation("TutorReviews")
-  publicRating              Float               @default(4.5)  // видимый пользователям рейтинг, рассчитывается и обновляется периодически
-  internalRating            Float               @default(4.5)  // внутренний рейтинг, учитывает все факторы
-  employeesRating           Float               @default(0)    // внутренний рейтинг для админов
-  contractCount             Int                 @default(0)   // кол-во договоренностей
-  contractRejectCount       Int                 @default(0)   // кол-во отмены по договоренностям
-  averagePay                Float               @default(0)   // средний платеж
-  refundsPayCount           Int                 @default(0)   // кол-во возвратов по откликам
-  reviewsCount              Int                 @default(0)   // количество отзывов
-  averageReviewScore        Float               @default(0)   // средний балл отзывов
-  responseTimeSeconds       Int                 @default(0)   // среднее время отклика (в секундах)
-  responseCount             Int                 @default(0)   // количество откликов
-  sessionCount              Int                 @default(0)   // кол-во сессий
+  publicRating              Float               @default(4.5) // видимый пользователям рейтинг, рассчитывается и обновляется периодически
+  internalRating            Float               @default(4.5) // внутренний рейтинг, учитывает все факторы
+  employeesRating           Float               @default(0) // внутренний рейтинг для админов
+  contractCount             Int                 @default(0) // кол-во договоренностей
+  contractRejectCount       Int                 @default(0) // кол-во отмены по договоренностям
+  averagePay                Float               @default(0) // средний платеж
+  refundsPayCount           Int                 @default(0) // кол-во возвратов по откликам
+  reviewsCount              Int                 @default(0) // количество отзывов
+  averageReviewScore        Float               @default(0) // средний балл отзывов
+  responseTimeSeconds       Int                 @default(0) // среднее время отклика (в секундах)
+  responseCount             Int                 @default(0) // количество откликов
+  sessionCount              Int                 @default(0) // кол-во сессий
   hasQualityAvatar          Boolean             @default(false)
   hasSubjectPrices          Boolean             @default(false)
   hasPriceComments          Boolean             @default(false)
@@ -184,8 +185,8 @@ model Employee {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   name      String
-  phone     String    @unique
-  email     String?   @unique
+  phone     String   @unique
+  email     String?  @unique
   region    String?
   role      String
   status    String
@@ -228,17 +229,17 @@ model Order {
 }
 
 model Contract {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  orderId    String   @db.ObjectId
-  order      Order    @relation("OrderContracts", fields: [orderId], references: [id], onDelete: Cascade)
+  orderId String @db.ObjectId
+  order   Order  @relation("OrderContracts", fields: [orderId], references: [id], onDelete: Cascade)
 
-  tutorId    String   @db.ObjectId
-  tutor      Tutor    @relation("TutorContracts", fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorId String @db.ObjectId
+  tutor   Tutor  @relation("TutorContracts", fields: [tutorId], references: [id], onDelete: Cascade)
 
-  selectedBy String   // "student" | "tutor"
+  selectedBy String // "student" | "tutor"
   comments   Comment[] @relation("ContractComments")
-  selectedAt DateTime @default(now())
+  selectedAt DateTime  @default(now())
   canceledAt DateTime?
 }
 
@@ -293,28 +294,28 @@ model City {
 model District {
   id     String  @id @default(auto()) @map("_id") @db.ObjectId
   title  String
-  type   String?   // "District", "Area", "Microdistrict" и т.п.
+  type   String? // "District", "Area", "Microdistrict" и т.п.
   cityId String  @db.ObjectId
   city   City    @relation(fields: [cityId], references: [id])
 }
 
 model Metro {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
   title      String
   color      String?
   lineName   String?
   lineNumber String?
   cityPrefix String?
-  cityId     String   @db.ObjectId
-  city       City     @relation(fields: [cityId], references: [id])
+  cityId     String  @db.ObjectId
+  city       City    @relation(fields: [cityId], references: [id])
 }
 
 model RegionalCity {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
   title  String
-  type   String?   
-  cityId String @db.ObjectId
-  city   City   @relation(fields: [cityId], references: [id])
+  type   String?
+  cityId String  @db.ObjectId
+  city   City    @relation(fields: [cityId], references: [id])
 }
 
 model Topic {
@@ -354,10 +355,10 @@ model DeletedRequest {
 
 model Chat {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  studentId      String?    @db.ObjectId
+  studentId      String?   @db.ObjectId
   student        Student?  @relation("StudentChats", fields: [studentId], references: [id], onDelete: SetNull)
-  tutorId        String?    @db.ObjectId
-  tutor          Tutor?     @relation("TutorsChats", fields: [tutorId], references: [id], onDelete: SetNull)
+  tutorId        String?   @db.ObjectId
+  tutor          Tutor?    @relation("TutorsChats", fields: [tutorId], references: [id], onDelete: SetNull)
   orderId        String    @db.ObjectId
   order          Order     @relation("Chats", fields: [orderId], references: [id])
   messages       Message[] @relation("ChatMessages")
@@ -369,22 +370,22 @@ model Chat {
 }
 
 model Message {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  chatId        String   @db.ObjectId
-  chat          Chat     @relation("ChatMessages", fields: [chatId], references: [id], onDelete: Cascade)
-  senderId      String   @db.ObjectId
-  text          String
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  chatId   String @db.ObjectId
+  chat     Chat   @relation("ChatMessages", fields: [chatId], references: [id], onDelete: Cascade)
+  senderId String @db.ObjectId
+  text     String
 
-  type          String?    @default("user") // "user" или "service"
-  recipientRole String?   // null — для всех участников чата, или "student" | "tutor" | "admin" и т.п.
+  type          String? @default("user") // "user" или "service"
+  recipientRole String? // null — для всех участников чата, или "student" | "tutor" | "admin" и т.п.
 
-  isRead        Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 model Subject {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  title       String   @unique
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  title       String  @unique
   for_request String
   for_chpu    String
   id_cat      String
@@ -395,38 +396,38 @@ model Subject {
 }
 
 model Comment {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  contractId  String?   @db.ObjectId
-  contract    Contract? @relation("ContractComments", fields: [contractId], references: [id], onDelete: Cascade)
-  reviewId    String?   @db.ObjectId
-  review      Review?   @relation("ReviewComments", fields: [reviewId], references: [id], onDelete: Cascade)
+  contractId String?   @db.ObjectId
+  contract   Contract? @relation("ContractComments", fields: [contractId], references: [id], onDelete: Cascade)
+  reviewId   String?   @db.ObjectId
+  review     Review?   @relation("ReviewComments", fields: [reviewId], references: [id], onDelete: Cascade)
 
-  senderId    String    @db.ObjectId
-  senderRole  String    // "student" | "tutor" | "admin"
-  text        String
-  createdAt   DateTime  @default(now())
+  senderId   String   @db.ObjectId
+  senderRole String // "student" | "tutor" | "admin"
+  text       String
+  createdAt  DateTime @default(now())
 }
 
 model Review {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  orderId     String    @db.ObjectId
-  order       Order    @relation("OrderReviews", fields: [orderId], references: [id])
+  orderId String @db.ObjectId
+  order   Order  @relation("OrderReviews", fields: [orderId], references: [id])
 
-  tutorId     String   @db.ObjectId
-  tutor       Tutor    @relation("TutorReviews", fields: [tutorId], references: [id], onDelete: Cascade)
+  tutorId String @db.ObjectId
+  tutor   Tutor  @relation("TutorReviews", fields: [tutorId], references: [id], onDelete: Cascade)
 
-  studentId   String   @db.ObjectId
-  student     Student  @relation("StudentReviews", fields: [studentId], references: [id])
+  studentId String  @db.ObjectId
+  student   Student @relation("StudentReviews", fields: [studentId], references: [id])
 
-  name        String?
-  authorRole  String    // "student" | "tutor"
-  message     String?
-  rating      Int 
-  status      String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  name       String?
+  authorRole String // "student" | "tutor"
+  message    String?
+  rating     Int
+  status     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  comments    Comment[] @relation("ReviewComments")
+  comments Comment[] @relation("ReviewComments")
 }
