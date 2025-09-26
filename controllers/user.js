@@ -126,7 +126,7 @@ const UserController = {
           activeRole: role,
         },
         process.env.ACCESS_SECRET,
-        { expiresIn: "5m" }
+        { expiresIn: "15m" }
       );
 
       // Refresh token (30 дней)
@@ -144,6 +144,7 @@ const UserController = {
         data: {
           token: refreshToken,
           userId: user.id,
+          activeRole: role,
           expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           deviceInfo: deviceInfo || "web", // Значение по умолчанию, если не передано
           isActive: true,
@@ -205,7 +206,7 @@ const UserController = {
         {
           userID: tokenRecord.user.id,
           phone: tokenRecord.user.phone,
-          activeRole: tokenRecord.user.activeRole || "student",
+          activeRole: tokenRecord.activeRole || "student",
         },
         process.env.ACCESS_SECRET,
         { expiresIn: "15m" }
@@ -231,6 +232,7 @@ const UserController = {
           data: {
             token: newRefreshToken,
             userId: tokenRecord.user.id,
+            activeRole: tokenRecord.activeRole,
             expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
             deviceInfo: tokenRecord.deviceInfo,
             isActive: true,

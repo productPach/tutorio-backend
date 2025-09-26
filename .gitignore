@@ -3,3 +3,5 @@ node_modules
 uploads
 mongo-data
 .DS_Store
+mongo-keyfile
+stop
