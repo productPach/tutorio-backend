@@ -533,12 +533,12 @@ const SubjectController = {
       }
 
       res.json({
-        message: `Миграция завершена.`,
+        message: `Обновление завершено.`,
         updated: updatedCount,
         skipped: Array.from(unknownCats),
       });
     } catch (error) {
-      console.error("Ошибка при миграции goalCategoryId и goal_id:", error);
+      console.error("Ошибка при обновлении goalCategoryId и goal_id:", error);
       res.status(500).json({ error: "Ошибка при миграции данных" });
     }
   },
