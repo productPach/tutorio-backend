@@ -675,6 +675,15 @@ router.post(
 );
 router.get("/subjects", SubjectController.getAllSubjects);
 router.get("/subjects/:id", SubjectController.getSubjectById);
+
+// Наполнение полей goalCategoryId, goal_id и nextPage для предметов
+router.patch(
+  "/subjects/update-subjects-data",
+  authenticateToken,
+  isAdmin,
+  SubjectController.migrateGoalIdsToGoalCategories
+);
+
 router.patch(
   "/subjects/:id",
   authenticateToken,
@@ -689,13 +698,6 @@ router.delete(
 );
 // Получение целей для конкретного предмета
 router.get("/subjects/:subjectId/goals", SubjectController.getGoalsBySubject);
-
-router.patch(
-  "/subjects/update-subjects-data",
-  authenticateToken,
-  isAdmin,
-  SubjectController.migrateGoalIdsToGoalCategories
-);
 
 /***************************************** */
 /***************************************** */
