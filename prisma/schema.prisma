@@ -448,8 +448,8 @@ model Subject {
   goal_id     String // надо будет удалить
 
   // связь с категорией целей
-  goalCategoryId String       @db.ObjectId
-  goalCategory   GoalCategory @relation(fields: [goalCategoryId], references: [id])
+  goalCategoryId String?       @db.ObjectId
+  goalCategory   GoalCategory? @relation(fields: [goalCategoryId], references: [id])
 }
 
 model Comment {
