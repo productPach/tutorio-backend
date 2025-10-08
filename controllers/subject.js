@@ -250,6 +250,298 @@ const SubjectController = {
       res.status(500).json({ error: "Внутренняя ошибка сервера" });
     }
   },
+
+  // Миграция данных: заполнение goalCategoryId и goal_id в предметах на основе id_cat
+  migrateGoalIdsToGoalCategories: async (req, res) => {
+    try {
+      // === ручное соответствие id_cat → goalCategoryId + goal_id ===
+      const mapping = {
+        1: {
+          goalCategoryId: "68e63dfd2149b86c6923530f",
+          goal_id: "3",
+          nextPage: "/match/goal/artistic-subjects",
+        }, // Искусство artistic-subjects
+        2: {
+          goalCategoryId: "68e63dfd2149b86c69235311",
+          goal_id: "7",
+          nextPage: "/match/goal/english",
+        }, // Языки основные english
+        3: {
+          goalCategoryId: "68e63dfd2149b86c69235312",
+          goal_id: "6",
+          nextPage: "/match/goal/language-subjects",
+        }, // Языки дополнительные language-subjects
+        4: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        5: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        6: {
+          goalCategoryId: "68e63dfd2149b86c6923530f",
+          goal_id: "3",
+          nextPage: "/match/goal/artistic-subjects",
+        }, // Искусство artistic-subjects
+        7: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        8: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        9: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        10: {
+          goalCategoryId: "68e63dfd2149b86c6923530f",
+          goal_id: "3",
+          nextPage: "/match/goal/artistic-subjects",
+        }, // Искусство artistic-subjects
+        11: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        12: {
+          goalCategoryId: "68e63dfd2149b86c69235312",
+          goal_id: "6",
+          nextPage: "/match/goal/language-subjects",
+        }, // Языки дополнительные language-subjects
+        13: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        14: {
+          goalCategoryId: "68e63dfd2149b86c6923531b",
+          goal_id: "16",
+          nextPage: "/match/goal/spanish",
+        }, // Испанский spanish
+        15: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        16: {
+          goalCategoryId: "68e63dfd2149b86c6923531c",
+          goal_id: "17",
+          nextPage: "/match/goal/italian",
+        }, // Итальянский italian
+        17: {
+          goalCategoryId: "68e63dfd2149b86c69235313",
+          goal_id: "8",
+          nextPage: "/match/goal/chinese",
+        }, // Китайский chinese
+        18: {
+          goalCategoryId: "68e63dfd2149b86c6923531d",
+          goal_id: "18",
+          nextPage: "/match/goal/korean",
+        }, // Корейский korean
+        19: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        20: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        21: {
+          goalCategoryId: "68e63dfd2149b86c6923530e",
+          goal_id: "4",
+          nextPage: "/match/goal/school-subjects-2",
+        }, // Школьные дополнительные school-subjects-2
+        //22: { goalCategoryId: "", goal_id: "22" }, // НУЖНА ОТДЕЛЬНАЯ КАТЕГОРИЯ ДЛЯ ЛОГОПЕДОВ!!
+        23: {
+          goalCategoryId: "68e63dfd2149b86c6923530d",
+          goal_id: "2",
+          nextPage: "/match/goal/school-subjects-no-ege",
+        }, // Школьные без ЕГЭ school-subjects-no-ege
+        24: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        25: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        26: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        27: {
+          goalCategoryId: "68e63dfd2149b86c6923530f",
+          goal_id: "3",
+          nextPage: "/match/goal/artistic-subjects",
+        }, // Искусство artistic-subjects
+        28: {
+          goalCategoryId: "68e63dfd2149b86c69235315",
+          goal_id: "10",
+          nextPage: "/match/goal/school-subjects",
+        }, // Начальная школа primary-school-subjects
+        29: {
+          goalCategoryId: "68e63dfd2149b86c69235314",
+          goal_id: "9",
+          nextPage: "/match/goal/german",
+        }, // Немецкий german
+        // 30: { goalCategoryId: "", goal_id: "30" }, // НУЖНА ОТДЕЛЬНАЯ КАТЕГОРИЯ ДЛЯ НЯНИ!!
+        31: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        32: {
+          goalCategoryId: "68e63dfd2149b86c69235317",
+          goal_id: "12",
+          nextPage: "/match/goal/preparing-for-school",
+        }, // Подготовка к школе preparing-for-school
+        33: {
+          goalCategoryId: "68e63dfd2149b86c69235312",
+          goal_id: "6",
+          nextPage: "/match/goal/language-subjects",
+        }, // Языки дополнительные language-subjects
+        34: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        35: {
+          goalCategoryId: "68e63dfd2149b86c69235318",
+          goal_id: "13",
+          nextPage: "/match/goal/programming",
+        }, // Программирование programming
+        36: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        37: {
+          goalCategoryId: "68e63dfd2149b86c69235319",
+          goal_id: "14",
+          nextPage: "/match/goal/rki",
+        }, // РКИ rki
+        38: {
+          goalCategoryId: "68e63dfd2149b86c6923530f",
+          goal_id: "3",
+          nextPage: "/match/goal/artistic-subjects",
+        }, // Искусство artistic-subjects
+        39: {
+          goalCategoryId: "68e63dfd2149b86c6923530e",
+          goal_id: "4",
+          nextPage: "/match/goal/school-subjects-2",
+        }, // Школьные дополнительные school-subjects-2
+        40: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        41: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        42: {
+          goalCategoryId: "68e63dfd2149b86c6923530e",
+          goal_id: "4",
+          nextPage: "/match/goal/school-subjects-2",
+        }, // Школьные дополнительные school-subjects-2
+        43: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        44: {
+          goalCategoryId: "68e63dfd2149b86c6923531a",
+          goal_id: "15",
+          nextPage: "/match/goal/french",
+        }, // Французский french
+        45: {
+          goalCategoryId: "68e63dfd2149b86c6923530c",
+          goal_id: "1",
+          nextPage: "/match/goal/school-subjects",
+        }, // Школьные основные school-subjects
+        46: {
+          goalCategoryId: "68e63dfd2149b86c69235312",
+          goal_id: "6",
+          nextPage: "/match/goal/language-subjects",
+        }, // Языки дополнительные language-subjects
+        47: {
+          goalCategoryId: "68e63dfd2149b86c6923530e",
+          goal_id: "4",
+          nextPage: "/match/goal/school-subjects-2",
+        }, // Школьные дополнительные school-subjects-2
+        // 48: { goalCategoryId: "", goal_id: "48" }, // НУЖНА ОТДЕЛЬНАЯ КАТЕГОРИЯ ДЛЯ ШАХМАТЫ!!
+        49: {
+          goalCategoryId: "68e63dfd2149b86c6923530d",
+          goal_id: "2",
+          nextPage: "/match/goal/school-subjects-no-ege",
+        }, // Школьные без ЕГЭ school-subjects-no-ege
+        50: {
+          goalCategoryId: "68e63dfd2149b86c69235310",
+          goal_id: "5",
+          nextPage: "/match/goal/special-subjects",
+        }, // Специальные special-subjects
+        51: {
+          goalCategoryId: "68e63dfd2149b86c6923531e",
+          goal_id: "19",
+          nextPage: "/match/goal/japanese",
+        }, // Японский язык japanese
+      };
+
+      const subjects = await prisma.subject.findMany({
+        where: {
+          id_cat: { not: null },
+        },
+      });
+
+      console.log(`Найдено ${subjects.length} предметов для обновления`);
+
+      let updatedCount = 0;
+      const unknownCats = new Set();
+
+      for (const subject of subjects) {
+        const mappingData = mapping[subject.id_cat];
+
+        if (!mappingData) {
+          unknownCats.add(subject.id_cat);
+          continue;
+        }
+
+        await prisma.subject.update({
+          where: { id: subject.id },
+          data: {
+            goalCategoryId: mappingData.goalCategoryId,
+            goal_id: mappingData.goal_id,
+            nextPage: mappingData.nextPage,
+          },
+        });
+
+        updatedCount++;
+      }
+
+      res.json({
+        message: `Миграция завершена.`,
+        updated: updatedCount,
+        skipped: Array.from(unknownCats),
+      });
+    } catch (error) {
+      console.error("Ошибка при миграции goalCategoryId и goal_id:", error);
+      res.status(500).json({ error: "Ошибка при миграции данных" });
+    }
+  },
 };
 
 module.exports = SubjectController;
