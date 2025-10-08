@@ -15,6 +15,8 @@ const {
   SubjectController,
   ContractController,
   ReviewController,
+  NotificationController,
+  GoalController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const isAdmin = require("../middleware/isAdmin");
@@ -221,6 +223,11 @@ router.patch(
   authenticateToken,
   TutorController.updateSubjectPrice
 );
+router.get(
+  "/tutors/:tutorId/incompleteSubjectPrice",
+  authenticateToken,
+  TutorController.incompleteSubjectPrices
+);
 router.delete(
   "/tutorsEducation/:id/:educationId",
   authenticateToken,
@@ -230,6 +237,27 @@ router.delete(
   "/tutorsFileEducation/:id/:educationId",
   authenticateToken,
   TutorController.deleteDiploma
+);
+// Роуты для управления целями
+router.get(
+  "/tutors/:tutorId/:subjectId/goals",
+  authenticateToken,
+  TutorController.getTutorGoalsBySubject
+);
+router.get(
+  "/tutors/:tutorId/goals",
+  authenticateToken,
+  TutorController.getTutorSelectedGoalsGrouped
+);
+router.get(
+  "/tutors/:tutorId/subjectsWithGoals",
+  authenticateToken,
+  TutorController.getTutorSubjectsWithGoals
+);
+router.patch(
+  "/tutors/:tutorId/:subjectId/goals",
+  authenticateToken,
+  TutorController.updateTutorGoalsBySubject
 );
 
 /***************************************** */
@@ -288,6 +316,20 @@ router.delete(
   authenticateToken,
   EmployeeController.deleteOrderByAdmin
 );
+router.get(
+  "/employees/orders/:orderId/relevant-tutors",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getRelevantTutorsForOrder
+);
+
+router.patch(
+  "/employees/orders/:id/publish",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.publishOrder
+);
+
 router.get(
   "/employees/tutors",
   authenticateToken,
@@ -378,10 +420,48 @@ router.post(
   isAdmin,
   EmployeeController.deleteRequestStudentByAdmin
 );
-router.post(
-  "/employees/init-tutor-fields",
+// router.post(
+//   "/employees/init-tutor-fields",
+//   authenticateToken,
+//   EmployeeController.initTutorFieldsOnce
+// );
+
+router.get(
+  "/employees/:tutorId/incompleteSubjectPrice",
   authenticateToken,
-  EmployeeController.initTutorFieldsOnce
+  isAdmin,
+  EmployeeController.incompleteSubjectPrices
+);
+// Роуты для управления целями
+router.get(
+  "/employees/:tutorId/:subjectId/goals",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getTutorGoalsBySubject
+);
+router.get(
+  "/employees/:tutorId/goals",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getTutorSelectedGoalsGrouped
+);
+router.get(
+  "/employees/:tutorId/subjectsWithGoals",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getTutorSubjectsWithGoals
+);
+router.patch(
+  "/employees/:tutorId/:subjectId/goals",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.updateTutorGoalsBySubject
+);
+router.post(
+  "/employees/recalculate-rating-tutor-all",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.recalculateRatingTutorAll
 );
 
 router.patch(
@@ -452,6 +532,29 @@ router.get("/orders/:id", authenticateToken, OrderController.getOrderById);
 router.get("/public/orders/:id", OrderController.getOrderByIdPublic);
 router.patch("/orders/:id", authenticateToken, OrderController.updateOrder);
 router.delete("/orders/:id", authenticateToken, OrderController.deleteOrder);
+
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/****************УВЕДОМЛЕНИЯ************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+// Генерация ссылки для подключения Telegram
+router.post("/telegram/connect", NotificationController.connectTelegram);
+// Вебхук от Telegram
+router.post("/telegram/webhook", NotificationController.telegramWebhook);
+// Проверка подключения Telegram через webhook
+router.post("/telegram/connectWebhook", NotificationController.connectWebhook);
+// Отправка уведомлений о новом заказе
+router.post(
+  "/order/:orderId/notifications/new-order",
+  NotificationController.notifyTutorsForOrder
+);
 
 /***************************************** */
 /***************************************** */
@@ -583,6 +686,74 @@ router.delete(
   authenticateToken,
   isAdmin,
   SubjectController.deleteSubject
+);
+// Получение целей для конкретного предмета
+router.get("/subjects/:subjectId/goals", SubjectController.getGoalsBySubject);
+
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/*************ЦЕЛИ И КАТЕГОРИИ************ */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+
+// Роуты для целей
+router.post("/goals", authenticateToken, isAdmin, GoalController.createGoal);
+router.get("/goals", GoalController.getAllGoals);
+router.get("/goals/:id", GoalController.getGoalById);
+router.patch(
+  "/goals/:id",
+  authenticateToken,
+  isAdmin,
+  GoalController.updateGoal
+);
+
+// Привязка целей к категории
+router.patch(
+  "/categories-goals/:id/goals",
+  authenticateToken,
+  isAdmin,
+  GoalController.updateCategoryGoals
+);
+router.delete(
+  "/goals/:id",
+  authenticateToken,
+  isAdmin,
+  GoalController.deleteGoal
+);
+
+// Роуты для категорий целей
+router.post(
+  "/categories-goals",
+  authenticateToken,
+  isAdmin,
+  GoalController.createCategory
+);
+router.get("/categories-goals", GoalController.getAllCategories);
+router.get("/categories-goals/:id", GoalController.getCategoryById);
+router.patch(
+  "/categories-goals/:id",
+  authenticateToken,
+  isAdmin,
+  GoalController.updateCategory
+);
+// Привязка категорий к цели
+router.patch(
+  "/goals/:id/categories",
+  authenticateToken,
+  isAdmin,
+  GoalController.updateGoalCategories
+);
+router.delete(
+  "/categories-goals/:id",
+  authenticateToken,
+  isAdmin,
+  GoalController.deleteCategory
 );
 
 /***************************************** */

@@ -11,6 +11,8 @@ const ChatController = require("./chat");
 const SubjectController = require("./subject");
 const ContractController = require("./contract");
 const ReviewController = require("./review");
+const NotificationController = require("./notification");
+const GoalController = require("./goal");
 
 module.exports = {
   UserController,
@@ -26,4 +28,6 @@ module.exports = {
   SubjectController,
   ContractController,
   ReviewController,
+  NotificationController,
+  GoalController,
 };
