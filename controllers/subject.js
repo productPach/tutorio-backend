@@ -501,11 +501,7 @@ const SubjectController = {
         }, // Японский язык japanese
       };
 
-      const subjects = await prisma.subject.findMany({
-        where: {
-          NOT: { id_cat: null },
-        },
-      });
+      const subjects = await prisma.subject.findMany();
 
       console.log(`Найдено ${subjects.length} предметов для обновления`);
 
@@ -513,6 +509,8 @@ const SubjectController = {
       const unknownCats = new Set();
 
       for (const subject of subjects) {
+        if (!subject.id_cat) continue;
+
         const mappingData = mapping[subject.id_cat];
 
         if (!mappingData) {
