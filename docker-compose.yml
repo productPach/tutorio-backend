@@ -6,7 +6,7 @@ services:
       - "3000:3000"
     depends_on:
       - tutorio-mongodb
-      - tutorio-app
+      # - tutorio-app
     environment:
       DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
     volumes:
@@ -35,6 +35,41 @@ services:
       - ./mongo-data:/data/db
       - ./mongo-init:/docker-entrypoint-initdb.d
       - ./mongo-keyfile:/data/keyfile:ro
+
+  tutorio-redis:
+    image: redis:7
+    container_name: tutorio-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--requirepass", "supersecret"]
+    restart: unless-stopped
+
+  tutorio-worker:
+    build: .
+    container_name: tutorio-worker
+    command: node workers/telegramWorker.js
+    depends_on:
+      - tutorio-redis
+    environment:
+      REDIS_HOST: tutorio-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: supersecret
+      TELEGRAM_BOT_TOKEN: 8391093914:AAEZhNnKu9hv2hI84AcNWJCLEOtDoZX3D6s
+    restart: unless-stopped
+
+  tutorio-rating-worker:
+    build: .
+    container_name: tutorio-rating-worker
+    command: node workers/ratingWorker.js
+    depends_on:
+      - tutorio-redis
+      - tutorio-mongodb
+    environment:
+      DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
+      REDIS_HOST: tutorio-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: supersecret
+    restart: unless-stopped
 
   tutorio-app:
     build:

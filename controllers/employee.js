@@ -1,6 +1,11 @@
 const { prisma } = require("../prisma/prisma-client");
 const path = require("path");
 const fs = require("fs");
+const { sendTelegramNotification } = require("../services/notificationService");
+const findTutorsForOrders = require("../services/findTutorsForOrder");
+const {
+  recalculateAllTutorRatings,
+} = require("../services/rating/recalculateAllTutorRatings");
 
 const EmployeeController = {
   // Создание сотрудника
@@ -183,7 +188,7 @@ const EmployeeController = {
                   id: true,
                   name: true,
                   avatarUrl: true,
-                  publicRating: true,
+                  userRating: true,
                   reviewsCount: true,
                 },
               },
@@ -201,7 +206,7 @@ const EmployeeController = {
             id: c.tutorId,
             name: c.tutor?.name ?? "",
             avatarUrl: c.tutor?.avatarUrl ?? "",
-            publicRating: c.tutor?.publicRating,
+            userRating: c.tutor?.userRating,
             reviewsCount: c.tutor?.reviewsCount,
           }))
         : [];
@@ -241,6 +246,7 @@ const EmployeeController = {
       studentWishes,
       region,
       responseCost,
+      goalId, // ID цели в БД
       status,
     } = req.body;
     const userId = req.user.userID;
@@ -296,6 +302,7 @@ const EmployeeController = {
           studentWishes: studentWishes || undefined,
           region: region || undefined,
           responseCost: responseCost || undefined,
+          goalId: goalId || undefined, // сохраняем ссылку на цель в БД
           status: status || undefined,
         },
         include: {
@@ -316,7 +323,7 @@ const EmployeeController = {
                   id: true,
                   name: true,
                   avatarUrl: true,
-                  publicRating: true,
+                  userRating: true,
                   reviewsCount: true,
                 },
               },
@@ -325,19 +332,8 @@ const EmployeeController = {
         },
       });
 
-      const selectedTutors = Array.isArray(updatedOrder.contracts)
-        ? updatedOrder.contracts.map((c) => ({
-            id: c.tutorId,
-            name: c.tutor?.name ?? "",
-            avatarUrl: c.tutor?.avatarUrl ?? "",
-            publicRating: c.tutor?.publicRating,
-            reviewsCount: c.tutor?.reviewsCount,
-          }))
-        : [];
-
       res.json({
         ...updatedOrder,
-        selectedTutors,
       });
     } catch (error) {
       console.error("Update Order by Admin Error", error);
@@ -379,6 +375,115 @@ const EmployeeController = {
     } catch (error) {
       console.error("Delete Order by Admin Error", error);
       res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Подходящие репетиторы для заказа
+  getRelevantTutorsForOrder: async (req, res) => {
+    const { orderId } = req.params;
+
+    try {
+      // Получаем заказ
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          subject: true,
+          goalId: true,
+          studentPlace: true,
+          region: true,
+          studentTrip: true,
+          studentHomeLoc: true,
+          tutorType: true,
+        },
+      });
+
+      if (!order) {
+        return res.status(404).json({ error: "Заказ не найден" });
+      }
+
+      // Подбираем репетиторов
+      const tutors = await findTutorsForOrders(order);
+      console.log(`Заказ ${orderId}: ${tutors.length} tutors`);
+
+      // Считаем, кому реально уйдет рассылка
+      let telegramCount = 0;
+      let emailCount = 0;
+
+      tutors.forEach((tutor) => {
+        if (
+          tutor.isNotifications &&
+          tutor.isNotificationsOrders &&
+          tutor.isNotificationsTelegram &&
+          tutor.telegramId
+        )
+          telegramCount++;
+        if (
+          tutor.isNotifications &&
+          tutor.isNotificationsOrders &&
+          tutor.isNotificationsEmail &&
+          tutor.isVerifedEmail &&
+          tutor.email
+        )
+          emailCount++;
+      });
+
+      res.json({
+        total: tutors.length,
+        telegram: telegramCount,
+        email: emailCount,
+      });
+    } catch (err) {
+      console.error("getRelevantTutorsForOrder Error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Отдельный endpoint для публикации заказа
+  publishOrder: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      // 🔍 Проверка на существование заказа
+      const order = await prisma.order.findUnique({
+        where: { id },
+        include: {
+          student: true,
+        },
+      });
+
+      if (!order) {
+        return res.status(404).json({ error: "Заказ не найден" });
+      }
+
+      // ✅ Дополнительные проверки готовности заказа к публикации
+      const validationErrors = [];
+
+      if (!order.responseCost)
+        validationErrors.push("Не указана стоимость отклика");
+
+      if (validationErrors.length > 0) {
+        return res.status(400).json({
+          error: "Заказ не готов к публикации",
+          details: validationErrors,
+        });
+      }
+
+      // ✏️ Обновление - устанавливаем publishedAt и статус
+      const publishedOrder = await prisma.order.update({
+        where: { id },
+        data: {
+          publishedAt: new Date(), // Дата публикации
+          status: "Active", // Явный статус публикации
+        },
+      });
+
+      res.json({
+        message: "Заказ успешно опубликован",
+        order: publishedOrder,
+      });
+    } catch (error) {
+      console.error("Publish Order Error", error);
+      res.status(500).json({ error: "Ошибка при публикации заказа" });
     }
   },
 
@@ -1299,46 +1404,280 @@ const EmployeeController = {
     }
   },
 
-  initTutorFieldsOnce: async (req, res) => {
+  // initTutorFieldsOnce: async (req, res) => {
+  //   try {
+  //     const tutors = await prisma.tutor.findMany({
+  //       select: { id: true },
+  //     });
+
+  //     let updatedCount = 0;
+
+  //     for (const tutor of tutors) {
+  //       await prisma.tutor.update({
+  //         where: { id: tutor.id },
+  //         data: {
+  //           publicRating: 4.5,
+  //           internalRating: 4.5,
+  //           employeesRating: 0,
+  //           contractCount: 0,
+  //           contractRejectCount: 0,
+  //           averagePay: 0,
+  //           refundsPayCount: 0,
+  //           reviewsCount: 0,
+  //           averageReviewScore: 0,
+  //           responseTimeSeconds: 0,
+  //           responseCount: 0,
+  //           sessionCount: 0,
+  //           hasQualityAvatar: false,
+  //           hasSubjectPrices: false,
+  //           hasPriceComments: false,
+  //           hasProfileInfo: false,
+  //           hasEducation: false,
+  //           hasEducationPhotos: false,
+  //         },
+  //       });
+
+  //       updatedCount++;
+  //     }
+
+  //     res.json({ message: `✅ Обновлено ${updatedCount} репетиторов` });
+  //   } catch (error) {
+  //     console.error("❌ Ошибка инициализации полей репетитора:", error);
+  //     res.status(500).json({ error: "Ошибка при инициализации данных" });
+  //   }
+  // },
+  // ***************************************** */
+
+  // Проверка предметов без полной стоимости
+  incompleteSubjectPrices: async (req, res) => {
     try {
-      const tutors = await prisma.tutor.findMany({
-        select: { id: true },
-      });
+      const tutorId = req.params.tutorId;
 
-      let updatedCount = 0;
-
-      for (const tutor of tutors) {
-        await prisma.tutor.update({
-          where: { id: tutor.id },
-          data: {
-            publicRating: 4.5,
-            internalRating: 4.5,
-            employeesRating: 0,
-            contractCount: 0,
-            contractRejectCount: 0,
-            averagePay: 0,
-            refundsPayCount: 0,
-            reviewsCount: 0,
-            averageReviewScore: 0,
-            responseTimeSeconds: 0,
-            responseCount: 0,
-            sessionCount: 0,
-            hasQualityAvatar: false,
-            hasSubjectPrices: false,
-            hasPriceComments: false,
-            hasProfileInfo: false,
-            hasEducation: false,
-            hasEducationPhotos: false,
-          },
-        });
-
-        updatedCount++;
+      if (!tutorId) {
+        return res.status(400).json({ error: "ID репетитора обязателен" });
       }
 
-      res.json({ message: `✅ Обновлено ${updatedCount} репетиторов` });
+      const tutor = await prisma.tutor.findUnique({
+        where: { id: tutorId },
+        select: { subjectPrices: true, subject: true },
+      });
+
+      if (!tutor) {
+        return res.status(400).json({ error: "Не удалось найти репетитора" });
+      }
+
+      const subjectsWithoutFullPrices = tutor.subject
+        .map((subjId) => {
+          const pricesForSubject = tutor.subjectPrices.filter(
+            (p) => p.subjectId === subjId
+          );
+          return pricesForSubject.length === 0 ? subjId : null;
+        })
+        .filter(Boolean);
+
+      res.json({
+        hasIncompletePrices: subjectsWithoutFullPrices.length > 0,
+        subjectsWithoutFullPrices,
+      });
     } catch (error) {
-      console.error("❌ Ошибка инициализации полей репетитора:", error);
-      res.status(500).json({ error: "Ошибка при инициализации данных" });
+      console.error("Incomplete Prices Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Получение целей по предмету + помечаем выбранные цели репетитора по данному предмету
+  getTutorGoalsBySubject: async (req, res) => {
+    const { subjectId, tutorId } = req.params;
+
+    if (!tutorId) {
+      return res.status(400).json({ error: "tutorId обязателен" });
+    }
+
+    try {
+      const subject = await prisma.subject.findFirst({
+        where: { id_p: subjectId },
+        select: { goalCategoryId: true },
+      });
+      // ИСПРАВИТЬ НА ВАРИАНТ НИЖЕ КОГДА ПЕРЕДЕЛАЕМ СОХРАНЕНИЕ ПРЕДМЕТОВ ПО ИХ ID В MONGOBD
+      // const subject = await prisma.subject.findUnique({
+      //   where: { id: subjectId },
+      //   select: { goalCategoryId: true },
+      // });
+
+      if (!subject) return res.status(404).json({ error: "Предмет не найден" });
+
+      const goalLinks = await prisma.goalToCategory.findMany({
+        where: { categoryId: subject.goalCategoryId },
+        include: {
+          goal: {
+            include: {
+              tutorGoals: {
+                where: { tutorId, subjectId }, // фильтруем по tutorId + subjectId
+              },
+            },
+          },
+        },
+      });
+
+      const goals = goalLinks.map((link) => ({
+        ...link.goal,
+        selected: link.goal.tutorGoals.length > 0, // помечаем выбранные цели
+      }));
+
+      res.status(200).json(goals);
+    } catch (error) {
+      console.error("Ошибка при получении целей для предмета:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Получение выбранных целей репетитора по каждому предмету
+  getTutorSelectedGoalsGrouped: async (req, res) => {
+    const { tutorId } = req.params;
+
+    try {
+      const selectedGoals = await prisma.tutorGoal.findMany({
+        where: { tutorId },
+        include: { goal: true },
+      });
+
+      // Группируем по subjectId
+      const goalsBySubject = selectedGoals.reduce((acc, tg) => {
+        if (!acc[tg.subjectId]) acc[tg.subjectId] = [];
+        acc[tg.subjectId].push({
+          id: tg.goal.id,
+          title: tg.goal.title,
+        });
+        return acc;
+      }, {});
+
+      res.status(200).json(goalsBySubject);
+    } catch (error) {
+      console.error("Ошибка при получении целей репетитора:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Получаем предметы репетитора с целями
+  getTutorSubjectsWithGoals: async (req, res) => {
+    const { tutorId } = req.params;
+
+    if (!tutorId) return res.status(400).json({ error: "tutorId обязателен" });
+
+    try {
+      // Находим репетитора
+      const tutor = await prisma.tutor.findUnique({
+        where: { id: tutorId },
+        select: { subject: true }, // массив id_p предметов
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // Берём предметы только из tutor.subject
+      const subjects = await prisma.subject.findMany({
+        where: { id_p: { in: tutor.subject } },
+        select: {
+          id_p: true,
+          title: true,
+          goalCategoryId: true,
+        },
+      });
+
+      const categoryIds = subjects.map((s) => s.goalCategoryId);
+
+      // Берём все цели для категорий предметов одной пачкой
+      const goalsInCategories = await prisma.goalToCategory.findMany({
+        where: { categoryId: { in: categoryIds } },
+        include: { goal: true },
+      });
+
+      // Берём все цели репетитора
+      const tutorGoals = await prisma.tutorGoal.findMany({
+        where: { tutorId },
+      });
+
+      // Сопоставляем цели с предметами
+      const result = subjects.map((subject) => {
+        const goalsForSubject = goalsInCategories.filter(
+          (link) => link.categoryId === subject.goalCategoryId
+        );
+
+        const goalsWithSelected = goalsForSubject.map((link) => {
+          const selected = tutorGoals.some(
+            (tg) => tg.goalId === link.goal.id && tg.subjectId === subject.id_p
+          );
+          return { id: link.goal.id, title: link.goal.title, selected };
+        });
+
+        return {
+          subjectId: subject.id_p,
+          subjectTitle: subject.title,
+          goals: goalsWithSelected,
+          hasNoSelectedGoals: goalsWithSelected.every((g) => !g.selected),
+        };
+      });
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Ошибка при получении предметов с целями:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Изменение целей по предмету + помечаем выбранные цели репетитора по данному предмету
+  updateTutorGoalsBySubject: async (req, res) => {
+    const { tutorId, subjectId } = req.params;
+    const { goalIds } = req.body; // массив ID целей, которые выбрал репетитор
+
+    if (!Array.isArray(goalIds)) {
+      return res
+        .status(400)
+        .json({ error: "goalIds обязателен и должен быть массивом" });
+    }
+
+    try {
+      // 1️⃣ Удаляем все старые цели репетитора для этого предмета
+      await prisma.tutorGoal.deleteMany({
+        where: {
+          tutorId,
+          subjectId,
+        },
+      });
+
+      // 2️⃣ Создаём новые выбранные цели
+      const newGoals = goalIds.map((goalId) => ({
+        tutorId,
+        subjectId,
+        goalId,
+      }));
+
+      if (newGoals.length > 0) {
+        await prisma.tutorGoal.createMany({ data: newGoals });
+      }
+
+      res.status(200).json({ message: "Цели репетитора обновлены" });
+    } catch (error) {
+      console.error("Ошибка при обновлении целей репетитора:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Тестовый запуск пересчёта рейтингов для всех репетиторов
+  recalculateRatingTutorAll: async (req, res) => {
+    try {
+      console.log("🚀 Пользователь запустил пересчёт рейтингов");
+
+      await recalculateAllTutorRatings();
+
+      res.json({
+        message:
+          "✅ Все задачи на пересчёт рейтингов репетиторов добавлены в очередь!",
+      });
+    } catch (error) {
+      console.error("Ошибка при запуске пересчета рейтингов:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   },
 
@@ -1443,14 +1782,14 @@ const EmployeeController = {
           select: { rating: true },
         });
 
-        const publicRating =
+        const userRating =
           activeReviews.reduce((sum, r) => sum + r.rating, 0) /
           (activeReviews.length || 1); // защита от деления на 0
 
         await prisma.tutor.update({
           where: { id: tutorId },
           data: {
-            publicRating: Number(publicRating.toFixed(1)),
+            userRating: Number(userRating.toFixed(1)),
             reviewsCount: activeReviews.length,
           },
         });
@@ -1554,14 +1893,14 @@ const EmployeeController = {
           select: { rating: true },
         });
 
-        const publicRating =
+        const userRating =
           activeReviews.reduce((acc, r) => acc + r.rating, 0) /
           activeReviews.length;
 
         await prisma.tutor.update({
           where: { id: updated.tutorId },
           data: {
-            publicRating: Number(publicRating.toFixed(1)),
+            userRating: Number(userRating.toFixed(1)),
             reviewsCount: activeReviews.length,
           },
         });
@@ -1590,7 +1929,7 @@ const EmployeeController = {
         await prisma.student.update({
           where: { id: updated.studentId },
           data: {
-            publicRating: Number(averageRating.toFixed(1)),
+            userRating: Number(averageRating.toFixed(1)),
           },
         });
       }

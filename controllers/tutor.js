@@ -4,6 +4,9 @@ const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const { connect } = require("http2");
+const {
+  recalculateAllTutorRatings,
+} = require("../services/rating/recalculateAllTutorRatings");
 
 const TutorController = {
   // Создание репетитора
@@ -168,7 +171,7 @@ const TutorController = {
               },
             },
           },
-          publicRating: true,
+          userRating: true,
           reviewsCount: true,
           averageReviewScore: true,
           // Исключаем: phone, email, telegram, skype, response, chats
@@ -256,7 +259,7 @@ const TutorController = {
               },
             },
           },
-          publicRating: true,
+          userRating: true,
           reviewsCount: true,
           averageReviewScore: true,
           // Исключаем: phone, email, telegram, skype, response, chats
@@ -267,7 +270,18 @@ const TutorController = {
         return res.status(404).json({ error: "Репетитор не найден" });
       }
 
-      res.json({ tutor });
+      const selectedGoals = await prisma.tutorGoal.findMany({
+        where: { tutorId: id },
+        include: { goal: true, subject: true },
+      });
+
+      const goalsBySubject = selectedGoals.reduce((acc, tg) => {
+        if (!acc[tg.subjectId]) acc[tg.subjectId] = [];
+        acc[tg.subjectId].push(tg.goal);
+        return acc;
+      }, {});
+
+      res.json({ tutor, goalsBySubject });
     } catch (error) {
       console.error("Get Tutor By Id Error", error);
       res.status(500).json({ error: "Internal server error" });
@@ -342,7 +356,7 @@ const TutorController = {
               },
             },
           },
-          publicRating: true,
+          userRating: true,
           reviewsCount: true,
           averageReviewScore: true,
           // Исключаем: phone, email, telegram, skype, response, chats
@@ -353,7 +367,18 @@ const TutorController = {
         return res.status(404).json({ error: "Репетитор не найден" });
       }
 
-      res.json({ tutor });
+      const selectedGoals = await prisma.tutorGoal.findMany({
+        where: { tutorId: id },
+        include: { goal: true, subject: true },
+      });
+
+      const goalsBySubject = selectedGoals.reduce((acc, tg) => {
+        if (!acc[tg.subjectId]) acc[tg.subjectId] = [];
+        acc[tg.subjectId].push(tg.goal);
+        return acc;
+      }, {});
+
+      res.json({ tutor, goalsBySubject });
     } catch (error) {
       console.error("Get Tutor By Id Error", error);
       res.status(500).json({ error: "Internal server error" });
@@ -491,6 +516,14 @@ const TutorController = {
       // Удаляем цены, если предмет был удалён (НО ТОЛЬКО ЕСЛИ subject ПРИШЕЛ В ЗАПРОСЕ)
       if (subject !== undefined && removedSubjects.length > 0) {
         await prisma.tutorSubjectPrice.deleteMany({
+          where: {
+            tutorId: id,
+            subjectId: { in: removedSubjects },
+          },
+        });
+
+        // Удаляем цели репетитора по удалённым предметам
+        await prisma.tutorGoal.deleteMany({
           where: {
             tutorId: id,
             subjectId: { in: removedSubjects },
@@ -850,6 +883,185 @@ const TutorController = {
     } catch (error) {
       console.error("Delete Request Tutor Error", error);
       res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Получение целей по предмету + помечаем выбранные цели репетитора по данному предмету
+  getTutorGoalsBySubject: async (req, res) => {
+    const { subjectId, tutorId } = req.params;
+
+    if (!tutorId) {
+      return res.status(400).json({ error: "tutorId обязателен" });
+    }
+
+    try {
+      const subject = await prisma.subject.findFirst({
+        where: { id_p: subjectId },
+        select: { goalCategoryId: true },
+      });
+      // ИСПРАВИТЬ НА ВАРИАНТ НИЖЕ КОГДА ПЕРЕДЕЛАЕМ СОХРАНЕНИЕ ПРЕДМЕТОВ ПО ИХ ID В MONGOBD
+      // const subject = await prisma.subject.findUnique({
+      //   where: { id: subjectId },
+      //   select: { goalCategoryId: true },
+      // });
+
+      if (!subject) return res.status(404).json({ error: "Предмет не найден" });
+
+      const goalLinks = await prisma.goalToCategory.findMany({
+        where: { categoryId: subject.goalCategoryId },
+        include: {
+          goal: {
+            include: {
+              tutorGoals: {
+                where: { tutorId, subjectId }, // фильтруем по tutorId + subjectId
+              },
+            },
+          },
+        },
+      });
+
+      const goals = goalLinks.map((link) => ({
+        ...link.goal,
+        selected: link.goal.tutorGoals.length > 0, // помечаем выбранные цели
+      }));
+
+      res.status(200).json(goals);
+    } catch (error) {
+      console.error("Ошибка при получении целей для предмета:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Получение выбранных целей репетитора по каждому предмету
+  getTutorSelectedGoalsGrouped: async (req, res) => {
+    const { tutorId } = req.params;
+
+    try {
+      const selectedGoals = await prisma.tutorGoal.findMany({
+        where: { tutorId },
+        include: { goal: true },
+      });
+
+      // Группируем по subjectId
+      const goalsBySubject = selectedGoals.reduce((acc, tg) => {
+        if (!acc[tg.subjectId]) acc[tg.subjectId] = [];
+        acc[tg.subjectId].push({
+          id: tg.goal.id,
+          title: tg.goal.title,
+        });
+        return acc;
+      }, {});
+
+      res.status(200).json(goalsBySubject);
+    } catch (error) {
+      console.error("Ошибка при получении целей репетитора:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Получаем предметы репетитора с целями
+  getTutorSubjectsWithGoals: async (req, res) => {
+    const { tutorId } = req.params;
+
+    if (!tutorId) return res.status(400).json({ error: "tutorId обязателен" });
+
+    try {
+      // Находим репетитора
+      const tutor = await prisma.tutor.findUnique({
+        where: { id: tutorId },
+        select: { subject: true }, // массив id_p предметов
+      });
+
+      if (!tutor) {
+        return res.status(404).json({ error: "Репетитор не найден" });
+      }
+
+      // Берём предметы только из tutor.subject
+      const subjects = await prisma.subject.findMany({
+        where: { id_p: { in: tutor.subject } },
+        select: {
+          id_p: true,
+          title: true,
+          goalCategoryId: true,
+        },
+      });
+
+      const categoryIds = subjects.map((s) => s.goalCategoryId);
+
+      // Берём все цели для категорий предметов одной пачкой
+      const goalsInCategories = await prisma.goalToCategory.findMany({
+        where: { categoryId: { in: categoryIds } },
+        include: { goal: true },
+      });
+
+      // Берём все цели репетитора
+      const tutorGoals = await prisma.tutorGoal.findMany({
+        where: { tutorId },
+      });
+
+      // Сопоставляем цели с предметами
+      const result = subjects.map((subject) => {
+        const goalsForSubject = goalsInCategories.filter(
+          (link) => link.categoryId === subject.goalCategoryId
+        );
+
+        const goalsWithSelected = goalsForSubject.map((link) => {
+          const selected = tutorGoals.some(
+            (tg) => tg.goalId === link.goal.id && tg.subjectId === subject.id_p
+          );
+          return { id: link.goal.id, title: link.goal.title, selected };
+        });
+
+        return {
+          subjectId: subject.id_p,
+          subjectTitle: subject.title,
+          goals: goalsWithSelected,
+          hasNoSelectedGoals: goalsWithSelected.every((g) => !g.selected),
+        };
+      });
+
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Ошибка при получении предметов с целями:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Изменение целей по предмету + помечаем выбранные цели репетитора по данному предмету
+  updateTutorGoalsBySubject: async (req, res) => {
+    const { tutorId, subjectId } = req.params;
+    const { goalIds } = req.body; // массив ID целей, которые выбрал репетитор
+
+    if (!Array.isArray(goalIds)) {
+      return res
+        .status(400)
+        .json({ error: "goalIds обязателен и должен быть массивом" });
+    }
+
+    try {
+      // 1️⃣ Удаляем все старые цели репетитора для этого предмета
+      await prisma.tutorGoal.deleteMany({
+        where: {
+          tutorId,
+          subjectId,
+        },
+      });
+
+      // 2️⃣ Создаём новые выбранные цели
+      const newGoals = goalIds.map((goalId) => ({
+        tutorId,
+        subjectId,
+        goalId,
+      }));
+
+      if (newGoals.length > 0) {
+        await prisma.tutorGoal.createMany({ data: newGoals });
+      }
+
+      res.status(200).json({ message: "Цели репетитора обновлены" });
+    } catch (error) {
+      console.error("Ошибка при обновлении целей репетитора:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
     }
   },
 
@@ -1253,6 +1465,43 @@ const TutorController = {
     } catch (error) {
       console.error("Update Subject Price Error:", error);
       res.status(500).json({ error: "Ошибка при обновлении цены" });
+    }
+  },
+
+  // Проверка предметов без полной стоимости
+  incompleteSubjectPrices: async (req, res) => {
+    try {
+      const tutorId = req.params.tutorId;
+
+      if (!tutorId) {
+        return res.status(400).json({ error: "ID репетитора обязателен" });
+      }
+
+      const tutor = await prisma.tutor.findUnique({
+        where: { id: tutorId },
+        select: { subjectPrices: true, subject: true },
+      });
+
+      if (!tutor) {
+        return res.status(400).json({ error: "Не удалось найти репетитора" });
+      }
+
+      const subjectsWithoutFullPrices = tutor.subject
+        .map((subjId) => {
+          const pricesForSubject = tutor.subjectPrices.filter(
+            (p) => p.subjectId === subjId
+          );
+          return pricesForSubject.length === 0 ? subjId : null;
+        })
+        .filter(Boolean);
+
+      res.json({
+        hasIncompletePrices: subjectsWithoutFullPrices.length > 0,
+        subjectsWithoutFullPrices,
+      });
+    } catch (error) {
+      console.error("Incomplete Prices Error", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   },
 };

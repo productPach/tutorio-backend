@@ -16,7 +16,8 @@ const SubjectController = {
           general,
           nextPage,
           id_p,
-          goal_id,
+          goalCategoryId,
+          // goal_id,
         } = subject;
 
         // ✅ Проверка обязательных полей
@@ -28,11 +29,12 @@ const SubjectController = {
           general === undefined ||
           !nextPage ||
           !id_p ||
-          !goal_id
+          !goalCategoryId
+          // !goal_id
         ) {
           return res.status(400).json({
             error:
-              "Все поля (title, for_request, for_chpu, id_cat, general, nextPage, id_p, goal_id) являются обязательными",
+              "Все поля (title, for_request, for_chpu, id_cat, general, nextPage, id_p, goalCategoryId) являются обязательными",
           });
         }
 
@@ -47,6 +49,17 @@ const SubjectController = {
           });
         }
 
+        // ✅ Проверка, что категория целей существует
+        const category = await prisma.goalCategory.findUnique({
+          where: { id: goalCategoryId },
+        });
+
+        if (!category) {
+          return res.status(400).json({
+            error: `Категория целей с id "${goalCategoryId}" не найдена`,
+          });
+        }
+
         // ✅ Создание предмета
         const created = await prisma.subject.create({
           data: {
@@ -57,7 +70,8 @@ const SubjectController = {
             general,
             nextPage,
             id_p,
-            goal_id,
+            //goal_id,
+            goalCategoryId,
           },
         });
 
@@ -119,7 +133,8 @@ const SubjectController = {
           general,
           nextPage,
           id_p,
-          goal_id,
+          //goal_id,
+          goalCategoryId,
         } = subject;
 
         // Проверка обязательных полей
@@ -132,11 +147,12 @@ const SubjectController = {
           general === undefined ||
           !nextPage ||
           !id_p ||
-          !goal_id
+          //!goal_id
+          !goalCategoryId
         ) {
           return res.status(400).json({
             error:
-              "Все поля (id, title, for_request, for_chpu, id_cat, general, nextPage, id_p, goal_id) являются обязательными",
+              "Все поля (id, title, for_request, for_chpu, id_cat, general, nextPage, id_p, goalCategoryId) являются обязательными",
           });
         }
 
@@ -161,7 +177,8 @@ const SubjectController = {
             general,
             nextPage,
             id_p,
-            goal_id,
+            //goal_id,
+            goalCategoryId,
           },
         });
 
@@ -199,6 +216,37 @@ const SubjectController = {
       res.status(200).json({ message: "Предмет успешно удалён" });
     } catch (error) {
       console.error("Ошибка при удалении предмета:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Получение целей по предмету
+  getGoalsBySubject: async (req, res) => {
+    const { subjectId } = req.params;
+
+    try {
+      // 1️⃣ Получаем предмет с его категорией целей
+      const subject = await prisma.subject.findUnique({
+        where: { id: subjectId },
+        select: { goalCategoryId: true },
+      });
+
+      if (!subject) {
+        return res.status(404).json({ error: "Предмет не найден" });
+      }
+
+      // 2️⃣ Получаем все связи GoalToCategory для этой категории
+      const goalLinks = await prisma.goalToCategory.findMany({
+        where: { categoryId: subject.goalCategoryId },
+        include: { goal: true },
+      });
+
+      // 3️⃣ Формируем массив целей
+      const goals = goalLinks.map((link) => link.goal);
+
+      res.status(200).json(goals);
+    } catch (error) {
+      console.error("Ошибка при получении целей для предмета:", error);
       res.status(500).json({ error: "Внутренняя ошибка сервера" });
     }
   },

@@ -44,11 +44,24 @@ const OrderController = {
     }
 
     try {
+      // 🔎 Ищем цель по названию
+      let goalId = null;
+
+      if (goal) {
+        const existingGoal = await prisma.goal.findFirst({
+          where: { title: { equals: goal, mode: "insensitive" } }, // поиск без учета регистра
+        });
+
+        if (existingGoal) {
+          goalId = existingGoal.id;
+        }
+      }
       const order = await prisma.order.create({
         data: {
           studentId,
           subject,
           goal: goal || undefined,
+          goalId: goalId || undefined, // id цели, если нашли
           studentType: studentType || undefined,
           studentYears: studentYears || undefined,
           studentClass: studentClass || undefined,
@@ -261,7 +274,7 @@ const OrderController = {
                   id: true,
                   name: true,
                   avatarUrl: true,
-                  publicRating: true,
+                  userRating: true,
                   reviewsCount: true,
                 },
               },
@@ -293,7 +306,7 @@ const OrderController = {
               id: c.tutorId,
               name: c.tutor?.name ?? "",
               avatarUrl: c.tutor?.avatarUrl ?? "",
-              publicRating: c.tutor?.publicRating,
+              userRating: c.tutor?.userRating,
               reviewsCount: c.tutor?.reviewsCount,
               reviewId: review?.id,
               reviewStatus: review
@@ -423,7 +436,7 @@ const OrderController = {
                   id: true,
                   name: true,
                   avatarUrl: true,
-                  publicRating: true,
+                  userRating: true,
                   reviewsCount: true,
                 },
               },
@@ -451,7 +464,7 @@ const OrderController = {
                 id: c.tutorId,
                 name: c.tutor?.name ?? "",
                 avatarUrl: c.tutor?.avatarUrl ?? "",
-                publicRating: c.tutor?.publicRating,
+                userRating: c.tutor?.userRating,
                 reviewsCount: c.tutor?.reviewsCount,
                 reviewId: review?.id,
                 reviewStatus: review

@@ -10,12 +10,19 @@ require("dotenv").config();
 const { Server } = require("socket.io");
 const startCrons = require("./cron");
 
+const { createBullBoard } = require("@bull-board/api");
+const { BullMQAdapter } = require("@bull-board/api/bullMQAdapter");
+const { ExpressAdapter } = require("@bull-board/express");
+const { ratingQueue } = require("./queue/ratingQueue");
+const { telegramQueue } = require("./queue/telegramQueue");
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: [
       "http://localhost:3001",
+      "http://localhost:3002",
       "http://51.250.20.10",
       "http://dev-tutorio.ru",
       "http://www.dev-tutorio.ru",
@@ -38,6 +45,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3001",
+      "http://localhost:3002",
       "http://51.250.20.10",
       "http://dev-tutorio.ru",
       "http://www.dev-tutorio.ru",
@@ -50,6 +58,21 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"], // Разрешаем эти заголовки
   })
 );
+
+// --- Настройка Bull Board ---
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath("/admin/queues");
+
+createBullBoard({
+  queues: [
+    new BullMQAdapter(ratingQueue),
+    // добавь сюда другие очереди, если нужно
+    new BullMQAdapter(telegramQueue),
+  ],
+  serverAdapter,
+});
+
+app.use("/admin/queues", serverAdapter.getRouter());
 
 app.use(logger("dev"));
 app.use(express.json());

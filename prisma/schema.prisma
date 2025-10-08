@@ -67,7 +67,8 @@ model Student {
   isNotificationsMobilePush Boolean   @default(true)
   isNotificationsWebPush    Boolean   @default(true)
   isNotificationsVk         Boolean   @default(true)
-  publicRating              Float     @default(4.5) // видимый пользователям рейтинг, рассчитывается и обновляется периодически
+  userRating                Float     @default(4.5) // видимый пользователям рейтинг, рассчитывается и обновляется периодически
+  // publicRating              Float     @default(4.5) // видимый пользователям рейтинг, рассчитывается и обновляется периодически
   status                    String
   orders                    Order[]
   reviews                   Review[]  @relation("StudentReviews")
@@ -85,6 +86,8 @@ model Tutor {
   email                     String?
   isVerifedEmail            Boolean             @default(false)
   telegram                  String?
+  telegramConnectToken      String?
+  telegramId                String?
   skype                     String?
   avatarUrl                 String?
   subject                   String[]            @default([])
@@ -107,6 +110,7 @@ model Tutor {
   chats                     Chat[]              @relation("TutorsChats")
   contracts                 Contract[]          @relation("TutorContracts")
   subjectPrices             TutorSubjectPrice[] @relation("TutorToSubjectPrices")
+  tutorGoals                TutorGoal[]
   isPublicProfile           Boolean             @default(true) // для "Публичной анкеты"
   isStudentResponses        Boolean             @default(true) // для "Получать отклики от учеников"
   isNotifications           Boolean             @default(true) // "Получать уведомления"
@@ -115,15 +119,18 @@ model Tutor {
   isNotificationsPromo      Boolean             @default(true)
   isNotificationsSms        Boolean             @default(true)
   isNotificationsEmail      Boolean             @default(true)
-  isNotificationsTelegram   Boolean             @default(true)
+  isNotificationsTelegram   Boolean             @default(false)
   isNotificationsMobilePush Boolean             @default(true)
   isNotificationsWebPush    Boolean             @default(true)
   isNotificationsVk         Boolean             @default(true)
   badges                    String[]            @default([]) // Список шильдиков
   reviews                   Review[]            @relation("TutorReviews")
-  publicRating              Float               @default(4.5) // видимый пользователям рейтинг, рассчитывается и обновляется периодически
-  internalRating            Float               @default(4.5) // внутренний рейтинг, учитывает все факторы
-  employeesRating           Float               @default(0) // внутренний рейтинг для админов
+  userRating                Float               @default(0) // рейтинг от пользователей (учеников), рассчитывается на основе оценок в отзывах
+  serviceRating             Float               @default(0) // рейтинг сервиса, рассчитывается на основе всех факторов
+  totalRating               Float               @default(0) // общий рейтинг, комбинация userRating и serviceRating
+  // publicRating              Float               @default(0) // видимый пользователям рейтинг, рассчитывается и обновляется периодически
+  // internalRating            Float               @default(4.5) // внутренний рейтинг, учитывает все факторы
+  // employeesRating           Float               @default(0) // внутренний рейтинг для админов
   contractCount             Int                 @default(0) // кол-во договоренностей
   contractRejectCount       Int                 @default(0) // кол-во отмены по договоренностям
   averagePay                Float               @default(0) // средний платеж
@@ -152,6 +159,45 @@ model TutorSubjectPrice {
   duration  String // "45" | "60" | "90" | "120" | "day"
 
   @@unique([tutorId, subjectId, format]) // Уникальная комбинация
+}
+
+model TutorGoal {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  tutorId   String @db.ObjectId
+  subjectId String
+  goalId    String @db.ObjectId
+
+  tutor Tutor @relation(fields: [tutorId], references: [id])
+  goal  Goal  @relation(fields: [goalId], references: [id])
+}
+
+model Goal {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  title         String  @unique
+  isGoalInOrder Boolean @default(true)
+  isTutorFilter Boolean @default(true)
+
+  goalCategories GoalToCategory[]
+  tutorGoals     TutorGoal[]
+  orders         Order[]          @relation("GoalOrders") // 🔑 связь с заказами
+}
+
+model GoalCategory {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  title          String           @unique
+  subjects       Subject[]
+  goalCategories GoalToCategory[]
+}
+
+model GoalToCategory {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  goalId     String @db.ObjectId
+  categoryId String @db.ObjectId
+
+  goal     Goal         @relation(fields: [goalId], references: [id])
+  category GoalCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([goalId, categoryId]) // чтобы одна цель не дублировалась в одной категории
 }
 
 model TutorEducation {
@@ -200,8 +246,11 @@ model Order {
   response               Response[]
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
+  publishedAt            DateTime? // Дата публикации заказа
   subject                String
   goal                   String?
+  goalId                 String?    @db.ObjectId
+  goalRef                Goal?      @relation("GoalOrders", fields: [goalId], references: [id])
   studentType            String?
   studentYears           String?
   studentClass           String?
@@ -226,6 +275,10 @@ model Order {
   contracts              Contract[] @relation("OrderContracts")
   reviews                Review[]   @relation("OrderReviews")
   status                 String
+
+  // @@index([createdAt])
+  // @@index([subject])
+  // @@index([publishedAt])
 }
 
 model Contract {
@@ -391,8 +444,12 @@ model Subject {
   id_cat      String
   general     Boolean
   nextPage    String
-  id_p        String
-  goal_id     String
+  id_p        String  @unique
+  goal_id     String // надо будет удалить
+
+  // связь с категорией целей
+  goalCategoryId String       @db.ObjectId
+  goalCategory   GoalCategory @relation(fields: [goalCategoryId], references: [id])
 }
 
 model Comment {

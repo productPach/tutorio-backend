@@ -76,6 +76,7 @@ const ChatController = {
         });
         recipientEmail = student?.email;
         templateId = 1479198; // Шаблон для ученика
+        // Добавить СМС ученику
       } else {
         const tutor = await prisma.tutor.findUnique({
           where: { id: recipientId },
@@ -83,6 +84,7 @@ const ChatController = {
         });
         recipientEmail = tutor?.email;
         templateId = 1479204; // Шаблон для репетитора
+        // Добавить нотификацию в телеграм репетитору
       }
 
       if (!recipientEmail) {
@@ -437,16 +439,6 @@ const ChatController = {
       if (!chat) {
         return res.status(404).json({ error: "Чат не найден" });
       }
-
-      // const selectedTutors = Array.isArray(order.contracts)
-      //   ? order.contracts.map((c) => ({
-      //       id: c.tutorId,
-      //       name: c.tutor?.name ?? "",
-      //       avatarUrl: c.tutor?.avatarUrl ?? "",
-      //       publicRating: c.tutor?.publicRating,
-      //       reviewsCount: c.tutor?.reviewsCount,
-      //     }))
-      //   : [];
 
       res.json(chat);
     } catch (error) {
