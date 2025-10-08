@@ -503,7 +503,7 @@ const SubjectController = {
 
       const subjects = await prisma.subject.findMany({
         where: {
-          id_cat: { not: null },
+          NOT: { id_cat: null },
         },
       });
 
