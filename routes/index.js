@@ -690,7 +690,7 @@ router.delete(
 // Получение целей для конкретного предмета
 router.get("/subjects/:subjectId/goals", SubjectController.getGoalsBySubject);
 
-router.post(
+router.patch(
   "/subjects/update-subjects-data",
   authenticateToken,
   isAdmin,
