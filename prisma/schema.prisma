@@ -185,6 +185,7 @@ model Goal {
 model GoalCategory {
   id             String           @id @default(auto()) @map("_id") @db.ObjectId
   title          String           @unique
+  goal_id        String? // связь с изначальными данными в предметах по целям
   subjects       Subject[]
   goalCategories GoalToCategory[]
 }
