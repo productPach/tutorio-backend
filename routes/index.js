@@ -17,6 +17,7 @@ const {
   ReviewController,
   NotificationController,
   GoalController,
+  SmsController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const isAdmin = require("../middleware/isAdmin");
@@ -68,11 +69,19 @@ const diplomaUploads = multer({ storage: diplomaStorage });
 /***************************************** */
 /***************************************** */
 
+router.post("/sms/secret", SmsController.sendSms);
+router.post("/sms/verify", SmsController.verifyCode);
+router.post(
+  "/sms/verify-update",
+  authenticateToken,
+  SmsController.verifyCodeAndUpdatePhone
+);
+
 // Роуты для пользователя
 router.post("/register-user", UserController.register);
 router.post("/login", UserController.login);
 router.post("/refresh", UserController.refreshTokens);
-router.post("/logout", UserController.logout);
+router.post("/logout", authenticateToken, UserController.logout);
 
 router.get(
   "/sessions",

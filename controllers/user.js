@@ -318,6 +318,7 @@ const UserController = {
         },
         select: {
           id: true,
+          activeRole: true,
           deviceInfo: true,
           createdAt: true,
           expiresAt: true,

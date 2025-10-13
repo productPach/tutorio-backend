@@ -272,12 +272,24 @@ const TutorController = {
 
       const selectedGoals = await prisma.tutorGoal.findMany({
         where: { tutorId: id },
-        include: { goal: true, subject: true },
+        include: { goal: true },
       });
 
+      const subjectIds = selectedGoals.map((tg) => tg.subjectId); // здесь у тебя id_p
+      const subjects = await prisma.subject.findMany({
+        where: { id_p: { in: subjectIds } },
+      });
+
+      // создаём словарь для быстрого доступа
+      const subjectsMap = Object.fromEntries(subjects.map((s) => [s.id_p, s]));
+
       const goalsBySubject = selectedGoals.reduce((acc, tg) => {
-        if (!acc[tg.subjectId]) acc[tg.subjectId] = [];
-        acc[tg.subjectId].push(tg.goal);
+        const subject = subjectsMap[tg.subjectId]; // получаем объект Subject
+        if (!subject) return acc;
+
+        if (!acc[subject.id_p]) acc[subject.id_p] = { subject, goals: [] };
+        acc[subject.id_p].goals.push(tg.goal);
+
         return acc;
       }, {});
 
@@ -369,12 +381,24 @@ const TutorController = {
 
       const selectedGoals = await prisma.tutorGoal.findMany({
         where: { tutorId: id },
-        include: { goal: true, subject: true },
+        include: { goal: true },
       });
 
+      const subjectIds = selectedGoals.map((tg) => tg.subjectId); // здесь у тебя id_p
+      const subjects = await prisma.subject.findMany({
+        where: { id_p: { in: subjectIds } },
+      });
+
+      // создаём словарь для быстрого доступа
+      const subjectsMap = Object.fromEntries(subjects.map((s) => [s.id_p, s]));
+
       const goalsBySubject = selectedGoals.reduce((acc, tg) => {
-        if (!acc[tg.subjectId]) acc[tg.subjectId] = [];
-        acc[tg.subjectId].push(tg.goal);
+        const subject = subjectsMap[tg.subjectId]; // получаем объект Subject
+        if (!subject) return acc;
+
+        if (!acc[subject.id_p]) acc[subject.id_p] = { subject, goals: [] };
+        acc[subject.id_p].goals.push(tg.goal);
+
         return acc;
       }, {});
 

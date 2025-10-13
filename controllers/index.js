@@ -13,6 +13,7 @@ const ContractController = require("./contract");
 const ReviewController = require("./review");
 const NotificationController = require("./notification");
 const GoalController = require("./goal");
+const SmsController = require("./sms");
 
 module.exports = {
   UserController,
@@ -30,4 +31,5 @@ module.exports = {
   ReviewController,
   NotificationController,
   GoalController,
+  SmsController,
 };
