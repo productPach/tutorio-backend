@@ -144,6 +144,8 @@ router.get(
   authenticateToken,
   StudentController.getStudentPhoneById
 );
+// Получение ученика по телефону
+router.post("/students-phone", StudentController.getStudentByPhone);
 router.patch(
   "/students/:id",
   authenticateToken,
@@ -267,6 +269,11 @@ router.patch(
   "/tutors/:tutorId/:subjectId/goals",
   authenticateToken,
   TutorController.updateTutorGoalsBySubject
+);
+router.get(
+  "/tutors/order/:orderId",
+  authenticateToken,
+  TutorController.getTutorsForOrderById
 );
 
 /***************************************** */
