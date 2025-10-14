@@ -1,12 +1,8 @@
 const { prisma } = require("../prisma/prisma-client");
-const jdenticon = require("jdenticon");
 const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
-const { connect } = require("http2");
-const {
-  recalculateAllTutorRatings,
-} = require("../services/rating/recalculateAllTutorRatings");
+const findTutorsForOrdersAllDataTutor = require("../services/tutors/findTutorsForOrderAllDataTutor");
 
 const TutorController = {
   // Создание репетитора
@@ -1526,6 +1522,158 @@ const TutorController = {
     } catch (error) {
       console.error("Incomplete Prices Error", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  // Получение репетиторов по предмету и цели (ДЛЯ ЗАКАЗОВ) (SECURE)
+  // getTutorsBySubjectAndGoal: async (req, res) => {
+  //   const { subjectId, goalId } = req.params;
+
+  //   if (!subjectId || !goalId) {
+  //     return res.status(400).json({ error: "Нужны subjectId и goalId" });
+  //   }
+
+  //   try {
+  //     // Ищем активных репетиторов, готовых получать отклики,
+  //     // у которых указанный предмет и цель
+  //     const tutors = await prisma.tutor.findMany({
+  //       where: {
+  //         status: "Active",
+  //         isStudentResponses: true,
+  //         subject: { has: subjectId }, // массив строк
+  //         tutorGoals: {
+  //           some: {
+  //             subjectId: subjectId,
+  //             goalId: goalId,
+  //           },
+  //         },
+  //       },
+  //       select: {
+  //         id: true,
+  //         userId: true,
+  //         createdAt: true,
+  //         updatedAt: true,
+  //         name: true,
+  //         avatarUrl: true,
+  //         subject: true,
+  //         subjectComments: true,
+  //         region: true,
+  //         tutorPlace: true,
+  //         tutorAdress: true,
+  //         tutorHomeLoc: true,
+  //         tutorTrip: true,
+  //         tutorTripCityData: true,
+  //         tutorTripCity: true,
+  //         tutorTripArea: true,
+  //         profileInfo: true,
+  //         experience: true,
+  //         educations: true,
+  //         documents: true,
+  //         isGroup: true,
+  //         status: true,
+  //         subjectPrices: true,
+  //         isPublicProfile: true,
+  //         isStudentResponses: true,
+  //         isNotifications: true,
+  //         isNotificationsOrders: true,
+  //         isNotificationsResponse: true,
+  //         isNotificationsPromo: true,
+  //         isNotificationsSms: true,
+  //         isNotificationsEmail: true,
+  //         isNotificationsTelegram: true,
+  //         isNotificationsMobilePush: true,
+  //         isNotificationsWebPush: true,
+  //         isNotificationsVk: true,
+  //         badges: true,
+  //         lastOnline: true,
+  //         reviews: {
+  //           include: {
+  //             comments: true,
+  //             student: {
+  //               select: {
+  //                 name: true,
+  //                 avatarUrl: true,
+  //               },
+  //             },
+  //             order: {
+  //               select: {
+  //                 id: true,
+  //                 goal: true,
+  //                 subject: true,
+  //               },
+  //             },
+  //           },
+  //         },
+  //         userRating: true,
+  //         reviewsCount: true,
+  //         averageReviewScore: true,
+  //         totalRating: true,
+  //         tutorGoals: {
+  //           where: { subjectId },
+  //           include: { goal: true },
+  //         },
+  //       },
+  //       orderBy: { createdAt: "desc" },
+  //     });
+
+  //     if (!tutors.length) {
+  //       return res.status(404).json({ error: "Репетиторы не найдены" });
+  //     }
+
+  //     // 💡 Чтобы удобнее было на фронте — можно добавить флаг "selectedGoal"
+  //     const tutorsFormatted = tutors.map((t) => ({
+  //       ...t,
+  //       tutorGoals: t.tutorGoals.map((g) => ({
+  //         ...g,
+  //         selected: g.goalId === goalId, // цель, по которой был заказ
+  //       })),
+  //     }));
+
+  //     res.json(tutorsFormatted);
+  //   } catch (error) {
+  //     console.error("Ошибка getTutorsBySubjectAndGoal:", error);
+  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
+  //   }
+  // },
+
+  // Получение репетиторов для заказа по orderId (SECURE)
+  getTutorsForOrderById: async (req, res) => {
+    const { orderId } = req.params;
+
+    if (!orderId) {
+      return res.status(400).json({ error: "Нужен orderId" });
+    }
+
+    try {
+      // 1️⃣ Получаем заказ
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          subject: true,
+          goalId: true,
+          studentPlace: true,
+          region: true,
+          studentTrip: true,
+          studentHomeLoc: true,
+          tutorType: true,
+        },
+      });
+
+      if (!order) {
+        return res.status(404).json({ error: "Заказ не найден" });
+      }
+
+      // 2️⃣ Получаем репетиторов через твою функцию
+      const tutors = await findTutorsForOrdersAllDataTutor(order);
+
+      if (!tutors.length) {
+        return res.status(404).json({ error: "Репетиторы не найдены" });
+      }
+
+      res.json(tutors);
+    } catch (error) {
+      console.error("Ошибка getTutorsForOrderById:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
     }
   },
 };

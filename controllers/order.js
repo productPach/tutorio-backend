@@ -94,34 +94,6 @@ const OrderController = {
     }
   },
 
-  // Получение всех заказов (SECURE) !!! ЗАКРЫТЬ ПОСЛЕ СОЗДАНИЯ ПЕРСОНАЛЬНОГО МЕтОДА
-  // getAllOrders: async (req, res) => {
-  //   try {
-  //     const allOrders = await prisma.order.findMany({
-  //       // include: {
-  //       //   student: {
-  //       //     include: { user: true },
-  //       //   },
-  //       //   chats: {
-  //       //     include: { tutor: true },
-  //       //   },
-  //       // },
-  //       orderBy: {
-  //         createdAt: "desc",
-  //       },
-  //     });
-
-  //     if (!allOrders) {
-  //       return res.status(404).json({ error: "Не найдено ни одного заказа" });
-  //     }
-
-  //     res.json(allOrders);
-  //   } catch (error) {
-  //     console.error("Get All Orders Error", error);
-  //     res.status(500).json({ error: "Internal server error" });
-  //   }
-  // },
-
   // СДЕЛАТЬ МЕТОД, КОТОРЫЙ ОТДАЕТ ТОЛЬКО ТЕ ЗАКАЗЫ, ПРЕДМЕТ КОТОРОГО СОВПАДАЕТ С ПРЕДМЕТАМИ РЕПЕТИТОРА
   getAllOrders: async (req, res) => {
     try {
@@ -486,6 +458,7 @@ const OrderController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+
   // Удаление заказа студентом
   deleteOrder: async (req, res) => {
     const { id } = req.params;

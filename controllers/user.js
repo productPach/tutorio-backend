@@ -38,56 +38,6 @@ const UserController = {
     }
   },
 
-  // Авторизация пользователя
-  // login: async (req, res) => {
-  //   const { phone, secretSMS, role } = req.body;
-
-  //   if (!phone) {
-  //     return res
-  //       .status(400)
-  //       .json({ error: "Телефон является обязательным полем" });
-  //   }
-
-  //   if (!role || !["student", "tutor", "admin"].includes(role)) {
-  //     return res.status(400).json({ error: "Неверная роль" });
-  //   }
-
-  //   try {
-  //     const user = await prisma.user.findUnique({ where: { phone } });
-
-  //     if (!user) {
-  //       return res
-  //         .status(400)
-  //         .json({ error: "Такого пользователя не существует" });
-  //     }
-
-  //     const valid = await bcrypt.compare(secretSMS, user.password);
-
-  //     if (!valid) {
-  //       return res
-  //         .status(400)
-  //         .json({ error: "Неверно введен проверочный код" });
-  //     }
-
-  //     const token = jwt.sign(
-  //       { userID: user.id, phone: user.phone, activeRole: role },
-  //       process.env.SECRET_KEY,
-  //       { expiresIn: "30d" }
-  //     );
-
-  //     res.cookie("user", token, {
-  //       httpOnly: false,
-  //       secure: true,
-  //       sameSite: "None",
-  //       maxAge: 30 * 24 * 60 * 60 * 1000,
-  //     });
-  //     res.json({ token });
-  //   } catch (error) {
-  //     console.error("Ошибка авторизации", error);
-  //     res.status(500).json({ error: "Internal server error" });
-  //   }
-  // },
-
   // Авторизация пользователя с рефреш токеном от 22.09.2025
   login: async (req, res) => {
     const { phone, secretSMS, role, deviceInfo } = req.body; // Получаем от фронтенда

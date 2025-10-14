@@ -1,7 +1,6 @@
 const { prisma } = require("../prisma/prisma-client");
 const path = require("path");
 const fs = require("fs");
-const { sendTelegramNotification } = require("../services/notificationService");
 const findTutorsForOrders = require("../services/findTutorsForOrder");
 const {
   recalculateAllTutorRatings,

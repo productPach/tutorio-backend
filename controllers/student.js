@@ -142,6 +142,30 @@ const StudentController = {
     }
   },
 
+  // Получение студента по номеру телефона
+  getStudentByPhone: async (req, res) => {
+    const { phone } = req.body;
+
+    try {
+      const existingStudent = await prisma.student.findFirst({
+        where: { phone: phone },
+      });
+
+      if (existingStudent) {
+        return res.status(400).json({
+          error: "Номер телефона уже используется другим студентом",
+        });
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Номер телефона свободен для использования" });
+    } catch (error) {
+      console.error("Get User By Phone Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Получение текущего студента по токену
   currentStudent: async (req, res) => {
     try {
