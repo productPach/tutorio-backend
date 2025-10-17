@@ -374,7 +374,7 @@ const NotificationController = {
         name: t.name ?? "",
         avatarUrl: t.avatarUrl ?? "",
         userRating: t.userRating,
-        reviewsCount: t.reviewsCount,
+        // reviewsCount: t.reviewsCount,
         totalRating: t.totalRating ?? 0,
       }));
 

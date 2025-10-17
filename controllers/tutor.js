@@ -1639,6 +1639,7 @@ const TutorController = {
   // Получение репетиторов для заказа по orderId (SECURE)
   getTutorsForOrderById: async (req, res) => {
     const { orderId } = req.params;
+    const { page = 1, limit = 20 } = req.query; // пагинация из query
 
     if (!orderId) {
       return res.status(400).json({ error: "Нужен orderId" });
@@ -1663,14 +1664,32 @@ const TutorController = {
         return res.status(404).json({ error: "Заказ не найден" });
       }
 
-      // 2️⃣ Получаем репетиторов через твою функцию
-      const tutors = await findTutorsForOrdersAllDataTutor(order);
+      // 2️⃣ Получаем репетиторов через функцию поиска с пагинацией
+      const {
+        tutors,
+        totalTutors,
+        totalPages,
+        currentPage,
+        limit: realLimit,
+      } = await findTutorsForOrdersAllDataTutor(
+        order,
+        Number(page),
+        Number(limit)
+      );
 
       if (!tutors.length) {
         return res.status(404).json({ error: "Репетиторы не найдены" });
       }
 
-      res.json(tutors);
+      res.json({
+        tutors,
+        pagination: {
+          page: currentPage,
+          limit: realLimit,
+          total: totalTutors,
+          totalPages,
+        },
+      });
     } catch (error) {
       console.error("Ошибка getTutorsForOrderById:", error);
       res.status(500).json({ error: "Внутренняя ошибка сервера" });

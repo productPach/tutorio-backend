@@ -311,6 +311,8 @@ router.get("/employees", authenticateToken, EmployeeController.getAllEmployees);
 //   authenticateToken,
 //   EmployeeController.deleteEmployee
 // );
+// Получение сотрудника по телефону
+router.post("/employee-phone", EmployeeController.getEmployeeByPhone);
 router.get(
   "/employees/orders",
   authenticateToken,

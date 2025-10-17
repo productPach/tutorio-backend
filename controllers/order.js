@@ -94,36 +94,99 @@ const OrderController = {
     }
   },
 
-  // СДЕЛАТЬ МЕТОД, КОТОРЫЙ ОТДАЕТ ТОЛЬКО ТЕ ЗАКАЗЫ, ПРЕДМЕТ КОТОРОГО СОВПАДАЕТ С ПРЕДМЕТАМИ РЕПЕТИТОРА
+  // Получение всех заказов
+  // getAllOrders: async (req, res) => {
+  //   try {
+  //     // 1. Получаем userID из JWT (например, из middleware)
+  //     const userId = req.user.userID;
+
+  //     // 2. Ищем соответствующего тутора по userId
+  //     const tutor = await prisma.tutor.findUnique({
+  //       where: { userId }, // userId — из токена
+  //       select: { id: true, subject: true }, // только нужные поля
+  //     });
+
+  //     if (!tutor) {
+  //       return res.status(404).json({ error: "Репетитор не найден" });
+  //     }
+
+  //     // Если у репетора нет предметов, возвращаем пустой массив
+  //     if (!tutor.subject || tutor.subject.length === 0) {
+  //       return res.json([]);
+  //     }
+
+  //     // 3. Фильтруем заказы, у которых предмет входит в массив предметов репетитора
+  //     const matchingOrders = await prisma.order.findMany({
+  //       where: {
+  //         status: "Active",
+  //         subject: {
+  //           in: tutor.subject,
+  //         },
+  //       },
+  //       orderBy: {
+  //         createdAt: "desc",
+  //       },
+  //     });
+
+  //     res.json(matchingOrders);
+  //   } catch (error) {
+  //     console.error("Get All Orders Error", error);
+  //     res.status(500).json({ error: "Internal server error" });
+  //   }
+  // },
+
+  // Получение всех заказов с пагинацией (только совпадающие с предметами репетитора)
   getAllOrders: async (req, res) => {
     try {
-      // 1. Получаем userID из JWT (например, из middleware)
       const userId = req.user.userID;
 
-      // 2. Ищем соответствующего тутора по userId
+      // Пагинация из query-параметров
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      // Находим репетитора
       const tutor = await prisma.tutor.findUnique({
-        where: { userId }, // userId — из токена
-        select: { id: true, subject: true }, // только нужные поля
+        where: { userId },
+        select: { id: true, subject: true },
       });
 
       if (!tutor) {
         return res.status(404).json({ error: "Репетитор не найден" });
       }
 
-      // 3. Фильтруем заказы, у которых предмет входит в массив предметов репетитора
-      const matchingOrders = await prisma.order.findMany({
+      if (!tutor.subject || tutor.subject.length === 0) {
+        return res.json({
+          orders: [],
+          pagination: { page, limit, total: 0, totalPages: 0 },
+        });
+      }
+
+      // Общее количество заказов для пагинации
+      const totalOrders = await prisma.order.count({
         where: {
           status: "Active",
-          subject: {
-            in: tutor.subject,
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
+          subject: { in: tutor.subject },
         },
       });
 
-      res.json(matchingOrders);
+      const totalPages = Math.ceil(totalOrders / limit);
+
+      // Получаем заказы с пагинацией
+      const orders = await prisma.order.findMany({
+        where: {
+          status: "Active",
+          subject: { in: tutor.subject },
+        },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      });
+
+      res.json({
+        orders,
+        pagination: { page, limit, total: totalOrders, totalPages },
+      });
     } catch (error) {
       console.error("Get All Orders Error", error);
       res.status(500).json({ error: "Internal server error" });
@@ -247,7 +310,8 @@ const OrderController = {
                   name: true,
                   avatarUrl: true,
                   userRating: true,
-                  reviewsCount: true,
+                  // reviewsCount: true,
+                  reviews: true,
                 },
               },
             },
@@ -279,7 +343,8 @@ const OrderController = {
               name: c.tutor?.name ?? "",
               avatarUrl: c.tutor?.avatarUrl ?? "",
               userRating: c.tutor?.userRating,
-              reviewsCount: c.tutor?.reviewsCount,
+              // reviewsCount: c.tutor?.reviewsCount,
+              reviews: c.tutor?.reviews,
               reviewId: review?.id,
               reviewStatus: review
                 ? review.message
@@ -409,7 +474,8 @@ const OrderController = {
                   name: true,
                   avatarUrl: true,
                   userRating: true,
-                  reviewsCount: true,
+                  // reviewsCount: true,
+                  reviews: true,
                 },
               },
             },
@@ -437,7 +503,8 @@ const OrderController = {
                 name: c.tutor?.name ?? "",
                 avatarUrl: c.tutor?.avatarUrl ?? "",
                 userRating: c.tutor?.userRating,
-                reviewsCount: c.tutor?.reviewsCount,
+                // reviewsCount: c.tutor?.reviewsCount,
+                reviews: c.tutor?.reviews,
                 reviewId: review?.id,
                 reviewStatus: review
                   ? review.message
