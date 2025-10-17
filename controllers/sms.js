@@ -56,26 +56,52 @@ const SmsController = {
         });
       }
 
-      // Генерация 4–6-значного кода
-      const secretCode = Math.floor(1000 + Math.random() * 9000).toString();
-
       // Тайминги
       const expiresAt = new Date(now.getTime() + 5 * 60 * 1000); // 5 минут
 
+      // ДЛЯ ТЕСТОВОЙ СРЕДЫ ОТКЛЮЧАЕМ
+      // Генерация 4–6-значного кода
+      // const secretCode = Math.floor(1000 + Math.random() * 9000).toString();
       // Отправляем SMS
-      const response = await axios.post("https://sms.ru/sms/send", null, {
-        params: {
-          api_id: apiId,
-          to: phone,
-          msg: `Код подтверждения: ${secretCode}`,
-          json: 1,
-        },
-      });
+      // const response = await axios.post("https://sms.ru/sms/send", null, {
+      //   params: {
+      //     api_id: apiId,
+      //     to: phone,
+      //     msg: `Код подтверждения: ${secretCode}`,
+      //     json: 1,
+      //   },
+      // });
 
-      if (response.data.status !== "OK") {
-        return res.status(500).json({
-          error: response.data.status_text || "Ошибка отправки SMS",
+      // if (response.data.status !== "OK") {
+      //   return res.status(500).json({
+      //     error: response.data.status_text || "Ошибка отправки SMS",
+      //   });
+      // }
+
+      let secretCode;
+
+      if (process.env.NODE_ENV === "development") {
+        // Для тестового стенда
+        secretCode = "1111";
+        console.log(`[DEV MODE] SMS code for ${phone}: ${secretCode}`);
+      } else {
+        // Для продакшена и остальных сред
+        secretCode = Math.floor(1000 + Math.random() * 9000).toString();
+
+        const response = await axios.post("https://sms.ru/sms/send", null, {
+          params: {
+            api_id: apiId,
+            to: phone,
+            msg: `Код: ${secretCode}`,
+            json: 1,
+          },
         });
+
+        if (response.data.status !== "OK") {
+          return res.status(500).json({
+            error: response.data.status_text || "Ошибка отправки SMS",
+          });
+        }
       }
 
       // Сохраняем или обновляем запись

@@ -99,6 +99,28 @@ const EmployeeController = {
   //   res.send("deleteEmployee");
   // },
 
+  // Получение студента по номеру телефона
+  getEmployeeByPhone: async (req, res) => {
+    const { phone } = req.body;
+
+    try {
+      const existingEmployee = await prisma.employee.findFirst({
+        where: { phone: phone },
+      });
+
+      if (!existingEmployee) {
+        return res.status(400).json({
+          error: "Сотрудника не существует",
+        });
+      }
+
+      return res.sendStatus(200);
+    } catch (error) {
+      console.error("Get Employee By Phone Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   /***************************************** */
   /***************************************** */
   /***************************************** */
@@ -188,7 +210,8 @@ const EmployeeController = {
                   name: true,
                   avatarUrl: true,
                   userRating: true,
-                  reviewsCount: true,
+                  // reviewsCount: true,
+                  reviews: true,
                 },
               },
             },
@@ -206,7 +229,8 @@ const EmployeeController = {
             name: c.tutor?.name ?? "",
             avatarUrl: c.tutor?.avatarUrl ?? "",
             userRating: c.tutor?.userRating,
-            reviewsCount: c.tutor?.reviewsCount,
+            // reviewsCount: c.tutor?.reviewsCount,
+            reviews: c.tutor?.reviews,
           }))
         : [];
 
