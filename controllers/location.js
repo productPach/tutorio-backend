@@ -821,21 +821,25 @@ const LocationController = {
 
   detectUserRegion: async (req, res) => {
     try {
+      console.log("=== detectUserRegion START ===");
+
       // 1️⃣ Получаем IP пользователя
       const ip =
         req.headers["x-forwarded-for"]?.split(",")[0] ||
         req.connection?.remoteAddress ||
         req.socket?.remoteAddress;
 
-      const cleanIp = ip === "::1" || ip === "127.0.0.1" ? "46.36.217.153" : ip;
-      console.log("🌐 Raw IP:", ip, "| Clean IP:", cleanIp);
+      console.log("IP пользователя:", ip);
 
-      // 2️⃣ Запрашиваем гео по IP
+      const cleanIp = ip === "::1" || ip === "127.0.0.1" ? "46.36.217.153" : ip;
+      console.log("Используемый IP для гео:", cleanIp);
+
+      // 2️⃣ Пробуем получить гео по IP
       let geoData = {};
       try {
         const { data } = await axios.get(`https://ipapi.co/${cleanIp}/json/`);
         geoData = data;
-        console.log("📍 Geo data from IP:", geoData);
+        console.log("Данные от ipapi.co:", geoData);
       } catch (e) {
         console.warn(
           "IP-сервис не ответил, будем использовать fallback по координатам"
@@ -844,38 +848,97 @@ const LocationController = {
 
       let city = geoData.city || "";
       let region = geoData.region || "";
-      console.log("🟢 Initial city/region:", city, "/", region);
 
-      // 3️⃣ Если IP не дал город/регион — fallback через координаты
-      if (!city && !region && geoData.latitude && geoData.longitude) {
-        const fallback = await getAreaByCoordinates(
+      console.log("Начальное определение города/региона:", { city, region });
+
+      // 3️⃣ Фоллбек через координаты от IP
+      if ((!city || !region) && geoData.latitude && geoData.longitude) {
+        console.log(
+          "Fallback через координаты IP:",
           geoData.latitude,
           geoData.longitude
         );
-        city = fallback.city;
-        region = fallback.area;
-        console.log("🔄 Fallback by geo coords:", city, "/", region);
+        try {
+          const osm = await axios.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            {
+              params: {
+                format: "json",
+                lat: geoData.latitude,
+                lon: geoData.longitude,
+                zoom: 6,
+                addressdetails: 1,
+                "accept-language": "ru", // ключевой параметр
+              },
+              headers: { "User-Agent": "TutorioServer/1.0" },
+            }
+          );
+
+          const address = osm.data.address || {};
+          city =
+            city ||
+            address.city ||
+            address.town ||
+            address.village ||
+            address.county ||
+            "";
+          region = region || address.state || address.region || "";
+
+          console.log("Данные от OSM (RU):", { city, region });
+        } catch (e) {
+          console.warn("OSM fallback не сработал:", e.message);
+        }
       }
 
-      // 4️⃣ Если всё ещё пусто — пробуем координаты из запроса (query params)
-      if (!city && !region && req.query.lat && req.query.lon) {
-        const fallback = await getAreaByCoordinates(
+      // 4️⃣ Фоллбек через query params (например, lat/lon из браузера)
+      if ((!city || !region) && req.query.lat && req.query.lon) {
+        console.log(
+          "Fallback через query params:",
           req.query.lat,
           req.query.lon
         );
-        city = fallback.city;
-        region = fallback.area;
-        console.log("🔄 Fallback by query params:", city, "/", region);
+        try {
+          const osm = await axios.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            {
+              params: {
+                format: "json",
+                lat: req.query.lat,
+                lon: req.query.lon,
+                zoom: 6,
+                addressdetails: 1,
+                "accept-language": "ru",
+              },
+              headers: { "User-Agent": "TutorioServer/1.0" },
+            }
+          );
+
+          const address = osm.data.address || {};
+          city =
+            city ||
+            address.city ||
+            address.town ||
+            address.village ||
+            address.county ||
+            "";
+          region = region || address.state || address.region || "";
+
+          console.log("Данные от OSM через query:", { city, region });
+        } catch (e) {
+          console.warn("OSM query fallback не сработал:", e.message);
+        }
       }
 
       if (!city && !region) {
-        console.log("❌ Не удалось определить город/регион");
+        console.warn(
+          "Не удалось определить город/регион после всех fallback'ов"
+        );
         return res
           .status(400)
           .json({ error: "Не удалось определить город/регион" });
       }
 
-      // 5️⃣ Нормализация для Москвы и Питера
+      // 5️⃣ Нормализация для Москвы и Петербурга
       let normalizedCity = city;
       let normalizedArea = region;
 
@@ -892,14 +955,13 @@ const LocationController = {
         normalizedCity = "Санкт-Петербург";
         normalizedArea = "Ленинградская область";
       }
-      console.log(
-        "✅ Normalized city/region:",
-        normalizedCity,
-        "/",
-        normalizedArea
-      );
 
-      // 6️⃣ Ищем в базе
+      console.log("Нормализованный город/регион:", {
+        normalizedCity,
+        normalizedArea,
+      });
+
+      // 6️⃣ Ищем регион в базе
       const cityRecord = await prisma.city.findFirst({
         where: {
           OR: [
@@ -910,22 +972,17 @@ const LocationController = {
       });
 
       if (!cityRecord) {
-        console.log(
-          "❌ Регион не найден в базе:",
-          normalizedCity,
-          "/",
-          normalizedArea
-        );
+        console.warn("Регион не найден в базе", { city, region });
         return res.status(404).json({
           error: "Регион не найден в базе",
           geo: { city, region },
         });
       }
 
-      console.log("🏙 Region found in DB:", cityRecord);
+      console.log("Найденный регион в базе:", cityRecord);
       return res.json(cityRecord);
     } catch (e) {
-      console.error("detectUserRegion error:", e.message);
+      console.error("detectUserRegion error:", e.message, e.stack);
       res.status(500).json({ error: "Ошибка при определении региона" });
     }
   },
