@@ -18,6 +18,7 @@ const {
   NotificationController,
   GoalController,
   SmsController,
+  LandingController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const isAdmin = require("../middleware/isAdmin");
@@ -529,6 +530,17 @@ router.get(
   EmployeeController.getAllReviews
 );
 
+// Получение всех отзывов
+router.get(
+  "/employees/review/:id",
+  authenticateToken,
+  isAdmin,
+  EmployeeController.getReviewById
+);
+
+// Удаление отзыва по ID
+router.delete("/employees/review/:id", EmployeeController.deleteReviewById);
+
 /***************************************** */
 /***************************************** */
 /***************************************** */
@@ -671,6 +683,7 @@ router.put(
   authenticateToken,
   LocationController.updateRegionalCityById
 );
+router.get("/region", LocationController.detectUserRegion);
 
 /***************************************** */
 /***************************************** */
@@ -943,6 +956,26 @@ router.post(
   "/comment",
   authenticateToken,
   ReviewController.createCommentByUser
+);
+
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/************SITEMAP И ЛЕНДИНГИ*********** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+
+// Получение предметов, по которым есть хотя бы один репетитор
+router.get("/landing/subjects", LandingController.getSubjectWithTutor);
+// Получение категорий, по которым есть хотя бы один репетитор
+router.get(
+  "/landing/subject/:for_chpu",
+  LandingController.getCategoryWithTutor
 );
 
 module.exports = router;
