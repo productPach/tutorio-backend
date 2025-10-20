@@ -21,6 +21,15 @@ RUN npm install
 # Копируем оставшееся приложение в контейнер
 COPY . .
 
+# Создаем папки для геоданных
+RUN mkdir -p /app/controllers/data/ip2location
+
+# Копируем файлы БД IP2Location
+COPY ./data/ip2location/ /app/controllers/data/ip2location/
+
+# Копируем файл маппинга регионов
+COPY ./data/geo/regionMapEnToRu.json /app/controllers/data/ip2location/
+
 # Установить Prisma
 RUN npm install -g prisma
 
