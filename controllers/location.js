@@ -879,7 +879,7 @@ const LocationController = {
         : ip2loc4.getAll(cleanIp);
       console.log("Geo info:", geo);
 
-      if (!geo || geo.country_long !== "Russian Federation") {
+      if (!geo || geo.countryLong !== "Russian Federation") {
         return res.status(404).json({ error: "Регион не найден (не РФ)" });
       }
 
