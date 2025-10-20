@@ -821,39 +821,65 @@ const LocationController = {
     try {
       console.log("=== detectUserRegion START ===");
 
-      // Получаем IP пользователя
+      // Получаем РЕАЛЬНЫЙ IP пользователя через заголовки
       let ip =
+        req.headers["x-real-ip"] ||
         req.headers["x-forwarded-for"]?.split(",")[0] ||
         req.connection?.remoteAddress ||
         req.socket?.remoteAddress;
 
-      // Локальный fallback
-      const cleanIp = ip === "::1" || ip === "127.0.0.1" ? "46.36.217.153" : ip;
+      console.log("All headers:", req.headers);
+      console.log("Raw IP from request:", ip);
+
+      // Безопасная проверка на внутренние IP
+      const isInternalIp = (ip) => {
+        if (!ip) return true;
+        return (
+          ip === "::1" ||
+          ip === "127.0.0.1" ||
+          ip.startsWith("172.") ||
+          ip.startsWith("10.") ||
+          ip.startsWith("192.168.")
+        );
+      };
+
+      const cleanIp = isInternalIp(ip) ? "5.167.255.255" : ip;
+      console.log("IP from request:", ip);
+      console.log("Clean IP:", cleanIp);
 
       // Путь к BIN файлам
       const ipv4BinPath = path.join(
         __dirname,
         "data",
-        "geo",
+        "ip2location",
         "IP2LOCATION-LITE-DB3.BIN"
       );
       const ipv6BinPath = path.join(
         __dirname,
         "data",
-        "geo",
+        "ip2location",
         "IP2LOCATION-LITE-DB3.IPV6.BIN"
       );
+      console.log("IPv4 BIN path:", ipv4BinPath);
+      console.log("IPv6 BIN path:", ipv6BinPath);
 
-      // Инициализация BIN
-      ip2location.IP2Location_init(ipv4BinPath);
-      ip2location.IP2Location_init_v6(ipv6BinPath);
+      // Создаём объекты IP2Location
+      const ip2loc4 = new ip2location.IP2Location();
+      const ip2loc6 = new ip2location.IP2Location();
+
+      // Открываем BIN файлы
+      ip2loc4.open(ipv4BinPath);
+      console.log("IPv4 BIN opened");
+      ip2loc6.open(ipv6BinPath);
+      console.log("IPv6 BIN opened");
 
       // Определяем гео через IP2Location
       const geo = cleanIp.includes(":")
-        ? ip2location.IP2Location_get_all_v6(cleanIp)
-        : ip2location.IP2Location_get_all(cleanIp);
+        ? ip2loc6.getAll(cleanIp)
+        : ip2loc4.getAll(cleanIp);
+      console.log("Geo info:", geo);
 
-      if (!geo || geo.country_long !== "Russian Federation") {
+      if (!geo || geo.countryLong !== "Russian Federation") {
         return res.status(404).json({ error: "Регион не найден (не РФ)" });
       }
 
@@ -866,10 +892,12 @@ const LocationController = {
       const regionMap = require(path.join(
         __dirname,
         "data",
-        "geo",
+        "ip2location",
         "regionMapEnToRu.json"
       ));
       const regionRu = regionMap[regionEn] || regionEn;
+      console.log(`regionEn = ${regionEn}`);
+      console.log(`regionRu = ${regionRu}`);
 
       // Ищем в базе
       const cityRecord = await prisma.city.findFirst({
