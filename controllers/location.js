@@ -821,6 +821,87 @@ const LocationController = {
     try {
       console.log("=== detectUserRegion START ===");
 
+      // 🧪 ТЕСТОВЫЙ РЕЖИМ - берем IP из параметра
+      if (req.query.test_ip) {
+        console.log("🧪 TEST MODE activated with IP:", req.query.test_ip);
+        const cleanIp = req.query.test_ip;
+
+        // Дальше твой обычный код, но с test IP
+        const ipv4BinPath = path.join(
+          __dirname,
+          "data",
+          "ip2location",
+          "IP2LOCATION-LITE-DB3.BIN"
+        );
+        const ipv6BinPath = path.join(
+          __dirname,
+          "data",
+          "ip2location",
+          "IP2LOCATION-LITE-DB3.IPV6.BIN"
+        );
+
+        const ip2loc4 = new ip2location.IP2Location();
+        const ip2loc6 = new ip2location.IP2Location();
+
+        ip2loc4.open(ipv4BinPath);
+        ip2loc6.open(ipv6BinPath);
+
+        const geo = cleanIp.includes(":")
+          ? ip2loc6.getAll(cleanIp)
+          : ip2loc4.getAll(cleanIp);
+        console.log("🧪 Geo info:", geo);
+
+        if (
+          !geo ||
+          (geo.countryLong !== "Russian Federation" &&
+            geo.countryLong !== "Russia")
+        ) {
+          return res.status(404).json({
+            error: "Регион не найден (не РФ)",
+            testIp: cleanIp,
+            country: geo?.countryLong,
+          });
+        }
+
+        const regionEn = (geo.region || "").trim();
+        if (!regionEn) {
+          return res
+            .status(404)
+            .json({ error: "Регион не определён в BIN", testIp: cleanIp });
+        }
+
+        const regionMap = require(path.join(
+          __dirname,
+          "data",
+          "ip2location",
+          "regionMapEnToRu.json"
+        ));
+        const regionRu = regionMap[regionEn] || regionEn;
+        console.log(`🧪 regionEn = ${regionEn}, regionRu = ${regionRu}`);
+
+        const cityRecord = await prisma.city.findFirst({
+          where: {
+            OR: [
+              { title: { equals: regionRu, mode: "insensitive" } },
+              { area: { equals: regionRu, mode: "insensitive" } },
+            ],
+          },
+        });
+
+        if (!cityRecord) {
+          return res.status(404).json({
+            error: "Регион не найден в базе",
+            regionEn,
+            regionRu,
+            testIp: cleanIp,
+          });
+        }
+
+        return res.json({ ...cityRecord, _test: true, testIp: cleanIp });
+      }
+
+      // 📍 Обычный режим (твой текущий код)
+
       // Получаем РЕАЛЬНЫЙ IP пользователя через заголовки
       let ip =
         req.headers["x-real-ip"] ||
