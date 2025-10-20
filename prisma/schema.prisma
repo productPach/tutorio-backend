@@ -481,14 +481,14 @@ model Comment {
 model Review {
   id String @id @default(auto()) @map("_id") @db.ObjectId
 
-  orderId String @db.ObjectId
-  order   Order  @relation("OrderReviews", fields: [orderId], references: [id])
+  orderId String? @db.ObjectId
+  order   Order?  @relation("OrderReviews", fields: [orderId], references: [id])
 
   tutorId String @db.ObjectId
   tutor   Tutor  @relation("TutorReviews", fields: [tutorId], references: [id], onDelete: Cascade)
 
-  studentId String  @db.ObjectId
-  student   Student @relation("StudentReviews", fields: [studentId], references: [id])
+  studentId String?  @db.ObjectId
+  student   Student? @relation("StudentReviews", fields: [studentId], references: [id])
 
   name       String?
   authorRole String // "student" | "tutor"

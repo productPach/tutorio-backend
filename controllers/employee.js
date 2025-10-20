@@ -1762,13 +1762,7 @@ const EmployeeController = {
     const { name, orderId, message, authorRole, tutorId, studentId, rating } =
       req.body;
 
-    if (
-      !name ||
-      !orderId ||
-      !message ||
-      !authorRole ||
-      typeof rating !== "number"
-    ) {
+    if (!name || !message || !authorRole || typeof rating !== "number") {
       return res.status(400).json({ error: "Поля обязательны" });
     }
 
@@ -1777,46 +1771,36 @@ const EmployeeController = {
     }
 
     try {
-      const order = await prisma.order.findUnique({ where: { id: orderId } });
-      if (!order) return res.status(404).json({ error: "Заказ не найден" });
-
-      const review = await prisma.review.create({
-        data: {
-          orderId,
-          message,
-          name,
-          authorRole,
-          rating,
-          tutorId: authorRole === "tutor" ? tutorId : undefined,
-          studentId: authorRole === "student" ? studentId : undefined,
-          status: "Pending",
-        },
-      });
-
-      if (authorRole === "student" && tutorId) {
-        // Получаем все активные отзывы от студентов для этого репетитора
-        const activeReviews = await prisma.review.findMany({
-          where: {
-            tutorId,
-            authorRole: "student",
-            status: "Active",
-            rating: { not: null },
-          },
-          select: { rating: true },
-        });
-
-        const userRating =
-          activeReviews.reduce((sum, r) => sum + r.rating, 0) /
-          (activeReviews.length || 1); // защита от деления на 0
-
-        await prisma.tutor.update({
-          where: { id: tutorId },
-          data: {
-            userRating: Number(userRating.toFixed(1)),
-            reviewsCount: activeReviews.length,
-          },
-        });
+      let order = null;
+      if (orderId) {
+        order = await prisma.order.findUnique({ where: { id: orderId } });
+        if (!order) return res.status(404).json({ error: "Заказ не найден" });
       }
+
+      const reviewData = {
+        message,
+        name,
+        authorRole,
+        rating,
+        status: "Pending",
+      };
+
+      // Привязка к заказу (опционально)
+      if (orderId) {
+        reviewData.order = { connect: { id: orderId } };
+      }
+
+      // Привязка к репетитору (если отзыв от студента)
+      if (authorRole === "student" && tutorId) {
+        reviewData.tutor = { connect: { id: tutorId } };
+      }
+
+      // Привязка к студенту (если отзыв от репетитора)
+      if (authorRole === "tutor" && studentId) {
+        reviewData.student = { connect: { id: studentId } };
+      }
+
+      const review = await prisma.review.create({ data: reviewData });
 
       res.json(review);
     } catch (e) {
@@ -1906,15 +1890,16 @@ const EmployeeController = {
         existingReview.authorRole === "student" &&
         updated.tutorId
       ) {
-        const activeReviews = await prisma.review.findMany({
+        const activeReviewsRaw = await prisma.review.findMany({
           where: {
             tutorId: updated.tutorId,
             status: "Active",
-            rating: { not: null },
             authorRole: "student",
           },
           select: { rating: true },
         });
+
+        const activeReviews = activeReviewsRaw.filter((r) => r.rating !== null);
 
         const userRating =
           activeReviews.reduce((acc, r) => acc + r.rating, 0) /
@@ -1935,15 +1920,16 @@ const EmployeeController = {
         existingReview.authorRole === "tutor" &&
         updated.studentId
       ) {
-        const activeReviews = await prisma.review.findMany({
+        const activeReviewsRaw = await prisma.review.findMany({
           where: {
             studentId: updated.studentId,
             status: "Active",
-            rating: { not: null },
             authorRole: "tutor",
           },
           select: { rating: true },
         });
+
+        const activeReviews = activeReviewsRaw.filter((r) => r.rating !== null);
 
         const averageRating =
           activeReviews.reduce((acc, r) => acc + r.rating, 0) /
@@ -2009,6 +1995,63 @@ const EmployeeController = {
       res.json(reviews);
     } catch (e) {
       console.error("getAllReviews error:", e);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Получение одного отзыва по ID (с комментариями и связями)
+  getReviewById: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const review = await prisma.review.findUnique({
+        where: { id },
+        include: {
+          comments: {
+            orderBy: { createdAt: "asc" },
+          },
+          tutor: {
+            select: { id: true, name: true },
+          },
+          student: {
+            select: { id: true, name: true },
+          },
+          order: {
+            select: { id: true, subject: true, goal: true },
+          },
+        },
+      });
+
+      if (!review) {
+        return res.status(404).json({ error: "Отзыв не найден" });
+      }
+
+      res.json(review);
+    } catch (e) {
+      console.error("getReviewById error:", e);
+      res.status(500).json({ error: "Ошибка сервера" });
+    }
+  },
+
+  // Удаление отзыва по ID
+  deleteReviewById: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Проверяем, существует ли отзыв
+      const review = await prisma.review.findUnique({ where: { id } });
+      if (!review) {
+        return res.status(404).json({ error: "Отзыв не найден" });
+      }
+
+      // Удаляем отзыв
+      await prisma.review.delete({
+        where: { id },
+      });
+
+      res.json({ message: "Отзыв успешно удалён", id });
+    } catch (e) {
+      console.error("deleteReviewById error:", e);
       res.status(500).json({ error: "Ошибка сервера" });
     }
   },

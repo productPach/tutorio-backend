@@ -1,78 +1,11 @@
 const { prisma } = require("../prisma/prisma-client");
+const axios = require("axios");
+const {
+  getAreaByCoordinates,
+} = require("../services/location/getAreaByCoordinates");
 
 const LocationController = {
   // Добавление нового города
-  // createCity: async (req, res) => {
-  //   const { title, area, shortTitle, districts, regionalCities } = req.body;
-
-  //   // Проверяем обязательные поля
-  //   if (!title || !area || !shortTitle) {
-  //     return res.status(400).json({
-  //       error: "Поля title, area и shortTitle являются обязательными",
-  //     });
-  //   }
-
-  //   try {
-  //     // 🔒 Проверка: является ли пользователь сотрудником (админом)
-  //     const userId = req.user.userID;
-  //     const isAdmin = await prisma.employee.findUnique({
-  //       where: { userId },
-  //     });
-
-  //     if (!isAdmin) {
-  //       return res
-  //         .status(403)
-  //         .json({ error: "Доступ запрещён: только для сотрудников" });
-  //     }
-  //     // Проверка на существование города с таким же названием
-  //     const existingCity = await prisma.city.findUnique({
-  //       where: { title },
-  //     });
-
-  //     if (existingCity) {
-  //       return res.status(400).json({
-  //         error: "Город с таким названием уже существует",
-  //       });
-  //     }
-
-  //     // Создание нового города
-  //     const newCity = await prisma.city.create({
-  //       data: {
-  //         title,
-  //         area,
-  //         shortTitle,
-  //         districts: {
-  //           create:
-  //             districts?.map((district) => ({
-  //               title: district.title,
-  //               type: district.type,
-  //               metros: {
-  //                 create:
-  //                   district.metros?.map((metro) => ({
-  //                     title: metro.title,
-  //                     color: metro.color || null,
-  //                     lineName: metro.lineName || null,
-  //                     lineNumber: metro.lineNumber || null,
-  //                     cityPrefix: metro.cityPrefix || null,
-  //                   })) || [],
-  //               },
-  //             })) || [],
-  //         },
-  //         regionalCities: {
-  //           create:
-  //             regionalCities?.map((regionalCity) => ({
-  //               title: regionalCity.title,
-  //             })) || [],
-  //         },
-  //       },
-  //     });
-
-  //     res.status(201).json(newCity);
-  //   } catch (error) {
-  //     console.error("Ошибка при создании города:", error);
-  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
-  //   }
-  // },
   createCity: async (req, res) => {
     const { title, area, shortTitle, districts, regionalCities, metros } =
       req.body;
@@ -148,26 +81,6 @@ const LocationController = {
   },
 
   // Получение списка всех городов
-  // getAllCity: async (req, res) => {
-  //   try {
-  //     const cities = await prisma.city.findMany({
-  //       include: {
-  //         districts: {
-  //           include: {
-  //             metros: true, // Получаем вложенные станции метро
-  //           },
-  //         },
-  //         regionalCities: true, // Получаем вложенные региональные города
-  //       },
-  //     });
-
-  //     res.status(200).json(cities);
-  //   } catch (error) {
-  //     console.error("Ошибка при получении списка городов:", error);
-  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
-  //   }
-  // },
-  // Получение списка всех городов
   getAllCity: async (req, res) => {
     try {
       const cities = await prisma.city.findMany({
@@ -185,39 +98,6 @@ const LocationController = {
     }
   },
 
-  // Получение города по ID
-  // getCityById: async (req, res) => {
-  //   const { id } = req.params;
-
-  //   if (!id) {
-  //     return res
-  //       .status(400)
-  //       .json({ error: "ID города является обязательным полем" });
-  //   }
-
-  //   try {
-  //     const city = await prisma.city.findUnique({
-  //       where: { id },
-  //       include: {
-  //         districts: {
-  //           include: {
-  //             metros: true, // Получаем вложенные станции метро
-  //           },
-  //         },
-  //         regionalCities: true, // Получаем вложенные региональные города
-  //       },
-  //     });
-
-  //     if (!city) {
-  //       return res.status(404).json({ error: "Город не найден" });
-  //     }
-
-  //     res.status(200).json(city);
-  //   } catch (error) {
-  //     console.error("Ошибка при получении города по ID:", error);
-  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
-  //   }
-  // },
   // Получение города по ID
   getCityById: async (req, res) => {
     const { id } = req.params;
@@ -250,194 +130,6 @@ const LocationController = {
   },
 
   // Обновление города по ID (только title, area и shortTitle)
-  // updateCityById: async (req, res) => {
-  //   const { id } = req.params;
-  //   const { title, area, shortTitle } = req.body;
-
-  //   if (!id) {
-  //     return res
-  //       .status(400)
-  //       .json({ error: "ID города является обязательным полем" });
-  //   }
-
-  //   if (!title || !area || !shortTitle) {
-  //     return res.status(400).json({
-  //       error: "Поля title, area и shortTitle являются обязательными",
-  //     });
-  //   }
-
-  //   try {
-  //     // 🔒 Проверка: является ли пользователь сотрудником (админом)
-  //     const userId = req.user.userID;
-  //     const isAdmin = await prisma.employee.findUnique({
-  //       where: { userId },
-  //     });
-
-  //     if (!isAdmin) {
-  //       return res
-  //         .status(403)
-  //         .json({ error: "Доступ запрещён: только для сотрудников" });
-  //     }
-  //     // Проверяем существование города
-  //     const existingCity = await prisma.city.findUnique({ where: { id } });
-
-  //     if (!existingCity) {
-  //       return res.status(404).json({ error: "Город не найден" });
-  //     }
-
-  //     // Обновляем только необходимые поля
-  //     const updatedCity = await prisma.city.update({
-  //       where: { id },
-  //       data: {
-  //         title,
-  //         area,
-  //         shortTitle,
-  //       },
-  //     });
-
-  //     res.status(200).json({
-  //       message: "Город успешно обновлен",
-  //       city: updatedCity,
-  //     });
-  //   } catch (error) {
-  //     console.error("Ошибка при обновлении города:", error);
-  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
-  //   }
-  // },
-  // updateCityById: async (req, res) => {
-  //   const { id } = req.params;
-  //   const { title, area, shortTitle, districts, regionalCities } = req.body;
-
-  //   if (!id) {
-  //     return res
-  //       .status(400)
-  //       .json({ error: "ID города является обязательным полем" });
-  //   }
-
-  //   if (!title || !area || !shortTitle) {
-  //     return res.status(400).json({
-  //       error: "Поля title, area и shortTitle являются обязательными",
-  //     });
-  //   }
-
-  //   try {
-  //     const userId = req.user.userID;
-  //     const isAdmin = await prisma.employee.findUnique({ where: { userId } });
-
-  //     if (!isAdmin) {
-  //       return res
-  //         .status(403)
-  //         .json({ error: "Доступ запрещён: только для сотрудников" });
-  //     }
-
-  //     const existingCity = await prisma.city.findUnique({
-  //       where: { id },
-  //       include: {
-  //         districts: { include: { metros: true } },
-  //         regionalCities: true,
-  //       },
-  //     });
-
-  //     if (!existingCity) {
-  //       return res.status(404).json({ error: "Город не найден" });
-  //     }
-
-  //     // Обновляем сам город
-  //     const updatedCity = await prisma.city.update({
-  //       where: { id },
-  //       data: { title, area, shortTitle },
-  //     });
-
-  //     // Обновление districts
-  //     if (districts?.length) {
-  //       for (const district of districts) {
-  //         if (district.id) {
-  //           // Обновляем существующий район
-  //           await prisma.district.update({
-  //             where: { id: district.id },
-  //             data: {
-  //               title: district.title,
-  //               type: district.type,
-  //               // Обновляем или создаем метро
-  //               metros: {
-  //                 upsert:
-  //                   district.metros?.map((metro) => ({
-  //                     where: { id: metro.id || 0 }, // если есть id, обновляем; иначе создаем
-  //                     update: {
-  //                       title: metro.title,
-  //                       color: metro.color || null,
-  //                       lineName: metro.lineName || null,
-  //                       lineNumber: metro.lineNumber || null,
-  //                       cityPrefix: metro.cityPrefix || null,
-  //                     },
-  //                     create: {
-  //                       title: metro.title,
-  //                       color: metro.color || null,
-  //                       lineName: metro.lineName || null,
-  //                       lineNumber: metro.lineNumber || null,
-  //                       cityPrefix: metro.cityPrefix || null,
-  //                     },
-  //                   })) || [],
-  //               },
-  //             },
-  //           });
-  //         } else {
-  //           // Создаем новый район
-  //           await prisma.district.create({
-  //             data: {
-  //               title: district.title,
-  //               type: district.type,
-  //               cityId: id,
-  //               metros: {
-  //                 create:
-  //                   district.metros?.map((metro) => ({
-  //                     title: metro.title,
-  //                     color: metro.color || null,
-  //                     lineName: metro.lineName || null,
-  //                     lineNumber: metro.lineNumber || null,
-  //                     cityPrefix: metro.cityPrefix || null,
-  //                   })) || [],
-  //               },
-  //             },
-  //           });
-  //         }
-  //       }
-  //     }
-
-  //     // Обновление regionalCities
-  //     if (regionalCities?.length) {
-  //       for (const regCity of regionalCities) {
-  //         if (regCity.id) {
-  //           await prisma.regionalCity.update({
-  //             where: { id: regCity.id },
-  //             data: { title: regCity.title },
-  //           });
-  //         } else {
-  //           await prisma.regionalCity.create({
-  //             data: { title: regCity.title, cityId: id },
-  //           });
-  //         }
-  //       }
-  //     }
-
-  //     // Возвращаем полный объект города
-  //     const fullCity = await prisma.city.findUnique({
-  //       where: { id },
-  //       include: {
-  //         districts: { include: { metros: true } },
-  //         regionalCities: true,
-  //       },
-  //     });
-
-  //     res.status(200).json({
-  //       message: "Город успешно обновлен",
-  //       city: fullCity,
-  //     });
-  //   } catch (error) {
-  //     console.error("Ошибка при обновлении города:", error);
-  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
-  //   }
-  // },
   updateCityById: async (req, res) => {
     const { id } = req.params;
     const { title, area, shortTitle, districts, regionalCities, metros } =
@@ -573,74 +265,6 @@ const LocationController = {
   },
 
   // Добавление района в город по ID
-  // createDistrict: async (req, res) => {
-  //   const { cityId } = req.params;
-  //   const { title, type, metros } = req.body;
-
-  //   if (!title) {
-  //     return res.status(400).json({
-  //       error: "Поле title является обязательным",
-  //     });
-  //   }
-
-  //   try {
-  //     // 🔒 Проверка: является ли пользователь сотрудником (админом)
-  //     const userId = req.user.userID;
-  //     const isAdmin = await prisma.employee.findUnique({
-  //       where: { userId },
-  //     });
-
-  //     if (!isAdmin) {
-  //       return res
-  //         .status(403)
-  //         .json({ error: "Доступ запрещён: только для сотрудников" });
-  //     }
-  //     // Проверяем, существует ли город
-  //     const existingCity = await prisma.city.findUnique({
-  //       where: { id: cityId },
-  //     });
-
-  //     if (!existingCity) {
-  //       return res.status(404).json({
-  //         error: "Город не найден",
-  //       });
-  //     }
-
-  //     // Добавляем новый район в список существующих районов города
-  //     const updatedCity = await prisma.city.update({
-  //       where: { id: cityId },
-  //       data: {
-  //         districts: {
-  //           create: {
-  //             title,
-  //             type,
-  //             metros: {
-  //               create:
-  //                 metros?.map((metro) => ({
-  //                   title: metro.title,
-  //                   color: metro.color || null,
-  //                   lineName: metro.lineName || null,
-  //                   lineNumber: metro.lineNumber || null,
-  //                   cityPrefix: metro.cityPrefix || null,
-  //                 })) || [],
-  //             },
-  //           },
-  //         },
-  //       },
-  //       include: {
-  //         districts: true,
-  //       },
-  //     });
-
-  //     res.status(201).json({
-  //       message: "Район успешно добавлен",
-  //       city: updatedCity,
-  //     });
-  //   } catch (error) {
-  //     console.error("Ошибка при добавлении района:", error);
-  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
-  //   }
-  // },
   createDistrict: async (req, res) => {
     const { cityId } = req.params;
     const { title, type } = req.body;
@@ -853,67 +477,6 @@ const LocationController = {
     }
   },
 
-  // Добавление метро в район по ID района
-  // createMetro: async (req, res) => {
-  //   const { districtId } = req.params;
-  //   const { title, color, lineName, lineNumber, cityPrefix } = req.body;
-
-  //   if (!districtId) {
-  //     return res
-  //       .status(400)
-  //       .json({ error: "ID района является обязательным полем" });
-  //   }
-
-  //   if (!title || !color || !lineName || !lineNumber || !cityPrefix) {
-  //     return res.status(400).json({
-  //       error:
-  //         "Поля title, color, lineName, lineNumber и cityPrefix являются обязательными",
-  //     });
-  //   }
-
-  //   try {
-  //     // 🔒 Проверка: является ли пользователь сотрудником (админом)
-  //     const userId = req.user.userID;
-  //     const isAdmin = await prisma.employee.findUnique({
-  //       where: { userId },
-  //     });
-
-  //     if (!isAdmin) {
-  //       return res
-  //         .status(403)
-  //         .json({ error: "Доступ запрещён: только для сотрудников" });
-  //     }
-  //     // Проверяем существование района
-  //     const existingDistrict = await prisma.district.findUnique({
-  //       where: { id: districtId },
-  //     });
-
-  //     if (!existingDistrict) {
-  //       return res.status(404).json({ error: "Район не найден" });
-  //     }
-
-  //     // Добавляем новое метро в существующий район
-  //     const newMetro = await prisma.metro.create({
-  //       data: {
-  //         title,
-  //         color,
-  //         lineName,
-  //         lineNumber,
-  //         cityPrefix,
-  //         districtId, // Привязываем метро к району
-  //       },
-  //     });
-
-  //     res.status(201).json({
-  //       message: "Метро успешно добавлено",
-  //       metro: newMetro,
-  //     });
-  //   } catch (error) {
-  //     console.error("Ошибка при добавлении метро:", error);
-  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
-  //   }
-  // },
-
   // Добавление метро в город по ID города
   createMetro: async (req, res) => {
     const { cityId } = req.params;
@@ -971,76 +534,6 @@ const LocationController = {
       res.status(500).json({ error: "Внутренняя ошибка сервера" });
     }
   },
-
-  // Добавление списка метро в район по ID района
-  // createMetrosToDistrictBulk: async (req, res) => {
-  //   const { districtId } = req.params;
-  //   const { metros } = req.body;
-
-  //   if (!districtId) {
-  //     return res
-  //       .status(400)
-  //       .json({ error: "ID района является обязательным полем" });
-  //   }
-
-  //   if (!Array.isArray(metros) || metros.length === 0) {
-  //     return res.status(400).json({
-  //       error: "Поле metros должно быть массивом объектов метро",
-  //     });
-  //   }
-
-  //   try {
-  //     // Проверка прав: только сотрудники/админы
-  //     const userId = req.user.userID;
-  //     const isAdmin = await prisma.employee.findUnique({ where: { userId } });
-  //     if (!isAdmin) {
-  //       return res
-  //         .status(403)
-  //         .json({ error: "Доступ запрещён: только для сотрудников" });
-  //     }
-
-  //     // Проверяем, существует ли район
-  //     const district = await prisma.district.findUnique({
-  //       where: { id: districtId },
-  //     });
-  //     if (!district) {
-  //       return res.status(404).json({ error: "Район не найден" });
-  //     }
-
-  //     // Создаем список новых станций метро
-  //     const createdMetros = [];
-  //     for (const metro of metros) {
-  //       if (!metro.title) continue; // название обязательно
-
-  //       const newMetro = await prisma.metro.create({
-  //         data: {
-  //           title: metro.title,
-  //           color: metro.color || null,
-  //           lineName: metro.lineName || null,
-  //           lineNumber: metro.lineNumber || null,
-  //           cityPrefix: metro.cityPrefix || null,
-  //           districtId,
-  //         },
-  //       });
-
-  //       createdMetros.push(newMetro);
-  //     }
-
-  //     if (createdMetros.length === 0) {
-  //       return res.status(400).json({
-  //         error: "Не удалось добавить метро — проверьте входные данные",
-  //       });
-  //     }
-
-  //     res.status(201).json({
-  //       message: "Станции метро успешно добавлены",
-  //       created: createdMetros,
-  //     });
-  //   } catch (error) {
-  //     console.error("Ошибка при добавлении метро:", error);
-  //     res.status(500).json({ error: "Внутренняя ошибка сервера" });
-  //   }
-  // },
 
   // Добавление списка метро в город по ID города
   createMetrosToCityBulk: async (req, res) => {
@@ -1323,6 +816,98 @@ const LocationController = {
     } catch (error) {
       console.error("Ошибка при обновлении регионального города:", error);
       res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  detectUserRegion: async (req, res) => {
+    try {
+      // 1️⃣ Получаем IP пользователя
+      const ip =
+        req.headers["x-forwarded-for"]?.split(",")[0] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress;
+
+      const cleanIp = ip === "::1" || ip === "127.0.0.1" ? "46.36.217.153" : ip;
+
+      // 2️⃣ Запрашиваем гео по IP
+      let geoData = {};
+      try {
+        const { data } = await axios.get(`https://ipapi.co/${cleanIp}/json/`);
+        geoData = data;
+      } catch (e) {
+        console.warn(
+          "IP-сервис не ответил, будем использовать fallback по координатам"
+        );
+      }
+
+      let city = geoData.city || "";
+      let region = geoData.region || "";
+
+      // 3️⃣ Если IP не дал город/регион — fallback через координаты
+      if (!city && !region && geoData.latitude && geoData.longitude) {
+        const fallback = await getAreaByCoordinates(
+          geoData.latitude,
+          geoData.longitude
+        );
+        city = fallback.city;
+        region = fallback.area;
+      }
+
+      // 4️⃣ Если всё ещё пусто — пробуем координаты из запроса (query params)
+      if (!city && !region && req.query.lat && req.query.lon) {
+        const fallback = await getAreaByCoordinates(
+          req.query.lat,
+          req.query.lon
+        );
+        city = fallback.city;
+        region = fallback.area;
+      }
+
+      if (!city && !region) {
+        return res
+          .status(400)
+          .json({ error: "Не удалось определить город/регион" });
+      }
+
+      // 5️⃣ Нормализация для Москвы и Питера
+      let normalizedCity = city;
+      let normalizedArea = region;
+
+      if (
+        region.toLowerCase().includes("москов") ||
+        city.toLowerCase().includes("москв")
+      ) {
+        normalizedCity = "Москва";
+        normalizedArea = "Московская область";
+      } else if (
+        region.toLowerCase().includes("ленинград") ||
+        city.toLowerCase().includes("петербург")
+      ) {
+        normalizedCity = "Санкт-Петербург";
+        normalizedArea = "Ленинградская область";
+      }
+
+      // 6️⃣ Ищем в базе
+      const cityRecord = await prisma.city.findFirst({
+        where: {
+          OR: [
+            { title: { equals: normalizedCity, mode: "insensitive" } },
+            { area: { equals: normalizedArea, mode: "insensitive" } },
+          ],
+        },
+      });
+
+      if (!cityRecord) {
+        return res.status(404).json({
+          error: "Регион не найден в базе",
+          geo: { city, region },
+        });
+      }
+
+      return res.json(cityRecord);
+    } catch (e) {
+      console.error("detectUserRegion error:", e.message);
+      res.status(500).json({ error: "Ошибка при определении региона" });
     }
   },
 };
