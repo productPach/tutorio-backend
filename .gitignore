@@ -5,3 +5,5 @@ mongo-data
 .DS_Store
 mongo-keyfile
 stop
+data/ip2location/IP2LOCATION-LITE-DB3.BIN
+data/ip2location/IP2LOCATION-LITE-DB3.IPV6.BIN
