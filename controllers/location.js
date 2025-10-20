@@ -1,29 +1,6 @@
 const { prisma } = require("../prisma/prisma-client");
-const axios = require("axios");
 const path = require("path");
-const fs = require("fs");
-const turf = require("@turf/turf");
-
-const geoJsonPath = path.join(
-  __dirname,
-  "../data/geoBoundaries-RUS-ADM1_simplified.geojson"
-);
-const geoBoundaries = JSON.parse(fs.readFileSync(geoJsonPath, "utf-8"));
-
-// Маппинг английских названий GeoJSON → русские для базы
-const geoToRusMap = {
-  Moscow: { city: "Москва", area: "Московская область" },
-  "Moscow Oblast": { city: "Москва", area: "Московская область" },
-  "Saint Petersburg": {
-    city: "Санкт-Петербург",
-    area: "Ленинградская область",
-  },
-  "Altai Krai": { city: "", area: "Алтайский край" },
-  Bashkortostan: { city: "", area: "Башкортостан" },
-  "Krasnodar Krai": { city: "", area: "Краснодарский край" },
-  Tatarstan: { city: "", area: "Татарстан" },
-  // ...добавь все остальные регионы РФ
-};
+const ip2location = require("ip2location-nodejs");
 
 const LocationController = {
   // Добавление нового города
@@ -845,97 +822,61 @@ const LocationController = {
       console.log("=== detectUserRegion START ===");
 
       // Получаем IP пользователя
-      const ip =
+      let ip =
         req.headers["x-forwarded-for"]?.split(",")[0] ||
         req.connection?.remoteAddress ||
         req.socket?.remoteAddress;
 
+      // Локальный fallback
       const cleanIp = ip === "::1" || ip === "127.0.0.1" ? "46.36.217.153" : ip;
 
-      // Пробуем получить гео по IP
-      let geoData = {};
-      try {
-        const { data } = await axios.get(`https://ipapi.co/${cleanIp}/json/`);
-        geoData = data;
-      } catch (e) {
-        console.warn(
-          "IP-сервис не ответил, используем fallback по координатам"
-        );
+      // Путь к BIN файлам
+      const ipv4BinPath = path.join(
+        __dirname,
+        "data",
+        "geo",
+        "IP2LOCATION-LITE-DB3.BIN"
+      );
+      const ipv6BinPath = path.join(
+        __dirname,
+        "data",
+        "geo",
+        "IP2LOCATION-LITE-DB3.IPV6.BIN"
+      );
+
+      // Инициализация BIN
+      ip2location.IP2Location_init(ipv4BinPath);
+      ip2location.IP2Location_init_v6(ipv6BinPath);
+
+      // Определяем гео через IP2Location
+      const geo = cleanIp.includes(":")
+        ? ip2location.IP2Location_get_all_v6(cleanIp)
+        : ip2location.IP2Location_get_all(cleanIp);
+
+      if (!geo || geo.country_long !== "Russian Federation") {
+        return res.status(404).json({ error: "Регион не найден (не РФ)" });
       }
 
-      let lat = geoData.latitude;
-      let lon = geoData.longitude;
-
-      // Фоллбек через query params
-      if ((!lat || !lon) && req.query.lat && req.query.lon) {
-        lat = parseFloat(req.query.lat);
-        lon = parseFloat(req.query.lon);
+      const regionEn = (geo.region || "").trim();
+      if (!regionEn) {
+        return res.status(404).json({ error: "Регион не определён в BIN" });
       }
 
-      if (!lat || !lon) {
-        return res
-          .status(400)
-          .json({ error: "Не удалось определить координаты пользователя" });
-      }
-
-      // Определяем регион через GeoJSON
-      const point = turf.point([lon, lat]);
-      let matchedRegion = null;
-
-      for (const feature of geoBoundaries.features) {
-        if (feature.geometry && turf.booleanPointInPolygon(point, feature)) {
-          matchedRegion = feature.properties.shapeName;
-          break;
-        }
-      }
-
-      // Фоллбек через OSM
-      if (!matchedRegion) {
-        try {
-          const osm = await axios.get(
-            "https://nominatim.openstreetmap.org/reverse",
-            {
-              params: {
-                format: "json",
-                lat,
-                lon,
-                zoom: 6,
-                addressdetails: 1,
-                "accept-language": "ru",
-              },
-              headers: { "User-Agent": "TutorioServer/1.0" },
-            }
-          );
-          const address = osm.data.address || {};
-          matchedRegion = address.state || address.region || "";
-        } catch (e) {
-          console.warn("OSM fallback не сработал:", e.message);
-        }
-      }
-
-      if (!matchedRegion) {
-        return res.status(404).json({ error: "Регион не найден" });
-      }
-
-      // Преобразуем через маппинг
-      const mapping = geoToRusMap[matchedRegion] || {
-        city: "",
-        area: matchedRegion,
-      };
-      const normalizedCity = mapping.city;
-      const normalizedArea = mapping.area;
+      // JSON-маппинг в русские названия
+      const regionMap = require(path.join(
+        __dirname,
+        "data",
+        "geo",
+        "regionMapEnToRu.json"
+      ));
+      const regionRu = regionMap[regionEn] || regionEn;
 
       // Ищем в базе
       const cityRecord = await prisma.city.findFirst({
         where: {
           OR: [
-            {
-              title: {
-                equals: normalizedCity || matchedRegion,
-                mode: "insensitive",
-              },
-            },
-            { area: { equals: normalizedArea, mode: "insensitive" } },
+            { title: { equals: regionRu, mode: "insensitive" } },
+            { area: { equals: regionRu, mode: "insensitive" } },
           ],
         },
       });
@@ -943,7 +884,8 @@ const LocationController = {
       if (!cityRecord) {
         return res.status(404).json({
           error: "Регион не найден в базе",
-          geo: { matchedRegion },
+          regionEn,
+          regionRu,
         });
       }
 

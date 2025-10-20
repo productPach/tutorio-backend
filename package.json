@@ -22,6 +22,7 @@
     "express": "^4.19.2",
     "http-errors": "~1.6.3",
     "ioredis": "^5.8.0",
+    "ip2location-nodejs": "^9.7.0",
     "jade": "^0.29.0",
     "jdenticon": "^3.3.0",
     "jsonwebtoken": "^9.0.2",
