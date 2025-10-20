@@ -828,12 +828,14 @@ const LocationController = {
         req.socket?.remoteAddress;
 
       const cleanIp = ip === "::1" || ip === "127.0.0.1" ? "46.36.217.153" : ip;
+      console.log("🌐 Raw IP:", ip, "| Clean IP:", cleanIp);
 
       // 2️⃣ Запрашиваем гео по IP
       let geoData = {};
       try {
         const { data } = await axios.get(`https://ipapi.co/${cleanIp}/json/`);
         geoData = data;
+        console.log("📍 Geo data from IP:", geoData);
       } catch (e) {
         console.warn(
           "IP-сервис не ответил, будем использовать fallback по координатам"
@@ -842,6 +844,7 @@ const LocationController = {
 
       let city = geoData.city || "";
       let region = geoData.region || "";
+      console.log("🟢 Initial city/region:", city, "/", region);
 
       // 3️⃣ Если IP не дал город/регион — fallback через координаты
       if (!city && !region && geoData.latitude && geoData.longitude) {
@@ -851,6 +854,7 @@ const LocationController = {
         );
         city = fallback.city;
         region = fallback.area;
+        console.log("🔄 Fallback by geo coords:", city, "/", region);
       }
 
       // 4️⃣ Если всё ещё пусто — пробуем координаты из запроса (query params)
@@ -861,9 +865,11 @@ const LocationController = {
         );
         city = fallback.city;
         region = fallback.area;
+        console.log("🔄 Fallback by query params:", city, "/", region);
       }
 
       if (!city && !region) {
+        console.log("❌ Не удалось определить город/регион");
         return res
           .status(400)
           .json({ error: "Не удалось определить город/регион" });
@@ -886,6 +892,12 @@ const LocationController = {
         normalizedCity = "Санкт-Петербург";
         normalizedArea = "Ленинградская область";
       }
+      console.log(
+        "✅ Normalized city/region:",
+        normalizedCity,
+        "/",
+        normalizedArea
+      );
 
       // 6️⃣ Ищем в базе
       const cityRecord = await prisma.city.findFirst({
@@ -898,12 +910,19 @@ const LocationController = {
       });
 
       if (!cityRecord) {
+        console.log(
+          "❌ Регион не найден в базе:",
+          normalizedCity,
+          "/",
+          normalizedArea
+        );
         return res.status(404).json({
           error: "Регион не найден в базе",
           geo: { city, region },
         });
       }
 
+      console.log("🏙 Region found in DB:", cityRecord);
       return res.json(cityRecord);
     } catch (e) {
       console.error("detectUserRegion error:", e.message);
