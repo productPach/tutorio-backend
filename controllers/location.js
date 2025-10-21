@@ -1276,7 +1276,7 @@ const LocationController = {
 
       const { set_cookie, region_id, test_ip } = req.query;
       const shouldSetCookie = set_cookie === "true";
-      const manualRegionId = region_id ? parseInt(region_id) : null;
+      const manualRegionId = region_id ? region_id : null;
 
       // 🧪 ТЕСТОВЫЙ РЕЖИМ - берем IP из параметра
       if (test_ip) {
@@ -1389,7 +1389,7 @@ const LocationController = {
       }
       // 2. ПРИОРИТЕТ: Регион из куки
       else if (req.cookies["region-id"]) {
-        const regionIdFromCookie = parseInt(req.cookies["region-id"]);
+        const regionIdFromCookie = req.cookies["region-id"];
         console.log(`🍪 REGION FROM COOKIE: ${regionIdFromCookie}`);
 
         cityRecord = await prisma.city.findUnique({
@@ -1509,7 +1509,7 @@ const LocationController = {
       if (shouldSetCookie) {
         const isDevelopment = process.env.NODE_ENV === "development";
 
-        res.cookie("region-id", cityRecord.id.toString(), {
+        res.cookie("region-id", cityRecord.id, {
           maxAge: 365 * 24 * 60 * 60 * 1000, // 1 год
           httpOnly: true,
           secure: !isDevelopment, // false в development, true в production
