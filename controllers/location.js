@@ -1520,7 +1520,12 @@ const LocationController = {
       }
 
       // ✅ ВОЗВРАЩАЕМ РЕЗУЛЬТАТ
-      console.log("✅ Final region:", cityRecord.title);
+      console.log("✅ Final region:", {
+        id: cityRecord.id,
+        title: cityRecord.title,
+        slug: cityRecord.slug,
+        region_name_dative: cityRecord.region_name_dative,
+      });
       return res.json(cityRecord); // Включая region_name_dative и slug!
     } catch (e) {
       console.error("detectUserRegion error:", e.message, e.stack);
