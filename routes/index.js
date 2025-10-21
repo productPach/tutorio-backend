@@ -640,6 +640,12 @@ router.get(
 // Роуты для городов, областей, локаций города и областей
 router.post("/cities", authenticateToken, LocationController.createCity);
 router.post(
+  "/cities/bulk",
+  authenticateToken,
+  isAdmin,
+  LocationController.createCitiesBulk
+);
+router.post(
   "/districts/:cityId",
   authenticateToken,
   LocationController.createDistrict
@@ -671,6 +677,14 @@ router.post(
 );
 router.get("/cities", LocationController.getAllCity);
 router.get("/city/:id", LocationController.getCityById);
+
+router.put(
+  "/cities/bulk",
+  authenticateToken,
+  isAdmin,
+  LocationController.updateCitiesBulk
+);
+
 router.put("/city/:id", authenticateToken, LocationController.updateCityById);
 router.put(
   "/district/:id",

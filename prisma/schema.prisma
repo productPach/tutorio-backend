@@ -347,13 +347,15 @@ model UserWelcomeScreen {
 }
 
 model City {
-  id             String         @id @default(auto()) @map("_id") @db.ObjectId
-  title          String         @unique
-  area           String
-  shortTitle     String
-  metros         Metro[]
-  districts      District[]
-  regionalCities RegionalCity[]
+  id                 String         @id @default(auto()) @map("_id") @db.ObjectId
+  title              String         @unique
+  area               String
+  shortTitle         String
+  region_name_dative String? // Название региона в дательном падаже для мета-тегов
+  slug               String?        @unique
+  metros             Metro[]
+  districts          District[]
+  regionalCities     RegionalCity[]
 }
 
 model District {
