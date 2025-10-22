@@ -1515,6 +1515,7 @@ const LocationController = {
           secure: !isDevelopment, // false в development, true в production
           sameSite: "lax",
           domain: isDevelopment ? "localhost" : ".dev-tutorio.ru",
+          path: "/",
         });
         console.log("🍪 Cookie set:", cityRecord.id);
       }
