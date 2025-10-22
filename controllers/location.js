@@ -1511,7 +1511,7 @@ const LocationController = {
 
         res.cookie("region-id", cityRecord.id, {
           maxAge: 365 * 24 * 60 * 60 * 1000, // 1 год
-          httpOnly: true,
+          httpOnly: false,
           secure: !isDevelopment, // false в development, true в production
           sameSite: "lax",
           domain: isDevelopment ? "localhost" : ".dev-tutorio.ru",
