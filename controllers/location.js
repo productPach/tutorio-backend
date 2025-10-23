@@ -1,6 +1,7 @@
 const { prisma } = require("../prisma/prisma-client");
 const path = require("path");
 const ip2location = require("ip2location-nodejs");
+const { title } = require("process");
 
 const LocationController = {
   // Добавление нового города
@@ -256,6 +257,36 @@ const LocationController = {
       res.status(200).json(city);
     } catch (error) {
       console.error("Ошибка при получении города по ID:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Получение города по Slug (префикс в урл)
+  getCityBySlug: async (req, res) => {
+    const { slug } = req.params;
+
+    if (!slug) {
+      return res
+        .status(400)
+        .json({ error: "Slug города является обязательным полем" });
+    }
+
+    try {
+      const city = await prisma.city.findUnique({
+        where: { slug },
+        // select: {
+        //   title: true,
+        //   region_name_dative: true,
+        // },
+      });
+
+      if (!city) {
+        return res.status(404).json({ error: "Город не найден" });
+      }
+
+      res.status(200).json(city);
+    } catch (error) {
+      console.error("Ошибка при получении города по Slug:", error);
       res.status(500).json({ error: "Внутренняя ошибка сервера" });
     }
   },
@@ -1269,267 +1300,406 @@ const LocationController = {
   //   }
   // },
 
+  // Вариант с кукой
+  // detectUserRegion: async (req, res) => {
+  //   try {
+  //     console.log("=== detectUserRegion START ===");
+  //     console.log("Query params:", req.query);
+
+  //     const { set_cookie, region_id, test_ip } = req.query;
+  //     const shouldSetCookie = set_cookie === "true";
+  //     const manualRegionId = region_id ? region_id : null;
+
+  //     // 🧪 ТЕСТОВЫЙ РЕЖИМ - берем IP из параметра
+  //     if (test_ip) {
+  //       console.log("🧪 TEST MODE activated with IP:", test_ip);
+  //       const cleanIp = test_ip;
+
+  //       // Дальше твой обычный код, но с test IP
+  //       const ipv4BinPath = path.join(
+  //         __dirname,
+  //         "data",
+  //         "ip2location",
+  //         "IP2LOCATION-LITE-DB3.BIN"
+  //       );
+  //       const ipv6BinPath = path.join(
+  //         __dirname,
+  //         "data",
+  //         "ip2location",
+  //         "IP2LOCATION-LITE-DB3.IPV6.BIN"
+  //       );
+
+  //       const ip2loc4 = new ip2location.IP2Location();
+  //       const ip2loc6 = new ip2location.IP2Location();
+
+  //       ip2loc4.open(ipv4BinPath);
+  //       ip2loc6.open(ipv6BinPath);
+
+  //       const geo = cleanIp.includes(":")
+  //         ? ip2loc6.getAll(cleanIp)
+  //         : ip2loc4.getAll(cleanIp);
+  //       console.log("🧪 Geo info:", geo);
+
+  //       if (
+  //         !geo ||
+  //         (geo.countryLong !== "Russian Federation" &&
+  //           geo.countryLong !== "Russia")
+  //       ) {
+  //         return res.status(404).json({
+  //           error: "Регион не найден (не РФ)",
+  //           testIp: cleanIp,
+  //           country: geo?.countryLong,
+  //         });
+  //       }
+
+  //       const regionEn = (geo.region || "").trim();
+  //       if (!regionEn) {
+  //         return res
+  //           .status(404)
+  //           .json({ error: "Регион не определён в BIN", testIp: cleanIp });
+  //       }
+
+  //       const regionMap = require(path.join(
+  //         __dirname,
+  //         "data",
+  //         "ip2location",
+  //         "regionMapEnToRu.json"
+  //       ));
+  //       const regionRu = regionMap[regionEn] || regionEn;
+  //       console.log(`🧪 regionEn = ${regionEn}, regionRu = ${regionRu}`);
+
+  //       const cityRecord = await prisma.city.findFirst({
+  //         where: {
+  //           OR: [
+  //             { title: { equals: regionRu, mode: "insensitive" } },
+  //             { area: { equals: regionRu, mode: "insensitive" } },
+  //           ],
+  //         },
+  //       });
+
+  //       if (!cityRecord) {
+  //         return res.status(404).json({
+  //           error: "Регион не найден в базе",
+  //           regionEn,
+  //           regionRu,
+  //           testIp: cleanIp,
+  //         });
+  //       }
+
+  //       // Устанавливаем куку если нужно (для тестового режима)
+  //       if (shouldSetCookie) {
+  //         res.cookie("region-id", cityRecord.id.toString(), {
+  //           maxAge: 365 * 24 * 60 * 60 * 1000, // 1 год
+  //           httpOnly: true,
+  //           secure: process.env.NODE_ENV === "production",
+  //           sameSite: "lax",
+  //         });
+  //         console.log("🧪 Cookie set for test mode:", cityRecord.id);
+  //       }
+
+  //       return res.json({ ...cityRecord, _test: true, testIp: cleanIp });
+  //     }
+
+  //     // 🔄 НОВАЯ ЛОГИКА ПРИОРИТЕТОВ
+
+  //     let cityRecord;
+
+  //     // 1. ПРИОРИТЕТ: Ручной выбор региона (region_id из query)
+  //     if (manualRegionId) {
+  //       console.log(`🎯 MANUAL REGION SELECTION: ${manualRegionId}`);
+  //       cityRecord = await prisma.city.findUnique({
+  //         where: { id: manualRegionId },
+  //       });
+
+  //       if (!cityRecord) {
+  //         return res.status(404).json({
+  //           error: "Указанный регион не найден в базе",
+  //           region_id: manualRegionId,
+  //         });
+  //       }
+  //       console.log(`🎯 Manual region found: ${cityRecord.title}`);
+  //     }
+  //     // 2. ПРИОРИТЕТ: Регион из куки
+  //     else if (req.cookies["region-id"]) {
+  //       const regionIdFromCookie = req.cookies["region-id"];
+  //       console.log(`🍪 REGION FROM COOKIE: ${regionIdFromCookie}`);
+
+  //       cityRecord = await prisma.city.findUnique({
+  //         where: { id: regionIdFromCookie },
+  //       });
+
+  //       if (cityRecord) {
+  //         console.log(`🍪 Region from cookie found: ${cityRecord.title}`);
+  //       } else {
+  //         console.log(`🍪 Region from cookie not found, falling back to IP`);
+  //         // Если региона из куки нет в базе - продолжаем определение по IP
+  //       }
+  //     }
+
+  //     // 3. ПРИОРИТЕТ: Определение по IP (если не нашли выше)
+  //     if (!cityRecord) {
+  //       console.log("📍 DETERMINING REGION BY IP");
+
+  //       // Получаем РЕАЛЬНЫЙ IP пользователя через заголовки
+  //       let ip =
+  //         req.headers["x-real-ip"] ||
+  //         req.headers["x-forwarded-for"]?.split(",")[0] ||
+  //         req.connection?.remoteAddress ||
+  //         req.socket?.remoteAddress;
+
+  //       console.log("All headers:", req.headers);
+  //       console.log("Raw IP from request:", ip);
+
+  //       // Безопасная проверка на внутренние IP
+  //       const isInternalIp = (ip) => {
+  //         if (!ip) return true;
+  //         return (
+  //           ip === "::1" ||
+  //           ip === "127.0.0.1" ||
+  //           ip.startsWith("172.") ||
+  //           ip.startsWith("10.") ||
+  //           ip.startsWith("192.168.")
+  //         );
+  //       };
+
+  //       const cleanIp = isInternalIp(ip) ? "5.167.255.255" : ip;
+  //       console.log("IP from request:", ip);
+  //       console.log("Clean IP:", cleanIp);
+
+  //       // Путь к BIN файлам
+  //       const ipv4BinPath = path.join(
+  //         __dirname,
+  //         "data",
+  //         "ip2location",
+  //         "IP2LOCATION-LITE-DB3.BIN"
+  //       );
+  //       const ipv6BinPath = path.join(
+  //         __dirname,
+  //         "data",
+  //         "ip2location",
+  //         "IP2LOCATION-LITE-DB3.IPV6.BIN"
+  //       );
+  //       console.log("IPv4 BIN path:", ipv4BinPath);
+  //       console.log("IPv6 BIN path:", ipv6BinPath);
+
+  //       // Создаём объекты IP2Location
+  //       const ip2loc4 = new ip2location.IP2Location();
+  //       const ip2loc6 = new ip2location.IP2Location();
+
+  //       // Открываем BIN файлы
+  //       ip2loc4.open(ipv4BinPath);
+  //       console.log("IPv4 BIN opened");
+  //       ip2loc6.open(ipv6BinPath);
+  //       console.log("IPv6 BIN opened");
+
+  //       // Определяем гео через IP2Location
+  //       const geo = cleanIp.includes(":")
+  //         ? ip2loc6.getAll(cleanIp)
+  //         : ip2loc4.getAll(cleanIp);
+  //       console.log("Geo info:", geo);
+
+  //       if (!geo || geo.countryLong !== "Russian Federation") {
+  //         return res.status(404).json({ error: "Регион не найден (не РФ)" });
+  //       }
+
+  //       const regionEn = (geo.region || "").trim();
+  //       if (!regionEn) {
+  //         return res.status(404).json({ error: "Регион не определён в BIN" });
+  //       }
+
+  //       // JSON-маппинг в русские названия
+  //       const regionMap = require(path.join(
+  //         __dirname,
+  //         "data",
+  //         "ip2location",
+  //         "regionMapEnToRu.json"
+  //       ));
+  //       const regionRu = regionMap[regionEn] || regionEn;
+  //       console.log(`regionEn = ${regionEn}`);
+  //       console.log(`regionRu = ${regionRu}`);
+
+  //       // Ищем в базе
+  //       cityRecord = await prisma.city.findFirst({
+  //         where: {
+  //           OR: [
+  //             { title: { equals: regionRu, mode: "insensitive" } },
+  //             { area: { equals: regionRu, mode: "insensitive" } },
+  //           ],
+  //         },
+  //       });
+
+  //       if (!cityRecord) {
+  //         return res.status(404).json({
+  //           error: "Регион не найден в базе",
+  //           regionEn,
+  //           regionRu,
+  //         });
+  //       }
+  //     }
+
+  //     // 🍪 УСТАНОВКА КУКИ (если запрошено)
+  //     if (shouldSetCookie) {
+  //       const isDevelopment = process.env.NODE_ENV === "development";
+
+  //       res.cookie("region-id", cityRecord.id, {
+  //         maxAge: 365 * 24 * 60 * 60 * 1000, // 1 год
+  //         httpOnly: true,
+  //         secure: !isDevelopment, // false в development, true в production
+  //         sameSite: "lax",
+  //         domain: isDevelopment ? "localhost" : ".dev-tutorio.ru",
+  //         path: "/",
+  //       });
+  //       console.log("🍪 Cookie set:", cityRecord.id);
+  //     }
+
+  //     // ✅ ВОЗВРАЩАЕМ РЕЗУЛЬТАТ
+  //     console.log("✅ Final region:", {
+  //       id: cityRecord.id,
+  //       title: cityRecord.title,
+  //       slug: cityRecord.slug,
+  //       region_name_dative: cityRecord.region_name_dative,
+  //     });
+  //     return res.json(cityRecord); // Включая region_name_dative и slug!
+  //   } catch (e) {
+  //     console.error("detectUserRegion error:", e.message, e.stack);
+  //     res.status(500).json({ error: "Ошибка при определении региона" });
+  //   }
+  // },
+
+  // Новая логика. Кука на фронте. Если не совпадает регион, возвращаем флаг
+
   detectUserRegion: async (req, res) => {
     try {
+      // === Существующий лог — начало
       console.log("=== detectUserRegion START ===");
-      console.log("Query params:", req.query);
 
-      const { set_cookie, region_id, test_ip } = req.query;
-      const shouldSetCookie = set_cookie === "true";
-      const manualRegionId = region_id ? region_id : null;
+      // Берём slug (текущий слаг с фронта), и test_ip для тестов
+      // Пример запроса: /api/region?slug=spb
+      let { test_ip, slug: currentSlug = "" } = req.query;
 
-      // 🧪 ТЕСТОВЫЙ РЕЖИМ - берем IP из параметра
-      if (test_ip) {
-        console.log("🧪 TEST MODE activated with IP:", test_ip);
-        const cleanIp = test_ip;
-
-        // Дальше твой обычный код, но с test IP
-        const ipv4BinPath = path.join(
-          __dirname,
-          "data",
-          "ip2location",
-          "IP2LOCATION-LITE-DB3.BIN"
-        );
-        const ipv6BinPath = path.join(
-          __dirname,
-          "data",
-          "ip2location",
-          "IP2LOCATION-LITE-DB3.IPV6.BIN"
-        );
-
-        const ip2loc4 = new ip2location.IP2Location();
-        const ip2loc6 = new ip2location.IP2Location();
-
-        ip2loc4.open(ipv4BinPath);
-        ip2loc6.open(ipv6BinPath);
-
-        const geo = cleanIp.includes(":")
-          ? ip2loc6.getAll(cleanIp)
-          : ip2loc4.getAll(cleanIp);
-        console.log("🧪 Geo info:", geo);
-
-        if (
-          !geo ||
-          (geo.countryLong !== "Russian Federation" &&
-            geo.countryLong !== "Russia")
-        ) {
-          return res.status(404).json({
-            error: "Регион не найден (не РФ)",
-            testIp: cleanIp,
-            country: geo?.countryLong,
-          });
-        }
-
-        const regionEn = (geo.region || "").trim();
-        if (!regionEn) {
-          return res
-            .status(404)
-            .json({ error: "Регион не определён в BIN", testIp: cleanIp });
-        }
-
-        const regionMap = require(path.join(
-          __dirname,
-          "data",
-          "ip2location",
-          "regionMapEnToRu.json"
-        ));
-        const regionRu = regionMap[regionEn] || regionEn;
-        console.log(`🧪 regionEn = ${regionEn}, regionRu = ${regionRu}`);
-
-        const cityRecord = await prisma.city.findFirst({
-          where: {
-            OR: [
-              { title: { equals: regionRu, mode: "insensitive" } },
-              { area: { equals: regionRu, mode: "insensitive" } },
-            ],
-          },
-        });
-
-        if (!cityRecord) {
-          return res.status(404).json({
-            error: "Регион не найден в базе",
-            regionEn,
-            regionRu,
-            testIp: cleanIp,
-          });
-        }
-
-        // Устанавливаем куку если нужно (для тестового режима)
-        if (shouldSetCookie) {
-          res.cookie("region-id", cityRecord.id.toString(), {
-            maxAge: 365 * 24 * 60 * 60 * 1000, // 1 год
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-          });
-          console.log("🧪 Cookie set for test mode:", cityRecord.id);
-        }
-
-        return res.json({ ...cityRecord, _test: true, testIp: cleanIp });
+      // 🔹 Если slug не передан (например dev-tutorio.ru/), то по умолчанию это Москва
+      if (!currentSlug || currentSlug.trim() === "") {
+        currentSlug = "msk";
       }
 
-      // 🔄 НОВАЯ ЛОГИКА ПРИОРИТЕТОВ
-
-      let cityRecord;
-
-      // 1. ПРИОРИТЕТ: Ручной выбор региона (region_id из query)
-      if (manualRegionId) {
-        console.log(`🎯 MANUAL REGION SELECTION: ${manualRegionId}`);
-        cityRecord = await prisma.city.findUnique({
-          where: { id: manualRegionId },
+      // --- 1) Проверка cookie: если кука есть — возвращаем регион напрямую ---
+      const cookieRegionId = req.cookies["region-id"];
+      if (cookieRegionId) {
+        const cityFromCookie = await prisma.city.findUnique({
+          where: { id: cookieRegionId },
         });
-
-        if (!cityRecord) {
-          return res.status(404).json({
-            error: "Указанный регион не найден в базе",
-            region_id: manualRegionId,
-          });
-        }
-        console.log(`🎯 Manual region found: ${cityRecord.title}`);
-      }
-      // 2. ПРИОРИТЕТ: Регион из куки
-      else if (req.cookies["region-id"]) {
-        const regionIdFromCookie = req.cookies["region-id"];
-        console.log(`🍪 REGION FROM COOKIE: ${regionIdFromCookie}`);
-
-        cityRecord = await prisma.city.findUnique({
-          where: { id: regionIdFromCookie },
-        });
-
-        if (cityRecord) {
-          console.log(`🍪 Region from cookie found: ${cityRecord.title}`);
-        } else {
-          console.log(`🍪 Region from cookie not found, falling back to IP`);
-          // Если региона из куки нет в базе - продолжаем определение по IP
+        if (cityFromCookie) {
+          // Существующий лог оставлен без изменений
+          console.log(`🍪 Регион найден в куки: ${cityFromCookie.title}`);
+          return res.json({ city: cityFromCookie, askUserConfirmation: false });
         }
       }
 
-      // 3. ПРИОРИТЕТ: Определение по IP (если не нашли выше)
-      if (!cityRecord) {
-        console.log("📍 DETERMINING REGION BY IP");
+      // --- 2) Определяем IP пользователя (или используем test_ip) ---
+      let ip =
+        test_ip ||
+        req.headers["x-real-ip"] ||
+        req.headers["x-forwarded-for"]?.split(",")[0] ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress;
 
-        // Получаем РЕАЛЬНЫЙ IP пользователя через заголовки
-        let ip =
-          req.headers["x-real-ip"] ||
-          req.headers["x-forwarded-for"]?.split(",")[0] ||
-          req.connection?.remoteAddress ||
-          req.socket?.remoteAddress;
+      // Существующий лог — показываем headers и raw IP как раньше
+      console.log("All headers:", req.headers);
+      console.log("Raw IP from request:", ip);
 
-        console.log("All headers:", req.headers);
-        console.log("Raw IP from request:", ip);
+      // Внутренние IP заменяем на публичный пример
+      const isInternalIp = (ip) =>
+        !ip ||
+        ip === "::1" ||
+        ip === "127.0.0.1" ||
+        ip.startsWith("172.") ||
+        ip.startsWith("10.") ||
+        ip.startsWith("192.168.");
+      const cleanIp = isInternalIp(ip) ? "5.167.255.255" : ip;
 
-        // Безопасная проверка на внутренние IP
-        const isInternalIp = (ip) => {
-          if (!ip) return true;
-          return (
-            ip === "::1" ||
-            ip === "127.0.0.1" ||
-            ip.startsWith("172.") ||
-            ip.startsWith("10.") ||
-            ip.startsWith("192.168.")
-          );
-        };
+      // Существующие логи про IP
+      console.log("IP from request:", ip);
+      console.log("Clean IP:", cleanIp);
 
-        const cleanIp = isInternalIp(ip) ? "5.167.255.255" : ip;
-        console.log("IP from request:", ip);
-        console.log("Clean IP:", cleanIp);
+      // --- 3) IP2Location BIN paths и открытие баз ---
+      const ipv4BinPath = path.join(
+        __dirname,
+        "data",
+        "ip2location",
+        "IP2LOCATION-LITE-DB3.BIN"
+      );
+      const ipv6BinPath = path.join(
+        __dirname,
+        "data",
+        "ip2location",
+        "IP2LOCATION-LITE-DB3.IPV6.BIN"
+      );
 
-        // Путь к BIN файлам
-        const ipv4BinPath = path.join(
-          __dirname,
-          "data",
-          "ip2location",
-          "IP2LOCATION-LITE-DB3.BIN"
-        );
-        const ipv6BinPath = path.join(
-          __dirname,
-          "data",
-          "ip2location",
-          "IP2LOCATION-LITE-DB3.IPV6.BIN"
-        );
-        console.log("IPv4 BIN path:", ipv4BinPath);
-        console.log("IPv6 BIN path:", ipv6BinPath);
+      const ip2loc4 = new ip2location.IP2Location();
+      const ip2loc6 = new ip2location.IP2Location();
 
-        // Создаём объекты IP2Location
-        const ip2loc4 = new ip2location.IP2Location();
-        const ip2loc6 = new ip2location.IP2Location();
+      ip2loc4.open(ipv4BinPath);
+      ip2loc6.open(ipv6BinPath);
 
-        // Открываем BIN файлы
-        ip2loc4.open(ipv4BinPath);
-        console.log("IPv4 BIN opened");
-        ip2loc6.open(ipv6BinPath);
-        console.log("IPv6 BIN opened");
+      // Получаем geo
+      const geo = cleanIp.includes(":")
+        ? ip2loc6.getAll(cleanIp)
+        : ip2loc4.getAll(cleanIp);
 
-        // Определяем гео через IP2Location
-        const geo = cleanIp.includes(":")
-          ? ip2loc6.getAll(cleanIp)
-          : ip2loc4.getAll(cleanIp);
-        console.log("Geo info:", geo);
-
-        if (!geo || geo.countryLong !== "Russian Federation") {
-          return res.status(404).json({ error: "Регион не найден (не РФ)" });
-        }
-
-        const regionEn = (geo.region || "").trim();
-        if (!regionEn) {
-          return res.status(404).json({ error: "Регион не определён в BIN" });
-        }
-
-        // JSON-маппинг в русские названия
-        const regionMap = require(path.join(
-          __dirname,
-          "data",
-          "ip2location",
-          "regionMapEnToRu.json"
-        ));
-        const regionRu = regionMap[regionEn] || regionEn;
-        console.log(`regionEn = ${regionEn}`);
-        console.log(`regionRu = ${regionRu}`);
-
-        // Ищем в базе
-        cityRecord = await prisma.city.findFirst({
-          where: {
-            OR: [
-              { title: { equals: regionRu, mode: "insensitive" } },
-              { area: { equals: regionRu, mode: "insensitive" } },
-            ],
-          },
-        });
-
-        if (!cityRecord) {
-          return res.status(404).json({
-            error: "Регион не найден в базе",
-            regionEn,
-            regionRu,
-          });
-        }
+      if (!geo || geo.countryLong !== "Russian Federation") {
+        return res.status(404).json({ error: "Регион не найден (не РФ)" });
       }
 
-      // 🍪 УСТАНОВКА КУКИ (если запрошено)
-      if (shouldSetCookie) {
-        const isDevelopment = process.env.NODE_ENV === "development";
+      // --- 4) Маппинг region EN → RU ---
+      const regionMap = require(path.join(
+        __dirname,
+        "data",
+        "ip2location",
+        "regionMapEnToRu.json"
+      ));
+      const regionEn = (geo.region || "").trim();
+      const regionRu = regionMap[regionEn] || regionEn;
 
-        res.cookie("region-id", cityRecord.id, {
-          maxAge: 365 * 24 * 60 * 60 * 1000, // 1 год
-          httpOnly: false,
-          secure: !isDevelopment, // false в development, true в production
-          sameSite: "lax",
-          domain: isDevelopment ? "localhost" : ".dev-tutorio.ru",
-          path: "/",
-        });
-        console.log("🍪 Cookie set:", cityRecord.id);
-      }
+      // Существующие логи
+      console.log(`regionEn = ${regionEn}`);
+      console.log(`regionRu = ${regionRu}`);
 
-      // ✅ ВОЗВРАЩАЕМ РЕЗУЛЬТАТ
-      console.log("✅ Final region:", {
-        id: cityRecord.id,
-        title: cityRecord.title,
-        slug: cityRecord.slug,
-        region_name_dative: cityRecord.region_name_dative,
+      // --- 5) Поиск в БД (title или area) ---
+      const cityRecord = await prisma.city.findFirst({
+        where: {
+          OR: [
+            { title: { equals: regionRu, mode: "insensitive" } },
+            { area: { equals: regionRu, mode: "insensitive" } },
+          ],
+        },
       });
-      return res.json(cityRecord); // Включая region_name_dative и slug!
+
+      if (!cityRecord) {
+        return res
+          .status(404)
+          .json({ error: "Регион не найден в базе", regionEn, regionRu });
+      }
+
+      // === НОВАЯ ЛОГИКА СРАВНЕНИЯ SLUG — логами с эмодзи
+      console.log(
+        "🆕 New logic: comparing detected region slug with provided slug from front"
+      );
+      console.log(
+        `🔎 Detected slug: ${cityRecord.slug}, provided slug: "${currentSlug}"`
+      );
+
+      // Если пользователь передал slug из фронта:
+      // - если provided slug пустой ("/"), то currentSlug === ""
+      // - askUserConfirmation = true только если detected.slug !== providedSlug AND providedSlug !== ""
+      const askUserConfirmation =
+        cityRecord.slug !== currentSlug && currentSlug !== "";
+
+      console.log(`✅ askUserConfirmation = ${askUserConfirmation}`);
+
+      // --- Возвращаем результат (как раньше) ---
+      return res.json({ city: cityRecord, askUserConfirmation });
     } catch (e) {
-      console.error("detectUserRegion error:", e.message, e.stack);
+      console.error("detectUserRegion error:", e);
       res.status(500).json({ error: "Ошибка при определении региона" });
     }
   },

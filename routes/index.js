@@ -677,6 +677,7 @@ router.post(
 );
 router.get("/cities", LocationController.getAllCity);
 router.get("/city/:id", LocationController.getCityById);
+router.get("/city-slug/:slug", LocationController.getCityBySlug);
 
 router.put(
   "/cities/bulk",
