@@ -993,4 +993,7 @@ router.get(
   LandingController.getCategoryWithTutor
 );
 
+// === Получение репетиторов с фильтрацией по региону и предмету ===
+router.get("/landing/turors", LandingController.getTutorsByFilters);
+
 module.exports = router;
