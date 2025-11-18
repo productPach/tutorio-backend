@@ -105,7 +105,7 @@ model Tutor {
   subjectComments           Json                @default("[]")
   region                    String?
   regionSlug                String?
-  tutorPlace                String[]            @default([])
+  tutorPlace                String[]            @default([]) // 1 - Дистанционно, 2 - У репетитора, 3 - Выезд к ученику
   tutorAdress               String?
   tutorHomeLoc              String[]            @default([])
   tutorTrip                 String[]            @default([])
