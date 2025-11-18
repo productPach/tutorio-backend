@@ -987,6 +987,13 @@ router.post(
 
 // Получение предметов, по которым есть хотя бы один репетитор
 router.get("/landing/subjects", LandingController.getSubjectWithTutor);
+// Получение целей занятий для конкретного предмета и региона, по которым есть хотя бы один репетитор
+router.get("/landing/subject-goals", LandingController.getGoalsWithTutors);
+// Получение форматов занятий, по которым есть хотя бы один репетитор
+router.get(
+  "/landing/subject-format",
+  LandingController.getSubjectFormatsAvailability
+);
 // Получение категорий, по которым есть хотя бы один репетитор
 router.get(
   "/landing/subject/:for_chpu",

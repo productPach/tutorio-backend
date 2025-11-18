@@ -6,7 +6,7 @@ services:
       - "3000:3000"
     depends_on:
       - tutorio-mongodb
-      # - tutorio-app
+      - tutorio-app
     environment:
       DATABASE_URL: "mongodb://tutorioAdmin:sm8_NhGsqKCuqxUo6Mrv@tutorio-mongodb:27017/mydatabase?authSource=admin&directConnection=true"
     volumes:
