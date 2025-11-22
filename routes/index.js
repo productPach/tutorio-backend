@@ -720,6 +720,10 @@ router.post(
   SubjectController.createSubject
 );
 router.get("/subjects", SubjectController.getAllSubjects);
+router.get(
+  "/subjectsNoGoalsCategory",
+  SubjectController.getAllSubjectsNoGoalsCategory
+);
 router.get("/subjects/:id", SubjectController.getSubjectById);
 
 // Наполнение полей goalCategoryId, goal_id и nextPage для предметов

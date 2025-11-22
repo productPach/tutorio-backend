@@ -28,8 +28,8 @@ const SubjectController = {
           !id_cat ||
           general === undefined ||
           !nextPage ||
-          !id_p ||
-          !goalCategoryId
+          !id_p
+          //!goalCategoryId
           // !goal_id
         ) {
           return res.status(400).json({
@@ -89,6 +89,30 @@ const SubjectController = {
   getAllSubjects: async (req, res) => {
     try {
       const subjects = await prisma.subject.findMany();
+      res.status(200).json(subjects);
+    } catch (error) {
+      console.error("Ошибка при получении списка предметов:", error);
+      res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
+  },
+
+  // Получение всех предметов без категории целей
+  getAllSubjectsNoGoalsCategory: async (req, res) => {
+    try {
+      const subjects = await prisma.subject.findMany({
+        select: {
+          id: true,
+          title: true,
+          for_request: true,
+          for_chpu: true,
+          id_cat: true,
+          general: true,
+          nextPage: true,
+          id_p: true,
+          goal_id: true,
+          // goalCategoryId: false  // исключаем это поле
+        },
+      });
       res.status(200).json(subjects);
     } catch (error) {
       console.error("Ошибка при получении списка предметов:", error);
