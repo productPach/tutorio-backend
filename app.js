@@ -23,12 +23,20 @@ const io = new Server(server, {
     origin: [
       "http://localhost:3001",
       "http://localhost:3002",
+
       "http://51.250.20.10",
       "http://dev-tutorio.ru",
       "http://www.dev-tutorio.ru",
       "https://dev-tutorio.ru",
       "https://www.dev-tutorio.ru",
       "https://dashboard.dev-tutorio.ru",
+
+      "http://158.160.88.80",
+      "http://tutorio.ru",
+      "http://www.tutorio.ru",
+      "https://tutorio.ru",
+      "https://www.tutorio.ru",
+      "https://dashboard.tutorio.ru",
     ], // Разрешаем эти домены
     credentials: true, // Разрешаем передавать авторизационные заголовки и куки
     methods: ["GET", "POST"], // Разрешаем эти HTTP-методы
@@ -47,11 +55,19 @@ app.use(
       "http://localhost:3001",
       "http://localhost:3002",
       "http://51.250.20.10",
+
       "http://dev-tutorio.ru",
       "http://www.dev-tutorio.ru",
       "https://dev-tutorio.ru",
       "https://www.dev-tutorio.ru",
       "https://dashboard.dev-tutorio.ru",
+
+      "http://158.160.88.80",
+      "http://tutorio.ru",
+      "http://www.tutorio.ru",
+      "https://tutorio.ru",
+      "https://www.tutorio.ru",
+      "https://dashboard.tutorio.ru",
     ], // Разрешаем эти домены
     credentials: true, // Разрешаем передавать авторизационные заголовки и куки
     methods: ["GET", "POST", "PATCH", "PUT", "DELETE"], // Добавляем метод PATCH
