@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
+  //url      = env("DATABASE_URL") в призма 6-7 не поддерживается
 }
 
 model RefreshToken {
@@ -465,7 +465,7 @@ model Subject {
   general     Boolean
   nextPage    String
   id_p        String  @unique
-  goal_id     String // надо будет удалить
+  goal_id     String? // надо будет удалить
 
   // связь с категорией целей
   goalCategoryId String?       @db.ObjectId
