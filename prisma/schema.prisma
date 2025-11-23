@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  //url      = env("DATABASE_URL") в призма 6-7 не поддерживается
+  url      = env("DATABASE_URL")
 }
 
 model RefreshToken {
