@@ -15,6 +15,7 @@ const NotificationController = require("./notification");
 const GoalController = require("./goal");
 const SmsController = require("./sms");
 const LandingController = require("./landing");
+const PaymentController = require("./payment");
 
 module.exports = {
   UserController,
@@ -34,4 +35,5 @@ module.exports = {
   GoalController,
   SmsController,
   LandingController,
+  PaymentController,
 };

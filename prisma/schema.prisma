@@ -30,17 +30,21 @@ model RefreshToken {
 }
 
 model User {
-  id              String              @id @default(auto()) @map("_id") @db.ObjectId
-  phone           String              @unique
-  password        String
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  student         Student?
-  tutor           Tutor?
-  employee        Employee?
-  refreshTokens   RefreshToken[] // один пользователь — много токенов
-  welcomeState    UserWelcomeScreen[]
-  deletedRequests DeletedRequest[]    @relation("UserToDeletedRequest")
+  id                  String               @id @default(auto()) @map("_id") @db.ObjectId
+  phone               String               @unique
+  password            String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  student             Student?
+  tutor               Tutor?
+  employee            Employee?
+  refreshTokens       RefreshToken[] // один пользователь — много токенов
+  welcomeState        UserWelcomeScreen[]
+  deletedRequests     DeletedRequest[]     @relation("UserToDeletedRequest")
+  status              String               @default("active") // active, blocked, deleted
+  userBalance         UserBalance?
+  balanceTransactions BalanceTransaction[]
+  payments            Payment[]
 }
 
 model SmsVerification {
@@ -507,4 +511,45 @@ model Review {
   updatedAt  DateTime @updatedAt
 
   comments Comment[] @relation("ReviewComments")
+}
+
+model UserBalance {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  balance   Int      @default(0) // баланс в копейках
+  updatedAt DateTime @updatedAt
+
+  transactions BalanceTransaction[]
+}
+
+model BalanceTransaction {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  type   String // 'deposit', 'withdrawal', 'refund', 'service_purchase', 'payout'
+  amount Int // всегда integer копейки
+  status String // 'pending', 'success', 'failed'
+  meta   Json? // paymentId, refundId, orderId, reason и т.д.
+
+  createdAt     DateTime     @default(now())
+  userBalance   UserBalance? @relation(fields: [userBalanceId], references: [id])
+  userBalanceId String?      @db.ObjectId
+}
+
+model Payment {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  paymentId String // id платежа в ЮKassa
+  amount    Int // копейки
+  currency  String @default("RUB")
+
+  status String @default("pending") // pending | waiting_for_capture | succeeded | canceled
+  meta   Json? // orderId, productType, serviceType, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

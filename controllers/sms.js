@@ -80,7 +80,7 @@ const SmsController = {
 
       let secretCode;
 
-      if (process.env.NODE_ENV === "development" || phone === "9269811041") {
+      if (process.env.NODE_ENV === "development") {
         // Для тестового стенда
         secretCode = "1111";
         console.log(`[DEV MODE] SMS code for ${phone}: ${secretCode}`);

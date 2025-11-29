@@ -483,7 +483,16 @@ const UserController = {
     }
 
     try {
+      // ПЕРЕДЕЛАТЬ!
       await prisma.user.delete({ where: { id: req.user.userID } });
+      // Не удаляем физически! Нам нужны данные по юзеру на случай споров и разбирательств!
+      // const user = await prisma.user.update({
+      //   where: { id: req.user.userID },
+      //   data: {
+      //     status: "deleted",
+      //   },
+      // });
+
       res.send("Пользователь удален");
     } catch (error) {
       console.error("Delete User Error", error);
