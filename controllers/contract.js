@@ -1,4 +1,5 @@
 const { prisma } = require("../prisma/prisma-client");
+const { getNextSequence } = require("../services/counterId/counterId");
 
 const ContractController = {
   // Создание контракта
@@ -49,9 +50,13 @@ const ContractController = {
         return res.status(409).json({ error: "Контракт уже существует" });
       }
 
+      // Получаем актуальный номер сущности в каунтере для создания человекопонятного ID
+      const contractNumber = await getNextSequence("contract");
+
       // Создание контракта
       const newContract = await prisma.contract.create({
         data: {
+          contractNumber,
           orderId,
           tutorId,
           selectedBy,

@@ -345,6 +345,33 @@ const UserController = {
     }
   },
 
+  // Получение баланса пользователя
+  getUserBalance: async (req, res) => {
+    // Достаем айди пользователя из auth.js (jwt token)
+    const userID = req.user.userID;
+
+    try {
+      const userBalance = await prisma.userBalance.findUnique({
+        where: { userId: userID },
+        select: {
+          balance: true,
+          updatedAt: true,
+        },
+      });
+
+      // Если записи баланса нет - возвращаем 0
+      const balance = userBalance ? userBalance.balance : 0;
+
+      res.json({
+        balance,
+        updatedAt: userBalance?.updatedAt || new Date(),
+      });
+    } catch (error) {
+      console.error("Get User Balance Error", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // Изменение секретного ключа пользователя
   updSecretUser: async (req, res) => {
     const { phone, secretSMS } = req.body;
@@ -483,7 +510,16 @@ const UserController = {
     }
 
     try {
+      // ПЕРЕДЕЛАТЬ!
       await prisma.user.delete({ where: { id: req.user.userID } });
+      // Не удаляем физически! Нам нужны данные по юзеру на случай споров и разбирательств!
+      // const user = await prisma.user.update({
+      //   where: { id: req.user.userID },
+      //   data: {
+      //     status: "deleted",
+      //   },
+      // });
+
       res.send("Пользователь удален");
     } catch (error) {
       console.error("Delete User Error", error);

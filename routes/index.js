@@ -19,6 +19,7 @@ const {
   GoalController,
   SmsController,
   LandingController,
+  PaymentController,
 } = require("../controllers");
 const authenticateToken = require("../middleware/auth");
 const isAdmin = require("../middleware/isAdmin");
@@ -98,6 +99,8 @@ router.post(
 router.get("/current", authenticateToken, UserController.current);
 router.get("/users/:id", authenticateToken, UserController.getUserById);
 router.post("/users-phone", UserController.getUserByPhone);
+router.get("/users-balance", authenticateToken, UserController.getUserBalance);
+
 router.put("/users-secret", UserController.updSecretUser);
 router.put("/users/:id", authenticateToken, UserController.updateUser);
 router.delete("/users/:id", authenticateToken, UserController.deleteUser);
@@ -1006,5 +1009,32 @@ router.get(
 
 // === Получение репетиторов с фильтрацией по региону и предмету ===
 router.get("/landing/turors", LandingController.getTutorsByFilters);
+
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/*****************ПЛАТЕЖИ***************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+/***************************************** */
+
+// Создаем платеж через ЮKassa + сохраняем Payment
+router.post(
+  "/payments/create",
+  authenticateToken,
+  PaymentController.createPayment
+);
+// Ручное получение статуса платежа
+router.get("/payments/status", authenticateToken, PaymentController.status);
+// // Обработка успешного платежа
+// router.post("/payments/webhook", PaymentController.webhook);
+// Получаем историю операций пользователя
+router.get("/payments/history", authenticateToken, PaymentController.history);
+// Списание денег с баланса (например покупка отклика)
+router.post("/balance/withdraw", authenticateToken, PaymentController.withdraw);
 
 module.exports = router;

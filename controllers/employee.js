@@ -5,6 +5,7 @@ const findTutorsForOrders = require("../services/findTutorsForOrder");
 const {
   recalculateAllTutorRatings,
 } = require("../services/rating/recalculateAllTutorRatings");
+const { getNextSequence } = require("../services/counterId/counterId");
 
 const EmployeeController = {
   // Создание сотрудника
@@ -29,8 +30,12 @@ const EmployeeController = {
         });
       }
 
+      // Получаем актуальный номер сущности в каунтере для создания человекопонятного ID
+      const employeeNumber = await getNextSequence("employee");
+
       const employee = await prisma.employee.create({
         data: {
+          employeeNumber,
           userId,
           name,
           phone,

@@ -1,4 +1,5 @@
 const { prisma } = require("../prisma/prisma-client");
+const { getNextSequence } = require("../services/counterId/counterId");
 
 const ReviewController = {
   // Создание отзыва от репетитора или ученика
@@ -74,8 +75,12 @@ const ReviewController = {
         return res.status(409).json({ error: "Отзыв уже оставлен" });
       }
 
+      // Получаем актуальный номер сущности в каунтере для создания человекопонятного ID
+      const reviewNumber = await getNextSequence("review");
+
       const review = await prisma.review.create({
         data: {
+          reviewNumber,
           orderId,
           tutorId,
           studentId,

@@ -1,4 +1,5 @@
 const { prisma } = require("../prisma/prisma-client");
+const { getNextSequence } = require("../services/counterId/counterId");
 
 const OrderController = {
   // Создание заказа
@@ -56,8 +57,13 @@ const OrderController = {
           goalId = existingGoal.id;
         }
       }
+
+      // Получаем актуальный номер сущности в каунтере для создания человекопонятного ID
+      const orderNumber = await getNextSequence("order");
+
       const order = await prisma.order.create({
         data: {
+          orderNumber,
           studentId,
           subject,
           goal: goal || undefined,
