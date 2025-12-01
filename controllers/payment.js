@@ -1,6 +1,7 @@
 const { prisma } = require("../prisma/prisma-client");
 const crypto = require("crypto");
 const YooKassa = require("yookassa");
+const { getNextSequence } = require("../services/counterId/counterId");
 const yookassa = new YooKassa({
   shopId: process.env.YOOKASSA_SHOP_ID,
   secretKey: process.env.YOOKASSA_SECRET_KEY,
@@ -19,7 +20,7 @@ const PaymentController = {
 
   createPayment: async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.userID;
       const { amount } = req.body; // В КОПЕЙКАХ
 
       if (!amount || amount < 10000) {
@@ -28,10 +29,42 @@ const PaymentController = {
           .json({ error: "Минимальная сумма — 100 рублей" });
       }
 
+      // Получаем email пользователя в зависимости от роли
+      const activeRole = req.user.activeRole; // student, tutor или employee
+      let userEmail = null;
+
+      if (activeRole === "student") {
+        const student = await prisma.student.findUnique({
+          where: { userId: userId },
+          select: { email: true },
+        });
+        userEmail = student?.email;
+      } else if (activeRole === "tutor") {
+        const tutor = await prisma.tutor.findUnique({
+          where: { userId: userId },
+          select: { email: true },
+        });
+        userEmail = tutor?.email;
+      } else if (activeRole === "admin") {
+        const employee = await prisma.employee.findUnique({
+          where: { userId: userId },
+          select: { email: true },
+        });
+        userEmail = employee?.email;
+      }
+
+      if (!userEmail) {
+        return res.status(400).json({
+          error: "У пользователя не указан email в выбранной роли",
+        });
+      }
+
+      const amountInRubles = (amount / 100).toFixed(2);
+
       // Создаём платёж через ЮKassa
       const payment = await yookassa.createPayment({
         amount: {
-          value: (amount / 100).toFixed(2),
+          value: amountInRubles,
           currency: "RUB",
         },
         confirmation: {
@@ -39,6 +72,34 @@ const PaymentController = {
         },
         capture: true,
         description: `Пополнение баланса пользователя ${userId}`,
+        receipt: {
+          customer: {
+            email: userEmail,
+          },
+          items: [
+            {
+              description: "Пополнение баланса",
+              quantity: "1.00",
+              amount: {
+                value: amountInRubles,
+                currency: "RUB",
+              },
+              vat_code: 1, // Без НДС
+              payment_mode: "full_payment", // Полный расчет
+              payment_subject: "payment", // Платеж (для пополнения баланса)
+              measure: "piece", // Штука, единица товара
+            },
+          ],
+          // settlements: [
+          //   {
+          //     type: "cashless", // Безналичный расчет
+          //   },
+          // ], // Вроде как нужно только в запросе на создание чека! А в этом запросе на создание платежа ЮКасса автоматом подставит значение безначала
+          // Опционально: для интернет-платежей
+          // internet: true,
+          // Опционально: часовой пояс (например, для Москвы GMT+3)
+          // timezone: 3,
+        },
       });
 
       // Сохраняем Payment
@@ -48,8 +109,36 @@ const PaymentController = {
           paymentId: payment.id,
           amount,
           status: payment.status,
+          meta: {
+            customer: {
+              email: userEmail,
+            },
+            items: [
+              {
+                description: "Пополнение баланса",
+                quantity: "1.00",
+                amount: {
+                  value: amountInRubles,
+                  currency: "RUB",
+                },
+                vat_code: 1, // Без НДС
+                payment_mode: "full_payment", // Полный расчет
+                payment_subject: "payment", // Платеж (для пополнения баланса)
+                measure: "piece", // Штука, единица товара
+              },
+            ],
+            // Опционально: для интернет-платежей
+            // internet: true,
+            // Опционально: часовой пояс (например, для Москвы GMT+3)
+            // timezone: 3,
+          },
         },
       });
+
+      // Получаем актуальный номер сущности в каунтере для создания человекопонятного ID
+      const balanceTransactionNumber = await getNextSequence(
+        "balanceTransaction"
+      );
 
       // Создаём pending транзакцию
       await prisma.balanceTransaction.create({
@@ -58,7 +147,12 @@ const PaymentController = {
           type: "deposit",
           amount,
           status: "pending",
-          meta: { paymentId: payment.id },
+          balanceTransactionNumber: balanceTransactionNumber,
+          meta: {
+            paymentId: payment.id,
+            receiptEmail: userEmail,
+            reason: "Пополнение баланса",
+          },
         },
       });
 
@@ -68,6 +162,25 @@ const PaymentController = {
       });
     } catch (err) {
       console.error(err);
+
+      // Более детальная обработка ошибки
+      if (err.code === "invalid_request") {
+        let errorMessage = "Ошибка при создании платежа";
+
+        if (err.parameter === "receipt") {
+          errorMessage = "Ошибка формирования чека";
+          if (err.description) {
+            errorMessage += `: ${err.description}`;
+          }
+        }
+
+        return res.status(400).json({
+          error: errorMessage,
+          parameter: err.parameter,
+          details: err.description,
+        });
+      }
+
       return res.status(500).json({ error: "Ошибка при создании платежа" });
     }
   },
@@ -96,69 +209,231 @@ const PaymentController = {
   // Обновляем её на success
   // Пополняем UserBalance атомарно (транзакцией Prisma)
 
+  // webhook: async (req, res) => {
+  //   try {
+  //     console.log("Webhook получен, заголовки:", req.headers);
+
+  //     const bodyBuffer = req.body;
+  //     const event = JSON.parse(bodyBuffer.toString("utf-8"));
+  //     console.log("Webhook event:", event);
+
+  //     if (event.event !== "payment.succeeded") {
+  //       console.log("Ignoring event:", event.event);
+  //       return res.status(200).send("ignored");
+  //     }
+
+  //     const p = event.object;
+
+  //     // --- Находим Payment ---
+  //     const dbPayment = await prisma.payment.findUnique({
+  //       where: { paymentId: p.id },
+  //     });
+
+  //     if (!dbPayment) {
+  //       console.warn("Payment not found:", p.id);
+  //       return res.status(404).send("payment not found");
+  //     }
+
+  //     if (dbPayment.status === "succeeded") {
+  //       console.log("Payment already processed:", p.id);
+  //       return res.status(200).send("already processed");
+  //     }
+
+  //     // --- Находим связанные транзакции ---
+  //     const transactions = await prisma.balanceTransaction.findMany({
+  //       where: {
+  //         userId: dbPayment.userId,
+  //         type: "deposit",
+  //       },
+  //     });
+
+  //     const targetTransactionIds = transactions
+  //       .filter((t) => t.meta?.paymentId === p.id)
+  //       .map((t) => t.id);
+
+  //     // --- Атомарный апдейт ---
+  //     await prisma.$transaction([
+  //       prisma.payment.update({
+  //         where: { id: dbPayment.id },
+  //         data: {
+  //           status: "succeeded",
+  //           rawWebhook: event,
+  //           // Никакой user здесь не нужен
+  //         },
+  //       }),
+  //       prisma.balanceTransaction.updateMany({
+  //         where: { id: { in: targetTransactionIds } },
+  //         data: { status: "success" },
+  //       }),
+  //       prisma.userBalance.upsert({
+  //         where: { userId: dbPayment.userId },
+  //         update: { balance: { increment: dbPayment.amount } }, // используем int копейки
+  //         create: {
+  //           userId: dbPayment.userId,
+  //           balance: dbPayment.amount,
+  //         },
+  //       }),
+  //     ]);
+
+  //     console.log("Payment processed successfully:", p.id);
+  //     return res.status(200).send("ok");
+  //   } catch (err) {
+  //     console.error("Webhook error:", err);
+  //     return res.status(500).send("error");
+  //   }
+  // },
+
   webhook: async (req, res) => {
     try {
-      // --- 1. Проверяем подпись ---
-      const signature =
-        req.headers["x-request-id"] || req.headers["http_yookassa_signature"];
-      if (!signature) return res.status(400).send("signature missing");
+      console.log("Webhook получен, заголовки:", req.headers);
 
-      const body = JSON.stringify(req.body);
-      const hmac = crypto.createHmac("sha256", secretKey);
-      hmac.update(body);
-      const hash = hmac.digest("base64");
-
-      if (hash !== signature) {
-        console.warn("Invalid webhook signature");
-        return res.status(400).send("invalid signature");
-      }
-
-      const event = req.body;
-
-      // --- 2. Обрабатываем только успешные платежи ---
-      if (event.event !== "payment.succeeded")
-        return res.status(200).send("ignored");
+      const bodyBuffer = req.body;
+      const event = JSON.parse(bodyBuffer.toString("utf-8"));
+      console.log("Webhook event:", event.event);
 
       const p = event.object;
 
-      // --- 3. Находим Payment ---
+      // --- Находим Payment ---
       const dbPayment = await prisma.payment.findUnique({
         where: { paymentId: p.id },
       });
 
-      if (!dbPayment) return res.status(404).send("payment not found");
-
-      // --- 4. Если уже обработан — игнорируем ---
-      if (dbPayment.status === "succeeded") {
-        return res.status(200).send("already processed");
+      if (!dbPayment) {
+        console.warn("Payment not found:", p.id);
+        return res.status(404).send("payment not found");
       }
 
-      // --- 5. Атомарный апдейт через транзакцию Prisma ---
-      await prisma.$transaction([
-        // Обновляем Payment
-        prisma.payment.update({
-          where: { id: dbPayment.id },
-          data: { status: "succeeded" },
-        }),
+      // --- Обработка разных событий ---
+      if (event.event === "payment.succeeded") {
+        if (dbPayment.status === "succeeded") {
+          console.log("Payment already processed:", p.id);
+          return res.status(200).send("already processed");
+        }
 
-        // Обновляем транзакцию
-        prisma.balanceTransaction.updateMany({
+        // --- Находим связанные транзакции ---
+        const transactions = await prisma.balanceTransaction.findMany({
           where: {
             userId: dbPayment.userId,
             type: "deposit",
-            meta: { path: ["paymentId"], equals: p.id },
           },
-          data: { status: "success" },
-        }),
+        });
 
-        // Пополнение баланса пользователя
-        prisma.userBalance.update({
-          where: { userId: dbPayment.userId },
-          data: { balance: { increment: dbPayment.amount } },
-        }),
-      ]);
+        const targetTransactionIds = transactions
+          .filter((t) => t.meta?.paymentId === p.id)
+          .map((t) => t.id);
 
-      return res.status(200).send("ok");
+        // --- Атомарный апдейт ---
+        await prisma.$transaction([
+          prisma.payment.update({
+            where: { id: dbPayment.id },
+            data: {
+              status: "succeeded",
+              rawWebhook: event,
+            },
+          }),
+          prisma.balanceTransaction.updateMany({
+            where: { id: { in: targetTransactionIds } },
+            data: { status: "success" },
+          }),
+          prisma.userBalance.upsert({
+            where: { userId: dbPayment.userId },
+            update: { balance: { increment: dbPayment.amount } },
+            create: {
+              userId: dbPayment.userId,
+              balance: dbPayment.amount,
+            },
+          }),
+        ]);
+
+        console.log("Payment succeeded:", p.id);
+        return res.status(200).send("ok");
+      } else if (event.event === "payment.waiting_for_capture") {
+        // Просто обновляем статус, деньги НЕ зачисляем
+        await prisma.payment.update({
+          where: { id: dbPayment.id },
+          data: {
+            status: "waiting_for_capture",
+            rawWebhook: event,
+          },
+        });
+
+        console.log("Payment waiting for capture:", p.id);
+        return res.status(200).send("ok");
+      } else if (event.event === "payment.canceled") {
+        // Отменяем платеж и транзакции, баланс НЕ меняем
+        const transactions = await prisma.balanceTransaction.findMany({
+          where: {
+            userId: dbPayment.userId,
+            type: "deposit",
+          },
+        });
+
+        const targetTransactionIds = transactions
+          .filter((t) => t.meta?.paymentId === p.id)
+          .map((t) => t.id);
+
+        await prisma.$transaction([
+          prisma.payment.update({
+            where: { id: dbPayment.id },
+            data: {
+              status: "canceled",
+              rawWebhook: event,
+            },
+          }),
+          prisma.balanceTransaction.updateMany({
+            where: { id: { in: targetTransactionIds } },
+            data: {
+              status: "canceled",
+              meta: {
+                ...transactions.find((t) => targetTransactionIds.includes(t.id))
+                  ?.meta,
+                reasonYookassa: p.cancellation_details?.reason || null,
+              },
+            },
+          }),
+        ]);
+
+        console.log("Payment canceled:", p.id);
+        return res.status(200).send("ok");
+      } else if (event.event === "refund.succeeded") {
+        // Обработка возврата
+        await prisma.$transaction([
+          prisma.balanceTransaction.create({
+            data: {
+              userId: dbPayment.userId,
+              type: "refund",
+              amount: -p.amount.value, // отрицательная сумма
+              status: "success",
+              meta: {
+                refundId: p.id,
+                paymentId: dbPayment.paymentId,
+                reason: p.description,
+              },
+            },
+          }),
+          prisma.userBalance.upsert({
+            where: { userId: dbPayment.userId },
+            update: { balance: { decrement: p.amount.value } },
+            create: {
+              userId: dbPayment.userId,
+              balance: -p.amount.value,
+            },
+          }),
+          prisma.payment.update({
+            where: { id: dbPayment.id },
+            data: {
+              status: "refunded",
+              rawWebhook: event,
+            },
+          }),
+        ]);
+
+        console.log("Refund processed:", p.id);
+        return res.status(200).send("ok");
+      } else {
+        console.log("Ignoring event:", event.event);
+        return res.status(200).send("ignored");
+      }
     } catch (err) {
       console.error("Webhook error:", err);
       return res.status(500).send("error");
@@ -168,7 +443,7 @@ const PaymentController = {
   // Получаем историю операций пользователя
   // GET /api/payments/history
   history: async (req, res) => {
-    const userId = req.user.id;
+    const userId = req.user.userID;
 
     const transactions = await prisma.balanceTransaction.findMany({
       where: { userId },
@@ -185,10 +460,17 @@ const PaymentController = {
   // — проверяем баланс
   // — уменьшаем
   // — создаём транзакцию: type="withdrawal"
+
+  // — deposit	Пополнение баланса пользователя (например, через ЮKassa или карту)
+  // — withdrawal	Снятие денег пользователем с баланса на свой счёт/карту
+  // — refund	Возврат средств (например, отменённый заказ или отклик)
+  // — service_purchase	Покупка услуги на платформе (например, отклик репетитора, премиум-функция)
+  // — payout	Выплата репетитору или сотруднику с платформы (например, закрытый заказ или заработок)
+
   withdraw: async (req, res) => {
     try {
-      const userId = req.user.id;
-      const { amount, reason } = req.body;
+      const userId = req.user.userID;
+      const { amount, type = "service_purchase", reason } = req.body;
 
       const balance = await prisma.userBalance.findUnique({
         where: { userId },
@@ -208,7 +490,7 @@ const PaymentController = {
           data: {
             userId,
             amount,
-            type: "withdrawal",
+            type: type,
             status: "success",
             meta: { reason },
           },

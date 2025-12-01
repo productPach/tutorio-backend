@@ -1,5 +1,6 @@
 const { prisma } = require("../prisma/prisma-client");
 const jwt = require("jsonwebtoken");
+const { getNextSequence } = require("../services/counterId/counterId");
 
 const StudentController = {
   // Создание ученика
@@ -24,8 +25,12 @@ const StudentController = {
         });
       }
 
+      // Получаем актуальный номер сущности в каунтере для создания человекопонятного ID
+      const studentNumber = await getNextSequence("student");
+
       const student = await prisma.student.create({
         data: {
+          studentNumber,
           userId,
           name,
           phone,

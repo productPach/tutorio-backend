@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const findTutorsForOrdersAllDataTutor = require("../services/tutors/findTutorsForOrderAllDataTutor");
+const { getNextSequence } = require("../services/counterId/counterId");
 
 const TutorController = {
   // Создание репетитора
@@ -37,8 +38,12 @@ const TutorController = {
         });
       }
 
+      // Получаем актуальный номер сущности в каунтере для создания человекопонятного ID
+      const tutorNumber = await getNextSequence("tutor");
+
       const tutor = await prisma.tutor.create({
         data: {
+          tutorNumber,
           userId,
           name: name || undefined,
           phone,

@@ -1,5 +1,6 @@
 const { prisma } = require("../prisma/prisma-client");
 const axios = require("axios");
+const { getNextSequence } = require("../services/counterId/counterId");
 
 const MAILOPOST_API_URL = "https://api.mailopost.ru/v1";
 const API_TOKEN = "bc45c119ceb875aaa808ef2ee561c5d9";
@@ -50,8 +51,12 @@ const ChatController = {
 
       const tutorHasAccess = initiatorRole === "tutor";
 
+      // Получаем актуальный номер сущности в каунтере для создания человекопонятного ID
+      const chatNumber = await getNextSequence("chat");
+
       const newChat = await prisma.chat.create({
         data: {
+          chatNumber,
           studentId,
           tutorId,
           orderId,

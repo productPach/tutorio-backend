@@ -99,6 +99,8 @@ router.post(
 router.get("/current", authenticateToken, UserController.current);
 router.get("/users/:id", authenticateToken, UserController.getUserById);
 router.post("/users-phone", UserController.getUserByPhone);
+router.get("/users-balance", authenticateToken, UserController.getUserBalance);
+
 router.put("/users-secret", UserController.updSecretUser);
 router.put("/users/:id", authenticateToken, UserController.updateUser);
 router.delete("/users/:id", authenticateToken, UserController.deleteUser);
@@ -1028,8 +1030,8 @@ router.post(
 );
 // Ручное получение статуса платежа
 router.get("/payments/status", authenticateToken, PaymentController.status);
-// Обработка успешного платежа
-router.post("/payments/webhook", PaymentController.webhook);
+// // Обработка успешного платежа
+// router.post("/payments/webhook", PaymentController.webhook);
 // Получаем историю операций пользователя
 router.get("/payments/history", authenticateToken, PaymentController.history);
 // Списание денег с баланса (например покупка отклика)
