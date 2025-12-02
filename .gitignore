@@ -8,4 +8,4 @@ stop
 data/ip2location/IP2LOCATION-LITE-DB3.BIN
 data/ip2location/IP2LOCATION-LITE-DB3.IPV6.BIN
 docker-compose.yml
-nginx\default.conf
+nginx/default.conf
